@@ -6,7 +6,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 contract Factory is Ownable {
     uint256 public number;
 
-    constructor () Ownable(msg.sender) {}
+    constructor() Ownable(msg.sender) {}
 
     function setNumber(uint256 newNumber) public {
         number = newNumber;
