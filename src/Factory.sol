@@ -8,8 +8,8 @@ import {DummyUSDC} from "./DummyUSDC.sol";
 
 contract Factory is Ownable {
     //********** Init **********
-    DummyUSDC public USDC;
-    LendDebt public debtNFT;
+    DummyUSDC public immutable USDC;
+    LendDebt public immutable dLEND;
     uint256 public operationCount = 0;
 
     mapping(uint256 => Operation) public operations;
@@ -23,8 +23,8 @@ contract Factory is Ownable {
 
     event OperationCreated(address indexed opToken, uint256 indexed id, uint256 totalShares);
 
-    constructor(address _debtNFT, address _USDC) Ownable(msg.sender) {
-        debtNFT = LendDebt(_debtNFT);
+    constructor(address _USDC) Ownable(msg.sender) {
+        dLEND = new LendDebt();
         USDC = DummyUSDC(_USDC);
     }
     //**********************************
@@ -55,7 +55,7 @@ contract Factory is Ownable {
         string memory symbol = string(abi.encodePacked("opLEND-", operationCount));
         LendOperation newOp = new LendOperation(address(this), name, symbol, totalShares * 10 ** 18);
 
-        debtNFT.setMaxSupply(operationCount, totalShares);
+        dLEND.setMaxSupply(operationCount, totalShares);
 
         operations[operationCount] = Operation(
             address(newOp),
@@ -77,7 +77,7 @@ contract Factory is Ownable {
         require(USDC.allowance(msg.sender, address(this)) >= cost);
 
         USDC.transferFrom(msg.sender, address(this), cost);
-        debtNFT.mint(msg.sender, id, sharesAmount, "");
+        dLEND.mint(msg.sender, id, sharesAmount, "");
     }
     //**********************************
 }

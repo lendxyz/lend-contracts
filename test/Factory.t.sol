@@ -16,9 +16,8 @@ contract FactoryTest is Test {
 
         usdc.mint(msg.sender, 1_000_000 * 10 ** 6);
 
-        dLend = new LendDebt();
-        factory = new Factory(address(dLend), address(usdc));
-        dLend.transferOwnership(address(factory));
+        factory = new Factory(address(usdc));
+        dLend = LendDebt(factory.dLEND());
     }
 
     function test_CreateOperation() public {
