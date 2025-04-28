@@ -11,12 +11,15 @@ contract Factory is Ownable {
 
     mapping(uint256 => Operation) public operations;
 
+
+    event OperationCreated(address indexed opToken, uint256 indexed id, uint256 totalShares);
+
     struct Operation {
         address opToken;
-        string opName;
         uint256 totalShares;
         uint256 tokensPerShares;
         uint256 fiatPerShares;
+        string opName;
     }
 
     constructor(address _debtNFT) Ownable(msg.sender) {
@@ -28,8 +31,8 @@ contract Factory is Ownable {
         uint256 totalShares,
         uint256 tokensPerShares,
         uint256 fiatPerShares
-    ) public onlyOwner returns (address) {
-        operationCount++;
+    ) external onlyOwner returns (address) {
+        unchecked { operationCount++; }
 
         string memory name = string(abi.encodePacked("Lend Operation - ", opName));
         string memory symbol = string(abi.encodePacked("opLEND-", operationCount));
@@ -37,11 +40,13 @@ contract Factory is Ownable {
 
         operations[operationCount] = Operation(
             address(newOp),
-            name,
+            fiatPerShares,
             totalShares,
             tokensPerShares,
-            fiatPerShares
+            name
         );
+
+        emit OperationCreated(address(newOp), operationCount, totalShares);
 
         return address(newOp);
     }
