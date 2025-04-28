@@ -3,8 +3,10 @@ pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
 import {Factory} from "../src/Factory.sol";
+import {LendDebt} from "../src/dLend.sol";
 
-contract FactoryScript is Script {
+contract DeployScript is Script {
+    LendDebt public dLend;
     Factory public factory;
 
     function setUp() public {}
@@ -12,7 +14,10 @@ contract FactoryScript is Script {
     function run() public {
         vm.startBroadcast();
 
-        factory = new Factory();
+        dLend = new LendDebt(msg.sender);
+        factory = new Factory(address(dLend));
+
+        dLend.transferOwnership(address(factory));
 
         vm.stopBroadcast();
     }
