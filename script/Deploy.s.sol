@@ -14,7 +14,7 @@ contract DeployScript is Script {
     function run() public {
         vm.startBroadcast();
 
-        dLend = new LendDebt(msg.sender);
+        dLend = new LendDebt();
         factory = new Factory(address(dLend));
 
         dLend.transferOwnership(address(factory));

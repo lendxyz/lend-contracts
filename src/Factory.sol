@@ -7,12 +7,9 @@ import {LendOperation} from "./opLend.sol";
 
 contract Factory is Ownable {
     LendDebt public debtNFT;
-    uint256 public operationCount;
+    uint256 public operationCount = 0;
 
     mapping(uint256 => Operation) public operations;
-
-
-    event OperationCreated(address indexed opToken, uint256 indexed id, uint256 totalShares);
 
     struct Operation {
         address opToken;
@@ -21,6 +18,8 @@ contract Factory is Ownable {
         uint256 fiatPerShares;
         string opName;
     }
+
+    event OperationCreated(address indexed opToken, uint256 indexed id, uint256 totalShares);
 
     constructor(address _debtNFT) Ownable(msg.sender) {
         debtNFT = LendDebt(_debtNFT);
