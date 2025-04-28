@@ -9,7 +9,7 @@ import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20P
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract LendOperation is ERC20, ERC20Burnable, ERC20Pausable, Ownable, ERC1363, ERC20Permit {
-    uint256 MAX_SUPPLY;
+    uint256 public immutable MAX_SUPPLY;
 
     constructor(address initialOwner, string memory name, string memory symbol, uint256 maxSupply)
         ERC20(name, symbol)

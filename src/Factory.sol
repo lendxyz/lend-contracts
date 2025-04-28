@@ -5,6 +5,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {LendDebt} from "./dLend.sol";
 import {LendOperation} from "./opLend.sol";
 import {DummyUSDC} from "./DummyUSDC.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract Factory is Ownable {
     //********** Init **********
@@ -23,8 +24,9 @@ contract Factory is Ownable {
         string opName;
     }
 
-    event OperationCreated(address indexed opToken, uint256 indexed id, uint256 totalShares);
+    event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
     event Invested(address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought);
+    event OperationFinished(uint256 indexed operationId, uint256 indexed amountRaised);
 
     constructor(address _USDC) Ownable(msg.sender) {
         dLEND = new LendDebt();
@@ -39,12 +41,12 @@ contract Factory is Ownable {
     }
 
     function getAmountIn(uint256 operationId, uint256 sharesAmount) public view returns(uint256) {
-        return usdcToEur(operations[operationId].eurPerShares) * sharesAmount;
+        return eurToUsdc(operations[operationId].eurPerShares) * sharesAmount;
     }
 
-    function usdcToEur(uint256 usdcAmount) public pure returns(uint256) {
+    function eurToUsdc(uint256 eurAmount) public pure returns(uint256) {
         // TODO: oracle call here to get the actual quote
-        return usdcAmount;
+        return 1 * 10 ** 6 * (eurAmount / 1 * 10 ** 18);
     }
 
     function isOperationFinished(uint256 id) public view returns(bool) {
@@ -61,18 +63,17 @@ contract Factory is Ownable {
     ) external onlyOwner returns (address) {
         unchecked { operationCount++; }
 
-
         string memory name = string(abi.encodePacked("Lend Operation - ", opName));
-        string memory symbol = string(abi.encodePacked("opLEND-", operationCount));
+        string memory symbol = string(abi.encodePacked("opLEND-", Strings.toString(operationCount)));
         LendOperation newOp = new LendOperation(address(this), name, symbol, totalShares * 10 ** 18);
 
         dLEND.setMaxSupply(operationCount, totalShares);
 
         operations[operationCount] = Operation(
             address(newOp),
-            eurPerShares,
             totalShares,
-            name
+            eurPerShares,
+            opName
         );
 
         emit OperationCreated(address(newOp), operationCount, totalShares);
@@ -100,6 +101,10 @@ contract Factory is Ownable {
         dLEND.mint(msg.sender, id, sharesAmount, "");
 
         emit Invested(msg.sender, id, cost, sharesAmount);
+
+        if (fundingProgress[id] >= operations[id].totalShares) {
+            emit OperationFinished(id, operations[id].totalShares * operations[id].eurPerShares);
+        }
     }
     //**********************************
 }
