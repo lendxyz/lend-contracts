@@ -4,8 +4,11 @@ pragma solidity ^0.8.27;
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {LendDebt} from "./dLend.sol";
 import {LendOperation} from "./opLend.sol";
+import {DummyUSDC} from "./DummyUSDC.sol";
 
 contract Factory is Ownable {
+    //********** Init **********
+    DummyUSDC public USDC;
     LendDebt public debtNFT;
     uint256 public operationCount = 0;
 
@@ -14,34 +17,50 @@ contract Factory is Ownable {
     struct Operation {
         address opToken;
         uint256 totalShares;
-        uint256 tokensPerShares;
-        uint256 fiatPerShares;
+        uint256 eurPerShares;
         string opName;
     }
 
     event OperationCreated(address indexed opToken, uint256 indexed id, uint256 totalShares);
 
-    constructor(address _debtNFT) Ownable(msg.sender) {
+    constructor(address _debtNFT, address _USDC) Ownable(msg.sender) {
         debtNFT = LendDebt(_debtNFT);
+        USDC = DummyUSDC(_USDC);
+    }
+    //**********************************
+
+
+    //********** Read functions **********
+    function getOperation(uint256 id) public view returns(Operation memory) {
+        return operations[id];
     }
 
+    function usdcToEur(uint256 usdcAmount) public pure returns(uint256) {
+        // TODO: oracle call here to get the actual quote
+        return usdcAmount;
+    }
+    //**********************************
+
+
+    //********** Write functions **********
     function createOperation(
         string calldata opName,
         uint256 totalShares,
-        uint256 tokensPerShares,
-        uint256 fiatPerShares
+        uint256 eurPerShares
     ) external onlyOwner returns (address) {
         unchecked { operationCount++; }
 
+
         string memory name = string(abi.encodePacked("Lend Operation - ", opName));
         string memory symbol = string(abi.encodePacked("opLEND-", operationCount));
-        LendOperation newOp = new LendOperation(address(this), name, symbol);
+        LendOperation newOp = new LendOperation(address(this), name, symbol, totalShares * 10 ** 18);
+
+        debtNFT.setMaxSupply(operationCount, totalShares);
 
         operations[operationCount] = Operation(
             address(newOp),
-            fiatPerShares,
+            eurPerShares,
             totalShares,
-            tokensPerShares,
             name
         );
 
@@ -49,4 +68,16 @@ contract Factory is Ownable {
 
         return address(newOp);
     }
+
+    function invest(uint256 id, uint256 sharesAmount) external {
+        require(operations[id].totalShares > 0);
+        require(sharesAmount > 0);
+
+        uint256 cost = usdcToEur(operations[id].eurPerShares) * sharesAmount;
+        require(USDC.allowance(msg.sender, address(this)) >= cost);
+
+        USDC.transferFrom(msg.sender, address(this), cost);
+        debtNFT.mint(msg.sender, id, sharesAmount, "");
+    }
+    //**********************************
 }

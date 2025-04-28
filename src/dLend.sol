@@ -8,6 +8,8 @@ import {ERC1155Supply} from "@openzeppelin/contracts/token/ERC1155/extensions/ER
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract LendDebt is ERC1155, Ownable, ERC1155Pausable, ERC1155Burnable, ERC1155Supply {
+    mapping(uint256 => uint256) maxSupplyForId;
+
     constructor()
         ERC1155("https://cdn.lend.xyz/token/{id}.json")
         Ownable(msg.sender)
@@ -15,6 +17,10 @@ contract LendDebt is ERC1155, Ownable, ERC1155Pausable, ERC1155Burnable, ERC1155
 
     function setURI(string memory newuri) public onlyOwner {
         _setURI(newuri);
+    }
+
+    function setMaxSupply(uint256 id, uint256 maxSupply) public onlyOwner {
+        maxSupplyForId[id] = maxSupply;
     }
 
     function pause() public onlyOwner {
@@ -29,18 +35,11 @@ contract LendDebt is ERC1155, Ownable, ERC1155Pausable, ERC1155Burnable, ERC1155
         public
         onlyOwner
     {
+        require(totalSupply(id) + amount <= maxSupplyForId[id], "Total supply cap exceeded");
         _mint(account, id, amount, data);
     }
 
-    function mintBatch(address to, uint256[] memory ids, uint256[] memory amounts, bytes memory data)
-        public
-        onlyOwner
-    {
-        _mintBatch(to, ids, amounts, data);
-    }
-
-    // The following functions are overrides required by Solidity.
-
+    // The following function is an override required by Solidity.
     function _update(address from, address to, uint256[] memory ids, uint256[] memory values)
         internal
         override(ERC1155, ERC1155Pausable, ERC1155Supply)

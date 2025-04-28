@@ -8,13 +8,16 @@ import {ERC20Pausable} from "@openzeppelin/contracts/token/ERC20/extensions/ERC2
 import {ERC20Permit} from "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-/// @custom:security-contact hello@lend.xyz
 contract LendOperation is ERC20, ERC20Burnable, ERC20Pausable, Ownable, ERC1363, ERC20Permit {
-    constructor(address initialOwner, string memory name, string memory symbol)
+    uint256 MAX_SUPPLY;
+
+    constructor(address initialOwner, string memory name, string memory symbol, uint256 maxSupply)
         ERC20(name, symbol)
         Ownable(initialOwner)
         ERC20Permit(name)
-    {}
+    {
+        MAX_SUPPLY = maxSupply;
+    }
 
     function pause() public onlyOwner {
         _pause();
@@ -25,11 +28,15 @@ contract LendOperation is ERC20, ERC20Burnable, ERC20Pausable, Ownable, ERC1363,
     }
 
     function mint(address to, uint256 amount) public onlyOwner {
+        require(totalSupply() + amount <= MAX_SUPPLY, "Total supply cap exceeded");
         _mint(to, amount);
     }
 
-    // The following functions are overrides required by Solidity.
+    function decimals() public view virtual override returns (uint8) { 
+        return 18;
+    }
 
+    // The following function is an override required by Solidity.
     function _update(address from, address to, uint256 value)
         internal
         override(ERC20, ERC20Pausable)
