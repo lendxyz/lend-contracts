@@ -15,6 +15,10 @@ contract Factory is Ownable {
 
     mapping(uint256 => Operation) public operations;
     mapping(uint256 => uint256) public fundingProgress;
+    mapping(uint256 => uint256) public usdcRaised;
+    mapping(address => uint256) public opIdFromOpToken;
+    mapping(uint256 => bool) public usdcWithdrawn;
+    mapping(uint256 => bool) public fundingPaused;
     mapping(uint256 => bool) public operationStarted;
 
     struct Operation {
@@ -72,6 +76,7 @@ contract Factory is Ownable {
         dLEND.setMaxSupply(operationCount, totalShares);
 
         operations[operationCount] = Operation(address(newOp), totalShares, eurPerShares, opName);
+        opIdFromOpToken[address(newOp)] = operationCount;
 
         emit OperationCreated(address(newOp), operationCount, totalShares);
 
@@ -86,6 +91,8 @@ contract Factory is Ownable {
         require(id <= operationCount, "Operation does not exists");
         require(operationStarted[id] == true, "Operation is not started");
         require(fundingProgress[id] + sharesAmount <= operations[id].totalShares, "Cannot buy that many shares");
+        require(!isOperationFinished(id), "Operation is finished");
+        require(!fundingPaused[id], "Operation is paused");
         require(sharesAmount > 0, "Not enough shares");
 
         uint256 cost = getAmountIn(id, sharesAmount);
@@ -97,11 +104,26 @@ contract Factory is Ownable {
 
         dLEND.mint(msg.sender, id, sharesAmount, "");
 
+        usdcRaised[id] += cost;
+
         emit Invested(msg.sender, id, cost, sharesAmount);
 
         if (fundingProgress[id] >= operations[id].totalShares) {
             emit OperationFinished(id, operations[id].totalShares * operations[id].eurPerShares);
         }
+    }
+
+    function pauseFunding(uint256 id, bool state) external onlyOwner {
+        fundingPaused[id] = state;
+    }
+
+    function withdrawUSDC(uint256 id, address destination) external onlyOwner {
+        require(id <= operationCount, "Operation does not exists");
+        require(usdcWithdrawn[id] == false, "Already claimed USDC");
+        require(isOperationFinished(id), "Operation is not finished");
+
+        usdcWithdrawn[id] = true;
+        USDC.transfer(destination, usdcRaised[id]);
     }
     //**********************************
 }
