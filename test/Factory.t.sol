@@ -40,7 +40,7 @@ contract FactoryTest is Test {
         vm.startPrank(admin);
 
         usdc = new DummyUSDC();
-        factory = new Factory(address(usdc));
+        factory = new Factory(address(admin), address(usdc));
         dLend = LendDebt(factory.dLEND());
 
         vm.stopPrank();

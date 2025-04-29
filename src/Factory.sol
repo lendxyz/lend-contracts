@@ -30,7 +30,7 @@ contract Factory is Ownable {
     );
     event OperationFinished(uint256 indexed operationId, uint256 indexed amountRaisedEuro);
 
-    constructor(address _USDC) Ownable(msg.sender) {
+    constructor(address _admin, address _USDC) Ownable(_admin) {
         dLEND = new LendDebt();
         USDC = DummyUSDC(_USDC);
     }
