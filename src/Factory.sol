@@ -61,7 +61,7 @@ contract Factory is Ownable, ERC1155Holder {
     }
     //**********************************
 
-    //********** Write functions **********
+    //********** Operation management **********
     function createOperation(string calldata opName, uint256 totalShares, uint256 eurPerShares)
         external
         onlyOwner
@@ -89,6 +89,21 @@ contract Factory is Ownable, ERC1155Holder {
         operationStarted[id] = true;
     }
 
+    function pauseFunding(uint256 id, bool state) external onlyOwner {
+        fundingPaused[id] = state;
+    }
+
+    function withdrawUSDC(uint256 id, address destination) external onlyOwner {
+        require(id <= operationCount, "Operation does not exists");
+        require(usdcWithdrawn[id] == false, "Already claimed USDC");
+        require(isOperationFinished(id), "Operation is not finished");
+
+        usdcWithdrawn[id] = true;
+        USDC.transfer(destination, usdcRaised[id]);
+    }
+    //**********************************
+
+    //********** User-facing functions **********
     function invest(uint256 id, uint256 sharesAmount) external {
         require(id <= operationCount, "Operation does not exists");
         require(operationStarted[id] == true, "Operation is not started");
@@ -124,21 +139,9 @@ contract Factory is Ownable, ERC1155Holder {
 
         dLEND.safeTransferFrom(msg.sender, address(this), id, dLendBalance, "");
     }
-
-    function pauseFunding(uint256 id, bool state) external onlyOwner {
-        fundingPaused[id] = state;
-    }
-
-    function withdrawUSDC(uint256 id, address destination) external onlyOwner {
-        require(id <= operationCount, "Operation does not exists");
-        require(usdcWithdrawn[id] == false, "Already claimed USDC");
-        require(isOperationFinished(id), "Operation is not finished");
-
-        usdcWithdrawn[id] = true;
-        USDC.transfer(destination, usdcRaised[id]);
-    }
     //**********************************
 
+    //********** dLEND Burn and opLEND mint **********
     function handleBurnOnReceive(address user, uint256 id, uint256 value) private {
         uint256 opTokenAmount = value * 10 ** 18;
         Operation memory op = getOperation(id);
@@ -170,4 +173,5 @@ contract Factory is Ownable, ERC1155Holder {
 
         return this.onERC1155BatchReceived.selector;
     }
+    //**********************************
 }
