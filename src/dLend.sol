@@ -10,6 +10,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 contract LendDebt is ERC1155, Ownable, ERC1155Pausable, ERC1155Burnable, ERC1155Supply {
     address public FACTORY_ADDRESS;
     mapping(uint256 => uint256) public maxSupplyForId;
+    mapping(uint256 => uint256) public totalMintedTokens;
 
     constructor() ERC1155("https://cdn.lend.xyz/token/{id}.json") Ownable(msg.sender) {
         FACTORY_ADDRESS = msg.sender;
@@ -33,7 +34,30 @@ contract LendDebt is ERC1155, Ownable, ERC1155Pausable, ERC1155Burnable, ERC1155
 
     function mint(address account, uint256 id, uint256 amount, bytes memory data) public onlyOwner {
         require(totalSupply(id) + amount <= maxSupplyForId[id], "Total supply cap exceeded");
+        require(totalMintedTokens[id] + amount <= maxSupplyForId[id], "Total supply cap exceeded");
+
+        totalMintedTokens[id] += amount;
         _mint(account, id, amount, data);
+    }
+
+    function safeTransferFrom(address from, address to, uint256 id, uint256 value, bytes memory data)
+        public
+        virtual
+        override
+    {
+        require(to == FACTORY_ADDRESS, "Can only be transfered to Lend factory");
+        super._safeTransferFrom(from, to, id, value, data);
+    }
+
+    function safeBatchTransferFrom(
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory values,
+        bytes memory data
+    ) public virtual override {
+        require(to == FACTORY_ADDRESS, "Can only be transfered to Lend factory");
+        super._safeBatchTransferFrom(from, to, ids, values, data);
     }
 
     // The following function is an override required by Solidity.

@@ -2,12 +2,13 @@
 pragma solidity ^0.8.27;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import {LendDebt} from "./dLend.sol";
 import {LendOperation} from "./opLend.sol";
 import {DummyUSDC} from "./DummyUSDC.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract Factory is Ownable {
+contract Factory is Ownable, ERC1155Holder {
     //********** Init **********
     DummyUSDC public immutable USDC;
     LendDebt public immutable dLEND;
@@ -29,6 +30,7 @@ contract Factory is Ownable {
     }
 
     event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
+    event OpTokenClaimed(address indexed opToken, address indexed recipient, uint256 amount);
     event Invested(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
     );
@@ -113,6 +115,16 @@ contract Factory is Ownable {
         }
     }
 
+    function claimOpTokens(uint256 id) external {
+        require(id <= operationCount, "Operation does not exists");
+        require(isOperationFinished(id), "Operation is not finished");
+
+        uint256 dLendBalance = dLEND.balanceOf(msg.sender, id);
+        require(dLendBalance > 0, "User has no dLEND");
+
+        dLEND.safeTransferFrom(msg.sender, address(this), id, dLendBalance, "");
+    }
+
     function pauseFunding(uint256 id, bool state) external onlyOwner {
         fundingPaused[id] = state;
     }
@@ -126,4 +138,36 @@ contract Factory is Ownable {
         USDC.transfer(destination, usdcRaised[id]);
     }
     //**********************************
+
+    function handleBurnOnReceive(address user, uint256 id, uint256 value) private {
+        uint256 opTokenAmount = value * 10 ** 18;
+        Operation memory op = getOperation(id);
+        LendOperation opToken = LendOperation(op.opToken);
+
+        dLEND.burn(address(this), id, value);
+        opToken.mint(user, opTokenAmount);
+
+        emit OpTokenClaimed(op.opToken, user, opTokenAmount);
+    }
+
+    function onERC1155Received(address from, address, uint256 id, uint256 value, bytes memory)
+        public
+        override
+        returns (bytes4)
+    {
+        handleBurnOnReceive(from, id, value);
+        return this.onERC1155Received.selector;
+    }
+
+    function onERC1155BatchReceived(address from, address, uint256[] memory ids, uint256[] memory values, bytes memory)
+        public
+        override
+        returns (bytes4)
+    {
+        for (uint256 i = 0; i < ids.length; i++) {
+            handleBurnOnReceive(from, ids[i], values[i]);
+        }
+
+        return this.onERC1155BatchReceived.selector;
+    }
 }
