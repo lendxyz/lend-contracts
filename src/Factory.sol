@@ -8,7 +8,7 @@ import {LendOperation} from "./opLend.sol";
 import {DummyUSDC} from "./DummyUSDC.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract Factory is Ownable, ERC1155Holder {
+contract LendFactory is Ownable, ERC1155Holder {
     //********** Init **********
     DummyUSDC public immutable USDC;
     LendDebt public immutable dLEND;

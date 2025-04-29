@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
-import {Factory} from "../src/Factory.sol";
+import {LendFactory} from "../src/Factory.sol";
 import {LendDebt} from "../src/dLend.sol";
 import {DummyUSDC} from "../src/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
@@ -10,7 +10,7 @@ import {LendOperation} from "../src/opLend.sol";
 contract FactoryTest is Test {
     uint256 initialUSDCBalance = UINT256_MAX;
     DummyUSDC public usdc;
-    Factory public factory;
+    LendFactory public factory;
     LendDebt public dLend;
 
     address admin = makeAddr("admin");
@@ -40,7 +40,7 @@ contract FactoryTest is Test {
         vm.startPrank(admin);
 
         usdc = new DummyUSDC();
-        factory = new Factory(address(admin), address(usdc));
+        factory = new LendFactory(address(admin), address(usdc));
         dLend = LendDebt(factory.dLEND());
 
         vm.stopPrank();
@@ -50,8 +50,8 @@ contract FactoryTest is Test {
         address op = createOperation();
         LendOperation opLEND = LendOperation(op);
 
-        Factory.Operation memory expectedReturn = Factory.Operation(op, 1_000_000, 1 * 10 ** 18, "Test operation");
-        Factory.Operation memory actualReturn = factory.getOperation(1);
+        LendFactory.Operation memory expectedReturn = LendFactory.Operation(op, 1_000_000, 1 * 10 ** 18, "Test operation");
+        LendFactory.Operation memory actualReturn = factory.getOperation(1);
 
         assertEq(factory.operationCount(), 1);
         assertEq(abi.encode(actualReturn), abi.encode(expectedReturn));
