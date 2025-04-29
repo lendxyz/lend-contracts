@@ -23,7 +23,7 @@ $ make build
 ### Test and tests coverage
 
 ```shell
-$ make test
+$ make tests
 $ make coverage
 ```
 
