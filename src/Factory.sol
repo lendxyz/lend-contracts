@@ -41,12 +41,12 @@ contract Factory is Ownable {
     }
 
     function getAmountIn(uint256 operationId, uint256 sharesAmount) public view returns(uint256) {
-        return eurToUsdc(operations[operationId].eurPerShares) * sharesAmount;
+        return eurToUsdc(operations[operationId].eurPerShares * sharesAmount);
     }
 
-    function eurToUsdc(uint256 eurAmount) public pure returns(uint256) {
+    function eurToUsdc(uint256 eurAmount) public view returns(uint256) {
         // TODO: oracle call here to get the actual quote
-        return 1 * 10 ** 6 * (eurAmount / 1 * 10 ** 18);
+        return eurAmount / (10 ** (18 - USDC.decimals()));
     }
 
     function isOperationFinished(uint256 id) public view returns(bool) {
@@ -86,13 +86,13 @@ contract Factory is Ownable {
     }
 
     function invest(uint256 id, uint256 sharesAmount) external {
-        require(operationStarted[id] == true);
-        require(operations[id].totalShares > 0);
-        require(fundingProgress[id] + sharesAmount <= operations[id].totalShares);
-        require(sharesAmount > 0);
+        require(id <= operationCount, "Operation does not exists");
+        require(operationStarted[id] == true, "Operation is not started");
+        require(fundingProgress[id] + sharesAmount <= operations[id].totalShares, "Cannot buy that many shares");
+        require(sharesAmount > 0, "Not enough shares");
 
         uint256 cost = getAmountIn(id, sharesAmount);
-        require(USDC.allowance(msg.sender, address(this)) >= cost);
+        require(USDC.allowance(msg.sender, address(this)) >= cost, "Not enough tokens allowed to be spent");
 
         USDC.transferFrom(msg.sender, address(this), cost);
 
