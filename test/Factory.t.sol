@@ -76,16 +76,37 @@ contract FactoryTest is Test {
         factory.startOperation(1);
 
         vm.startPrank(user);
+
         usdc.approve(address(factory), 100 * 10 ** 6);
-
         factory.invest(1, 100);
-
-        uint256 balanceUsdc = usdc.balanceOf(address(user));
-        uint256 dLendBalance = dLend.balanceOf(address(user), 1);
 
         vm.stopPrank();
 
-        assertEq(balanceUsdc, initialUSDCBalance - (100 * 10 ** 6));
-        assertEq(dLendBalance, 100);
+        assertEq(usdc.balanceOf(address(user)), initialUSDCBalance - (100 * 10 ** 6));
+        assertEq(usdc.balanceOf(address(factory)), 100 * 10 ** 6);
+        assertEq(dLend.balanceOf(address(user), 1), 100);
+        assertEq(factory.fundingProgress(1), 100);
+        assertEq(factory.operationStarted(1), true);
+    }
+
+    function test_OpFinished() public {
+        assertEq(factory.isOperationFinished(1), false);
+        assertEq(factory.operationStarted(1), false);
+
+        vm.prank(admin);
+        factory.startOperation(1);
+
+        assertEq(factory.operationStarted(1), true);
+
+        vm.startPrank(user);
+
+        usdc.approve(address(factory), UINT256_MAX);
+        factory.invest(1, 1_000_000);
+
+        vm.stopPrank();
+
+        assertEq(factory.fundingProgress(1), 1_000_000);
+        assertEq(factory.operationStarted(1), true);
+        assertEq(factory.isOperationFinished(1), true);
     }
 }
