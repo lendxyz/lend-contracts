@@ -32,15 +32,12 @@ contract LendOperation is ERC20, ERC20Burnable, ERC20Pausable, Ownable, ERC1363,
         _mint(to, amount);
     }
 
-    function decimals() public view virtual override returns (uint8) { 
+    function decimals() public view virtual override returns (uint8) {
         return 18;
     }
 
     // The following function is an override required by Solidity.
-    function _update(address from, address to, uint256 value)
-        internal
-        override(ERC20, ERC20Pausable)
-    {
+    function _update(address from, address to, uint256 value) internal override(ERC20, ERC20Pausable) {
         super._update(from, to, value);
     }
 }

@@ -10,7 +10,7 @@ contract DummyUSDC is ERC20 {
         _mint(to, amount);
     }
 
-    function decimals() public view virtual override returns (uint8) { 
+    function decimals() public view virtual override returns (uint8) {
         return 6;
     }
 }

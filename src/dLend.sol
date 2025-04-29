@@ -11,10 +11,7 @@ contract LendDebt is ERC1155, Ownable, ERC1155Pausable, ERC1155Burnable, ERC1155
     address public FACTORY_ADDRESS;
     mapping(uint256 => uint256) public maxSupplyForId;
 
-    constructor()
-        ERC1155("https://cdn.lend.xyz/token/{id}.json")
-        Ownable(msg.sender)
-    {
+    constructor() ERC1155("https://cdn.lend.xyz/token/{id}.json") Ownable(msg.sender) {
         FACTORY_ADDRESS = msg.sender;
     }
 
@@ -34,10 +31,7 @@ contract LendDebt is ERC1155, Ownable, ERC1155Pausable, ERC1155Burnable, ERC1155
         _unpause();
     }
 
-    function mint(address account, uint256 id, uint256 amount, bytes memory data)
-        public
-        onlyOwner
-    {
+    function mint(address account, uint256 id, uint256 amount, bytes memory data) public onlyOwner {
         require(totalSupply(id) + amount <= maxSupplyForId[id], "Total supply cap exceeded");
         _mint(account, id, amount, data);
     }

@@ -25,7 +25,9 @@ contract Factory is Ownable {
     }
 
     event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
-    event Invested(address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought);
+    event Invested(
+        address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
+    );
     event OperationFinished(uint256 indexed operationId, uint256 indexed amountRaisedEuro);
 
     constructor(address _USDC) Ownable(msg.sender) {
@@ -34,34 +36,34 @@ contract Factory is Ownable {
     }
     //**********************************
 
-
     //********** Read functions **********
-    function getOperation(uint256 id) public view returns(Operation memory) {
+    function getOperation(uint256 id) public view returns (Operation memory) {
         return operations[id];
     }
 
-    function getAmountIn(uint256 operationId, uint256 sharesAmount) public view returns(uint256) {
+    function getAmountIn(uint256 operationId, uint256 sharesAmount) public view returns (uint256) {
         return eurToUsdc(operations[operationId].eurPerShares * sharesAmount);
     }
 
-    function eurToUsdc(uint256 eurAmount) public view returns(uint256) {
+    function eurToUsdc(uint256 eurAmount) public view returns (uint256) {
         // TODO: oracle call here to get the actual quote
         return eurAmount / (10 ** (18 - USDC.decimals()));
     }
 
-    function isOperationFinished(uint256 id) public view returns(bool) {
+    function isOperationFinished(uint256 id) public view returns (bool) {
         return operationStarted[id] && fundingProgress[id] >= operations[id].totalShares;
     }
     //**********************************
 
-
     //********** Write functions **********
-    function createOperation(
-        string calldata opName,
-        uint256 totalShares,
-        uint256 eurPerShares
-    ) external onlyOwner returns (address) {
-        unchecked { operationCount++; }
+    function createOperation(string calldata opName, uint256 totalShares, uint256 eurPerShares)
+        external
+        onlyOwner
+        returns (address)
+    {
+        unchecked {
+            operationCount++;
+        }
 
         string memory name = string(abi.encodePacked("Lend Operation - ", opName));
         string memory symbol = string(abi.encodePacked("opLEND-", Strings.toString(operationCount)));
@@ -69,12 +71,7 @@ contract Factory is Ownable {
 
         dLEND.setMaxSupply(operationCount, totalShares);
 
-        operations[operationCount] = Operation(
-            address(newOp),
-            totalShares,
-            eurPerShares,
-            opName
-        );
+        operations[operationCount] = Operation(address(newOp), totalShares, eurPerShares, opName);
 
         emit OperationCreated(address(newOp), operationCount, totalShares);
 

@@ -16,9 +16,7 @@ contract FactoryTest is Test {
     address admin = makeAddr("admin");
     address user = makeAddr("user");
 
-    function beforeTestSetup(
-        bytes4 testSelector
-    ) public pure returns (bytes[] memory beforeTestCalldata) {
+    function beforeTestSetup(bytes4 testSelector) public pure returns (bytes[] memory beforeTestCalldata) {
         if (testSelector != this.test_CreateOperation.selector) {
             beforeTestCalldata = new bytes[](2);
             beforeTestCalldata[0] = abi.encodePacked(this.mintUSDC.selector);
@@ -31,13 +29,9 @@ contract FactoryTest is Test {
         usdc.mint(address(user), initialUSDCBalance);
     }
 
-    function createOperation() public returns(address) {
+    function createOperation() public returns (address) {
         vm.prank(admin);
-        return factory.createOperation(
-            "Test operation",
-            1_000_000,
-            1 * 10 ** 18
-        );
+        return factory.createOperation("Test operation", 1_000_000, 1 * 10 ** 18);
     }
 
     function setUp() public {
