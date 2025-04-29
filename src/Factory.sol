@@ -26,7 +26,7 @@ contract Factory is Ownable {
 
     event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
     event Invested(address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought);
-    event OperationFinished(uint256 indexed operationId, uint256 indexed amountRaised);
+    event OperationFinished(uint256 indexed operationId, uint256 indexed amountRaisedEuro);
 
     constructor(address _USDC) Ownable(msg.sender) {
         dLEND = new LendDebt();

@@ -8,26 +8,52 @@ import {DummyUSDC} from "../src/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
 
 contract FactoryTest is Test {
+    uint256 initialUSDCBalance = UINT256_MAX;
     DummyUSDC public usdc;
     Factory public factory;
     LendDebt public dLend;
 
-    function setUp() public {
-        usdc = new DummyUSDC();
+    address admin = makeAddr("admin");
+    address user = makeAddr("user");
 
-        usdc.mint(msg.sender, 1_000_000 * 10 ** 6);
-
-        factory = new Factory(address(usdc));
-        dLend = LendDebt(factory.dLEND());
+    function beforeTestSetup(
+        bytes4 testSelector
+    ) public pure returns (bytes[] memory beforeTestCalldata) {
+        if (testSelector != this.test_CreateOperation.selector) {
+            beforeTestCalldata = new bytes[](2);
+            beforeTestCalldata[0] = abi.encodePacked(this.mintUSDC.selector);
+            beforeTestCalldata[1] = abi.encodePacked(this.createOperation.selector);
+        }
     }
 
-    function test_CreateOperation() public {
-        address op = factory.createOperation(
+    function mintUSDC() public {
+        vm.prank(admin);
+        usdc.mint(address(user), initialUSDCBalance);
+    }
+
+    function createOperation() public returns(address) {
+        vm.prank(admin);
+        return factory.createOperation(
             "Test operation",
             1_000_000,
             1 * 10 ** 18
         );
+    }
 
+    function setUp() public {
+        vm.deal(admin, 10 ether);
+        vm.deal(user, 10 ether);
+        vm.startPrank(admin);
+
+        usdc = new DummyUSDC();
+        factory = new Factory(address(usdc));
+        dLend = LendDebt(factory.dLEND());
+
+        vm.stopPrank();
+    }
+
+    function test_CreateOperation() public {
+        address op = createOperation();
         LendOperation opLEND = LendOperation(op);
 
         Factory.Operation memory expectedReturn = Factory.Operation(op, 1_000_000, 1 * 10 ** 18, "Test operation");
@@ -38,5 +64,28 @@ contract FactoryTest is Test {
         assertEq(opLEND.name(), "Lend Operation - Test operation");
         assertEq(opLEND.symbol(), "opLEND-1");
         assertEq(opLEND.MAX_SUPPLY(), 1_000_000 * 10 ** 18);
+    }
+
+    function test_InvestCost() public view {
+        uint256 cost = factory.getAmountIn(1, 100);
+        assertEq(cost, 100 * 10 ** 6);
+    }
+
+    function test_Invest() public {
+        vm.prank(admin);
+        factory.startOperation(1);
+
+        vm.startPrank(user);
+        usdc.approve(address(factory), 100 * 10 ** 6);
+
+        factory.invest(1, 100);
+
+        uint256 balanceUsdc = usdc.balanceOf(address(user));
+        uint256 dLendBalance = dLend.balanceOf(address(user), 1);
+
+        vm.stopPrank();
+
+        assertEq(balanceUsdc, initialUSDCBalance - (100 * 10 ** 6));
+        assertEq(dLendBalance, 100);
     }
 }
