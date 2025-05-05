@@ -10,13 +10,15 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract LendOperation is ERC20, ERC20Burnable, ERC20Pausable, Ownable, ERC1363, ERC20Permit {
     uint256 public immutable MAX_SUPPLY;
+    uint8 private immutable DECIMALS;
 
-    constructor(address initialOwner, string memory name, string memory symbol, uint256 maxSupply)
+    constructor(address initialOwner, string memory name, string memory symbol, uint256 maxSupply, uint8 customDecimals)
         ERC20(name, symbol)
         Ownable(initialOwner)
         ERC20Permit(name)
     {
         MAX_SUPPLY = maxSupply;
+        DECIMALS = customDecimals;
     }
 
     function pause() public onlyOwner {
@@ -33,7 +35,7 @@ contract LendOperation is ERC20, ERC20Burnable, ERC20Pausable, Ownable, ERC1363,
     }
 
     function decimals() public view virtual override returns (uint8) {
-        return 18;
+        return DECIMALS;
     }
 
     // The following function is an override required by Solidity.

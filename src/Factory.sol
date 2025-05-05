@@ -47,7 +47,7 @@ contract LendFactory is Ownable, ERC1155Holder {
         address opToken;
         uint256 totalShares;
         uint256 eurPerShares;
-        uint8 eurDecimals;
+        uint8 decimals;
         string opName;
     }
 
@@ -66,15 +66,21 @@ contract LendFactory is Ownable, ERC1155Holder {
     //**********************************
 
     //********** Read functions **********
+    function operationDecimals(uint256 id) public view returns (uint256) {
+        return operations[id].decimals;
+    }
+
     function getOperation(uint256 id) public view returns (Operation memory) {
         return operations[id];
     }
 
     function getAmountIn(uint256 operationId, uint256 sharesAmount) public view returns (uint256) {
-        return (
-            uint256(scalePrice(int256(operations[operationId].eurPerShares), operations[operationId].eurDecimals))
-                * sharesAmount * getEURUSDOraclePrice()
-        ) / 10 ** USDC.decimals();
+        uint256 sharesPriceEur =
+            (operations[operationId].eurPerShares * sharesAmount) / 10 ** operations[operationId].decimals;
+        uint256 sharesPriceEurConverted =
+            uint256(scalePrice(int256(sharesPriceEur), operations[operationId].decimals, USDC.decimals()));
+
+        return sharesPriceEurConverted * getEURUSDOraclePrice() / 10 ** USDC.decimals();
     }
 
     function isOperationFinished(uint256 id) public view returns (bool) {
@@ -83,27 +89,23 @@ contract LendFactory is Ownable, ERC1155Holder {
 
     function getEURUSDOraclePrice() public view returns (uint256) {
         (, int256 eurUsd,,,) = AggregatorV3Interface(EURUSDOracle).latestRoundData();
-
-        uint8 eurUsdDecimals = AggregatorV3Interface(EURUSDOracle).decimals();
-        eurUsd = scalePrice(eurUsd, eurUsdDecimals);
+        eurUsd = scalePrice(eurUsd, AggregatorV3Interface(EURUSDOracle).decimals(), USDC.decimals());
 
         return uint256(eurUsd);
     }
 
-    function scalePrice(int256 _price, uint8 _priceDecimals) internal view returns (int256) {
-        uint256 usdcDecimals = USDC.decimals();
-
-        if (_priceDecimals < usdcDecimals) {
-            return _price * int256(10 ** uint256(usdcDecimals - _priceDecimals));
-        } else if (_priceDecimals > usdcDecimals) {
-            return _price / int256(10 ** uint256(_priceDecimals - usdcDecimals));
+    function scalePrice(int256 _price, uint8 _priceDecimals, uint8 _targetDecimals) internal pure returns (int256) {
+        if (_priceDecimals < _targetDecimals) {
+            return _price * int256(10 ** uint256(_targetDecimals - _priceDecimals));
+        } else if (_priceDecimals > _targetDecimals) {
+            return _price / int256(10 ** uint256(_priceDecimals - _targetDecimals));
         }
         return _price;
     }
     //**********************************
 
     //********** Operation management **********
-    function createOperation(string calldata opName, uint256 totalShares, uint256 eurPerShares, uint8 eurDecimals)
+    function createOperation(string calldata opName, uint256 totalShares, uint256 eurPerShares, uint8 decimals)
         external
         onlyOwner
         returns (address)
@@ -114,11 +116,11 @@ contract LendFactory is Ownable, ERC1155Holder {
 
         string memory name = string(abi.encodePacked("Lend Operation - ", opName));
         string memory symbol = string(abi.encodePacked("opLEND-", Strings.toString(operationCount)));
-        LendOperation newOp = new LendOperation(address(this), name, symbol, totalShares * 10 ** 18);
+        LendOperation newOp = new LendOperation(address(this), name, symbol, totalShares, decimals);
 
         dLEND.setMaxSupply(operationCount, totalShares);
 
-        operations[operationCount] = Operation(address(newOp), totalShares, eurPerShares, eurDecimals, opName);
+        operations[operationCount] = Operation(address(newOp), totalShares, eurPerShares, decimals, opName);
         opIdFromOpToken[address(newOp)] = operationCount;
 
         emit OperationCreated(address(newOp), operationCount, totalShares);
@@ -188,14 +190,13 @@ contract LendFactory is Ownable, ERC1155Holder {
 
     //********** dLEND Burn and opLEND mint **********
     function handleBurnOnReceive(address user, uint256 id, uint256 value) private {
-        uint256 opTokenAmount = value * 10 ** 18;
         Operation memory op = getOperation(id);
         LendOperation opToken = LendOperation(op.opToken);
 
         dLEND.burn(address(this), id, value);
-        opToken.mint(user, opTokenAmount);
+        opToken.mint(user, value);
 
-        emit OpTokenClaimed(op.opToken, user, opTokenAmount);
+        emit OpTokenClaimed(op.opToken, user, value);
     }
 
     function onERC1155Received(address from, address, uint256 id, uint256 value, bytes memory)

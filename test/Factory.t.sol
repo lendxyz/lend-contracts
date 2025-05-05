@@ -22,20 +22,25 @@ contract FactoryTest is Test, TestBase {
         LendOperation opLEND = LendOperation(op);
 
         LendFactory.Operation memory expectedReturn =
-            LendFactory.Operation(op, totalSharesAmount, sharePriceEur, decimalsEur, "Test operation");
+            LendFactory.Operation(op, totalSharesAmount, sharePriceEur, sharesDecimal, "Test operation");
         LendFactory.Operation memory actualReturn = factory.getOperation(1);
 
         assertEq(factory.operationCount(), 1);
+        assertEq(factory.operationDecimals(1), sharesDecimal);
         assertEq(abi.encode(actualReturn), abi.encode(expectedReturn));
         assertEq(opLEND.name(), "Lend Operation - Test operation");
         assertEq(opLEND.symbol(), "opLEND-1");
-        assertEq(opLEND.MAX_SUPPLY(), totalSharesAmount * 10 ** 18);
+        assertEq(opLEND.MAX_SUPPLY(), totalSharesAmount);
     }
 
     function test_InvestCost() public view {
         uint256 computedCost = factory.getAmountIn(1, sharesToBuy);
-        assertLt(computedCost, sharesToBuy * maxEurUsdcRange * 10 ** (usdc.decimals() - 1));
-        assertGt(computedCost, sharesToBuy * minEurUsdcRange * 10 ** (usdc.decimals() - 1));
+        assertLt(
+            computedCost, (sharesToBuy / 10 ** sharesDecimal) * eurAmountPerShare * maxEurUsdcRange * 10 ** (usdc.decimals() - 1)
+        );
+        assertGt(
+            computedCost, (sharesToBuy / 10 ** sharesDecimal) * eurAmountPerShare * minEurUsdcRange * 10 ** (usdc.decimals() - 1)
+        );
     }
 
     function test_Invest() public {

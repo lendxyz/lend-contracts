@@ -1,0 +1,10 @@
+{
+  "name": "Lend Debt - [slug|id]",
+  "decimals": 18,
+  "description": "lorem ipsum.....",
+  "image": "https://cdn.lend.xyz/token/images/[id|name]_image.png",
+  "properties": {
+    "banner_image": "https://cdn.lend.xyz/token/images/[id|name]_banner.png",
+    "external_link": "https://app.lend.xyx/operation/[slug]"
+  }
+}

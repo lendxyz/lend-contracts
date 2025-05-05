@@ -9,10 +9,11 @@ import {LendOperation} from "../src/opLend.sol";
 
 contract TestBase is Test {
     uint256 initialUSDCBalance = UINT256_MAX;
-    uint256 sharePriceEur = 1 * 10 ** 18;
-    uint8 decimalsEur = 18;
-    uint256 totalSharesAmount = 1_000_000;
-    uint256 sharesToBuy = 100;
+    uint8 sharesDecimal = 18;
+    uint256 totalSharesAmount = 1_000_000 * 10 ** sharesDecimal;
+    uint256 eurAmountPerShare = 2;
+    uint256 sharePriceEur = eurAmountPerShare * 10 ** sharesDecimal;
+    uint256 sharesToBuy = 100 * 10 ** sharesDecimal;
 
     uint256 maxEurUsdcRange = 14; // 1.4 USD per EUR
     uint256 minEurUsdcRange = 10; // 1.0 USD per EUR
@@ -33,7 +34,7 @@ contract TestBase is Test {
 
     function createOperation() public returns (address) {
         vm.prank(admin);
-        return factory.createOperation("Test operation", totalSharesAmount, sharePriceEur, decimalsEur);
+        return factory.createOperation("Test operation", totalSharesAmount, sharePriceEur, sharesDecimal);
     }
 
     function setUp() public {
