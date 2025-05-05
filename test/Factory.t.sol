@@ -6,16 +6,9 @@ import {LendFactory} from "../src/Factory.sol";
 import {LendDebt} from "../src/dLend.sol";
 import {DummyUSDC} from "../src/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
+import {TestBase} from "./TestBase.sol";
 
-contract FactoryTest is Test {
-    uint256 initialUSDCBalance = UINT256_MAX;
-    DummyUSDC public usdc;
-    LendFactory public factory;
-    LendDebt public dLend;
-
-    address admin = makeAddr("admin");
-    address user = makeAddr("user");
-
+contract FactoryTest is Test, TestBase {
     function beforeTestSetup(bytes4 testSelector) public pure returns (bytes[] memory beforeTestCalldata) {
         if (testSelector != this.test_CreateOperation.selector) {
             beforeTestCalldata = new bytes[](2);
@@ -24,45 +17,25 @@ contract FactoryTest is Test {
         }
     }
 
-    function mintUSDC() public {
-        vm.prank(admin);
-        usdc.mint(address(user), initialUSDCBalance);
-    }
-
-    function createOperation() public returns (address) {
-        vm.prank(admin);
-        return factory.createOperation("Test operation", 1_000_000, 1 * 10 ** 18);
-    }
-
-    function setUp() public {
-        vm.deal(admin, 10 ether);
-        vm.deal(user, 10 ether);
-        vm.startPrank(admin);
-
-        usdc = new DummyUSDC();
-        factory = new LendFactory(address(admin), address(usdc));
-        dLend = LendDebt(factory.dLEND());
-
-        vm.stopPrank();
-    }
-
     function test_CreateOperation() public {
         address op = createOperation();
         LendOperation opLEND = LendOperation(op);
 
-        LendFactory.Operation memory expectedReturn = LendFactory.Operation(op, 1_000_000, 1 * 10 ** 18, "Test operation");
+        LendFactory.Operation memory expectedReturn =
+            LendFactory.Operation(op, totalSharesAmount, sharePriceEur, decimalsEur, "Test operation");
         LendFactory.Operation memory actualReturn = factory.getOperation(1);
 
         assertEq(factory.operationCount(), 1);
         assertEq(abi.encode(actualReturn), abi.encode(expectedReturn));
         assertEq(opLEND.name(), "Lend Operation - Test operation");
         assertEq(opLEND.symbol(), "opLEND-1");
-        assertEq(opLEND.MAX_SUPPLY(), 1_000_000 * 10 ** 18);
+        assertEq(opLEND.MAX_SUPPLY(), totalSharesAmount * 10 ** 18);
     }
 
     function test_InvestCost() public view {
-        uint256 cost = factory.getAmountIn(1, 100);
-        assertEq(cost, 100 * 10 ** 6);
+        uint256 computedCost = factory.getAmountIn(1, sharesToBuy);
+        assertLt(computedCost, sharesToBuy * maxEurUsdcRange * 10 ** (usdc.decimals() - 1));
+        assertGt(computedCost, sharesToBuy * minEurUsdcRange * 10 ** (usdc.decimals() - 1));
     }
 
     function test_Invest() public {
@@ -71,15 +44,16 @@ contract FactoryTest is Test {
 
         vm.startPrank(user);
 
-        usdc.approve(address(factory), 100 * 10 ** 6);
-        factory.invest(1, 100);
+        uint256 cost = factory.getAmountIn(1, sharesToBuy);
+        usdc.approve(address(factory), cost);
+        factory.invest(1, sharesToBuy);
 
         vm.stopPrank();
 
-        assertEq(usdc.balanceOf(address(user)), initialUSDCBalance - (100 * 10 ** 6));
-        assertEq(usdc.balanceOf(address(factory)), 100 * 10 ** 6);
-        assertEq(dLend.balanceOf(address(user), 1), 100);
-        assertEq(factory.fundingProgress(1), 100);
+        assertEq(usdc.balanceOf(address(user)), initialUSDCBalance - cost);
+        assertEq(usdc.balanceOf(address(factory)), cost);
+        assertEq(dLend.balanceOf(address(user), 1), sharesToBuy);
+        assertEq(factory.fundingProgress(1), sharesToBuy);
         assertEq(factory.operationStarted(1), true);
     }
 
@@ -95,11 +69,11 @@ contract FactoryTest is Test {
         vm.startPrank(user);
 
         usdc.approve(address(factory), UINT256_MAX);
-        factory.invest(1, 1_000_000);
+        factory.invest(1, totalSharesAmount);
 
         vm.stopPrank();
 
-        assertEq(factory.fundingProgress(1), 1_000_000);
+        assertEq(factory.fundingProgress(1), totalSharesAmount);
         assertEq(factory.operationStarted(1), true);
         assertEq(factory.isOperationFinished(1), true);
     }

@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-//         ++++++++++++++++++++++                 
-//        ++++++++++++++++++++++++                 
-//        ++++++++++++++++++++++++++++++++         
-//        +++++++++               +++++++++        
-//         ++++++++++++++++++++++++++++++++        
-//                 ++++++++++++++++++++++++        
-//                  ++++++++++++++++++++++        
-//                                                
+//         ++++++++++++++++++++++
+//        ++++++++++++++++++++++++
+//        ++++++++++++++++++++++++++++++++
+//        +++++++++               +++++++++
+//         ++++++++++++++++++++++++++++++++
+//                 ++++++++++++++++++++++++
+//                  ++++++++++++++++++++++
+//
 //  +++++++                                      ++++
 //  +++++++                                      ++++
 //    +++++       +++            +++        ++   ++++
@@ -21,6 +21,7 @@ pragma solidity ^0.8.27;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import {LendDebt} from "./dLend.sol";
 import {LendOperation} from "./opLend.sol";
 import {DummyUSDC} from "./DummyUSDC.sol";
@@ -31,6 +32,9 @@ contract LendFactory is Ownable, ERC1155Holder {
     DummyUSDC public immutable USDC;
     LendDebt public immutable dLEND;
     uint256 public operationCount = 0;
+
+    address public immutable EURUSDOracle = 0xb49f677943BC038e9857d61E7d053CaA2C1734C1;
+    address public immutable USDCUSDOracle = 0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6;
 
     mapping(uint256 => Operation) public operations;
     mapping(uint256 => uint256) public fundingProgress;
@@ -44,6 +48,7 @@ contract LendFactory is Ownable, ERC1155Holder {
         address opToken;
         uint256 totalShares;
         uint256 eurPerShares;
+        uint8 eurDecimals;
         string opName;
     }
 
@@ -54,9 +59,11 @@ contract LendFactory is Ownable, ERC1155Holder {
     );
     event OperationFinished(uint256 indexed operationId, uint256 indexed amountRaisedEuro);
 
-    constructor(address _admin, address _USDC) Ownable(_admin) {
+    constructor(address _admin, address _USDC, address _EURUSDCOracle, address _USDCUSDOracle) Ownable(_admin) {
         dLEND = new LendDebt();
         USDC = DummyUSDC(_USDC);
+        EURUSDOracle = _EURUSDCOracle;
+        USDCUSDOracle = _USDCUSDOracle;
     }
     //**********************************
 
@@ -66,21 +73,39 @@ contract LendFactory is Ownable, ERC1155Holder {
     }
 
     function getAmountIn(uint256 operationId, uint256 sharesAmount) public view returns (uint256) {
-        return eurToUsdc(operations[operationId].eurPerShares * sharesAmount);
-    }
-
-    function eurToUsdc(uint256 eurAmount) public view returns (uint256) {
-        // TODO: oracle call here to get the actual quote
-        return eurAmount / (10 ** (18 - USDC.decimals()));
+        return (
+            uint256(scalePrice(int256(operations[operationId].eurPerShares), operations[operationId].eurDecimals))
+                * sharesAmount * getEURUSDOraclePrice()
+        ) / 10 ** USDC.decimals();
     }
 
     function isOperationFinished(uint256 id) public view returns (bool) {
         return operationStarted[id] && fundingProgress[id] >= operations[id].totalShares;
     }
+
+    function getEURUSDOraclePrice() public view returns (uint256) {
+        (, int256 eurUsd,,,) = AggregatorV3Interface(EURUSDOracle).latestRoundData();
+
+        uint8 eurUsdDecimals = AggregatorV3Interface(EURUSDOracle).decimals();
+        eurUsd = scalePrice(eurUsd, eurUsdDecimals);
+
+        return uint256(eurUsd);
+    }
+
+    function scalePrice(int256 _price, uint8 _priceDecimals) internal view returns (int256) {
+        uint256 usdcDecimals = USDC.decimals();
+
+        if (_priceDecimals < usdcDecimals) {
+            return _price * int256(10 ** uint256(usdcDecimals - _priceDecimals));
+        } else if (_priceDecimals > usdcDecimals) {
+            return _price / int256(10 ** uint256(_priceDecimals - usdcDecimals));
+        }
+        return _price;
+    }
     //**********************************
 
     //********** Operation management **********
-    function createOperation(string calldata opName, uint256 totalShares, uint256 eurPerShares)
+    function createOperation(string calldata opName, uint256 totalShares, uint256 eurPerShares, uint8 eurDecimals)
         external
         onlyOwner
         returns (address)
@@ -95,7 +120,7 @@ contract LendFactory is Ownable, ERC1155Holder {
 
         dLEND.setMaxSupply(operationCount, totalShares);
 
-        operations[operationCount] = Operation(address(newOp), totalShares, eurPerShares, opName);
+        operations[operationCount] = Operation(address(newOp), totalShares, eurPerShares, eurDecimals, opName);
         opIdFromOpToken[address(newOp)] = operationCount;
 
         emit OperationCreated(address(newOp), operationCount, totalShares);

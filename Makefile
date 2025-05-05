@@ -17,7 +17,7 @@ fmt:
 	forge fmt
 
 tests:
-	forge test -vvv
+	forge test -vvv --fork-url https://eth.drpc.org
 
 coverage:
 	forge coverage
@@ -33,5 +33,3 @@ remappings:
 
 deploy:
 	forge script script/Deploy.s.sol:DeployScript --rpc-url $(rpc) --private-key $(pk)
-
-
