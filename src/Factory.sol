@@ -32,8 +32,7 @@ contract LendFactory is Ownable, ERC1155Holder {
     DummyUSDC public immutable USDC;
     LendDebt public immutable dLEND;
 
-    address public immutable EURUSDOracle;
-
+    address public EURUSDOracle;
     uint256 public operationCount = 0;
 
     mapping(uint256 => Operation) public operations;
@@ -133,6 +132,10 @@ contract LendFactory is Ownable, ERC1155Holder {
 
     function pauseFunding(uint256 id, bool state) external onlyOwner {
         fundingPaused[id] = state;
+    }
+
+    function updateOracleAddress(address newOracleAddress) external onlyOwner {
+        EURUSDOracle = newOracleAddress;
     }
 
     function withdrawUSDC(uint256 id, address destination) external onlyOwner {
