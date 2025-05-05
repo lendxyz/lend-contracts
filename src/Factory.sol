@@ -31,10 +31,10 @@ contract LendFactory is Ownable, ERC1155Holder {
     //********** Init **********
     DummyUSDC public immutable USDC;
     LendDebt public immutable dLEND;
-    uint256 public operationCount = 0;
 
-    address public immutable EURUSDOracle = 0xb49f677943BC038e9857d61E7d053CaA2C1734C1;
-    address public immutable USDCUSDOracle = 0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6;
+    address public immutable EURUSDOracle;
+
+    uint256 public operationCount = 0;
 
     mapping(uint256 => Operation) public operations;
     mapping(uint256 => uint256) public fundingProgress;
@@ -59,11 +59,10 @@ contract LendFactory is Ownable, ERC1155Holder {
     );
     event OperationFinished(uint256 indexed operationId, uint256 indexed amountRaisedEuro);
 
-    constructor(address _admin, address _USDC, address _EURUSDCOracle, address _USDCUSDOracle) Ownable(_admin) {
+    constructor(address _admin, address _USDC, address _EURUSDCOracle) Ownable(_admin) {
         dLEND = new LendDebt();
         USDC = DummyUSDC(_USDC);
         EURUSDOracle = _EURUSDCOracle;
-        USDCUSDOracle = _USDCUSDOracle;
     }
     //**********************************
 
