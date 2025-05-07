@@ -39,6 +39,7 @@ contract LendFactory is Ownable, ERC1155Holder {
     mapping(uint256 => uint256) public fundingProgress;
     mapping(uint256 => uint256) public usdcRaised;
     mapping(address => uint256) public opIdFromOpToken;
+    mapping(uint256 => address) public opTokenFromOpId;
     mapping(uint256 => bool) public usdcWithdrawn;
     mapping(uint256 => bool) public fundingPaused;
     mapping(uint256 => bool) public operationStarted;
@@ -122,6 +123,7 @@ contract LendFactory is Ownable, ERC1155Holder {
 
         operations[operationCount] = Operation(address(newOp), totalShares, eurPerShares, decimals, opName);
         opIdFromOpToken[address(newOp)] = operationCount;
+        opTokenFromOpId[operationCount] = address(newOp);
 
         emit OperationCreated(address(newOp), operationCount, totalShares);
 
@@ -182,16 +184,28 @@ contract LendFactory is Ownable, ERC1155Holder {
         require(isOperationFinished(id), "Operation is not finished");
 
         uint256 dLendBalance = dLEND.balanceOf(msg.sender, id);
-        require(dLendBalance > 0, "User has no dLEND");
 
-        dLEND.safeTransferFrom(msg.sender, address(this), id, dLendBalance, "");
+        require(dLendBalance > 0, "User has no dLEND");
+        require(dLEND.isApprovedForAll(msg.sender, address(this)), "dLEND tokens not approved");
+
+        bytes memory sender = abi.encode(msg.sender);
+
+        dLEND.safeTransferFrom(msg.sender, address(this), id, dLendBalance, sender);
     }
     //**********************************
 
     //********** dLEND Burn and opLEND mint **********
+    function getUserFromOnReceive(address from, bytes memory data) private view returns (address user) {
+        user = from;
+        if (from == address(this) && data.length > 0) {
+            (address decodedUser) = abi.decode(data, (address));
+            user = decodedUser;
+        }
+    }
+
     function handleBurnOnReceive(address user, uint256 id, uint256 value) private {
         Operation memory op = getOperation(id);
-        LendOperation opToken = LendOperation(op.opToken);
+        LendOperation opToken = LendOperation(address(op.opToken));
 
         dLEND.burn(address(this), id, value);
         opToken.mint(user, value);
@@ -199,22 +213,26 @@ contract LendFactory is Ownable, ERC1155Holder {
         emit OpTokenClaimed(op.opToken, user, value);
     }
 
-    function onERC1155Received(address from, address, uint256 id, uint256 value, bytes memory)
+    function onERC1155Received(address from, address, uint256 id, uint256 value, bytes memory data)
         public
         override
         returns (bytes4)
     {
-        handleBurnOnReceive(from, id, value);
+        handleBurnOnReceive(getUserFromOnReceive(from, data), id, value);
         return this.onERC1155Received.selector;
     }
 
-    function onERC1155BatchReceived(address from, address, uint256[] memory ids, uint256[] memory values, bytes memory)
-        public
-        override
-        returns (bytes4)
-    {
+    function onERC1155BatchReceived(
+        address from,
+        address,
+        uint256[] memory ids,
+        uint256[] memory values,
+        bytes memory data
+    ) public override returns (bytes4) {
+        address user = getUserFromOnReceive(from, data);
+
         for (uint256 i = 0; i < ids.length; i++) {
-            handleBurnOnReceive(from, ids[i], values[i]);
+            handleBurnOnReceive(user, ids[i], values[i]);
         }
 
         return this.onERC1155BatchReceived.selector;

@@ -36,10 +36,12 @@ contract FactoryTest is Test, TestBase {
     function test_InvestCost() public view {
         uint256 computedCost = factory.getAmountIn(1, sharesToBuy);
         assertLt(
-            computedCost, (sharesToBuy / 10 ** sharesDecimal) * eurAmountPerShare * maxEurUsdcRange * 10 ** (usdc.decimals() - 1)
+            computedCost,
+            (sharesToBuy / 10 ** sharesDecimal) * eurAmountPerShare * maxEurUsdcRange * 10 ** (usdc.decimals() - 1)
         );
         assertGt(
-            computedCost, (sharesToBuy / 10 ** sharesDecimal) * eurAmountPerShare * minEurUsdcRange * 10 ** (usdc.decimals() - 1)
+            computedCost,
+            (sharesToBuy / 10 ** sharesDecimal) * eurAmountPerShare * minEurUsdcRange * 10 ** (usdc.decimals() - 1)
         );
     }
 
@@ -60,6 +62,68 @@ contract FactoryTest is Test, TestBase {
         assertEq(dLend.balanceOf(address(user), 1), sharesToBuy);
         assertEq(factory.fundingProgress(1), sharesToBuy);
         assertEq(factory.operationStarted(1), true);
+    }
+
+    function test_BurnDirect() public {
+        vm.prank(admin);
+        factory.startOperation(1);
+
+        // simulate operation near the end
+        vm.startPrank(user2);
+
+        usdc.approve(address(factory), UINT256_MAX);
+        factory.invest(1, totalSharesAmount - sharesToBuy);
+
+        vm.stopPrank();
+
+        // simulate operation finish
+        vm.startPrank(user);
+
+        uint256 cost = factory.getAmountIn(1, sharesToBuy);
+        usdc.approve(address(factory), cost);
+        factory.invest(1, sharesToBuy);
+
+        dLend.setApprovalForAll(address(factory), true);
+
+        factory.claimOpTokens(1);
+
+        vm.stopPrank();
+
+        LendOperation opLEND = LendOperation(address(factory.opTokenFromOpId(1)));
+
+        assertEq(dLend.balanceOf(address(user), 1), 0);
+        assertEq(opLEND.balanceOf(address(user)), sharesToBuy);
+    }
+
+    function test_BurnIndirect() public {
+        vm.prank(admin);
+        factory.startOperation(1);
+
+        // simulate operation near the end
+        vm.startPrank(user2);
+
+        usdc.approve(address(factory), UINT256_MAX);
+        factory.invest(1, totalSharesAmount - sharesToBuy);
+
+        vm.stopPrank();
+
+        // simulate operation finish
+        vm.startPrank(user);
+
+        uint256 cost = factory.getAmountIn(1, sharesToBuy);
+        usdc.approve(address(factory), cost);
+        factory.invest(1, sharesToBuy);
+
+        uint256 dLendBalance = dLend.balanceOf(address(user), 1);
+
+        dLend.safeTransferFrom(address(user), address(factory), 1, dLendBalance, "");
+
+        vm.stopPrank();
+
+        LendOperation opLEND = LendOperation(address(factory.opTokenFromOpId(1)));
+
+        assertEq(dLend.balanceOf(address(user), 1), 0);
+        assertEq(opLEND.balanceOf(address(user)), sharesToBuy);
     }
 
     function test_OpFinished() public {

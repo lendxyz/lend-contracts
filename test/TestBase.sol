@@ -8,7 +8,7 @@ import {DummyUSDC} from "../src/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
 
 contract TestBase is Test {
-    uint256 initialUSDCBalance = UINT256_MAX;
+    uint256 initialUSDCBalance = 1_000_000_000 * 10 ** 6;
     uint8 sharesDecimal = 18;
     uint256 totalSharesAmount = 1_000_000 * 10 ** sharesDecimal;
     uint256 eurAmountPerShare = 2;
@@ -26,10 +26,12 @@ contract TestBase is Test {
 
     address admin = makeAddr("admin");
     address user = makeAddr("user");
+    address user2 = makeAddr("user2");
 
     function mintUSDC() public {
         vm.prank(admin);
         usdc.mint(address(user), initialUSDCBalance);
+        usdc.mint(address(user2), initialUSDCBalance);
     }
 
     function createOperation() public returns (address) {
@@ -40,6 +42,7 @@ contract TestBase is Test {
     function setUp() public {
         vm.deal(admin, 10 ether);
         vm.deal(user, 10 ether);
+        vm.deal(user2, 10 ether);
         vm.startPrank(admin);
 
         usdc = new DummyUSDC();
