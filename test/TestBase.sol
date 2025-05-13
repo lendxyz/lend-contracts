@@ -22,7 +22,8 @@ contract TestBase is Test {
     LendFactory public factory;
     LendDebt public dLend;
 
-    address EURUSDOracle = 0xb49f677943BC038e9857d61E7d053CaA2C1734C1; // ETH mainnet address
+    address EURUSDOracle = address(0xb49f677943BC038e9857d61E7d053CaA2C1734C1); // ETH mainnet address
+    address lzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c); // ETH mainnet endpoint
 
     address admin = makeAddr("admin");
     address user = makeAddr("user");
@@ -46,7 +47,7 @@ contract TestBase is Test {
         vm.startPrank(admin);
 
         usdc = new DummyUSDC();
-        factory = new LendFactory(address(admin), address(usdc), EURUSDOracle);
+        factory = new LendFactory(address(admin), address(usdc), EURUSDOracle, lzEndpoint);
         dLend = LendDebt(factory.dLEND());
 
         vm.stopPrank();

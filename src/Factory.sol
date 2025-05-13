@@ -33,6 +33,10 @@ contract LendFactory is Ownable, ERC1155Holder {
     LendDebt public immutable dLEND;
 
     address public EURUSDOracle;
+
+    address private immutable lzEndpoint;
+    address private immutable lzDelegate;
+
     uint256 public operationCount = 0;
 
     mapping(uint256 => Operation) public operations;
@@ -59,10 +63,12 @@ contract LendFactory is Ownable, ERC1155Holder {
     );
     event OperationFinished(uint256 indexed operationId, uint256 indexed amountRaisedEuro);
 
-    constructor(address _admin, address _USDC, address _EURUSDCOracle) Ownable(_admin) {
+    constructor(address _admin, address _USDC, address _EURUSDCOracle, address _lzEndpoint) Ownable(_admin) {
         dLEND = new LendDebt();
         USDC = DummyUSDC(_USDC);
         EURUSDOracle = _EURUSDCOracle;
+        lzEndpoint = _lzEndpoint;
+        lzDelegate = _admin;
     }
     //**********************************
 
@@ -117,7 +123,16 @@ contract LendFactory is Ownable, ERC1155Holder {
 
         string memory name = string(abi.encodePacked("Lend Operation - ", opName));
         string memory symbol = string(abi.encodePacked("opLEND-", Strings.toString(operationCount)));
-        LendOperation newOp = new LendOperation(address(this), name, symbol, totalShares, decimals);
+
+        LendOperation newOp = new LendOperation(
+            address(this),
+            name,
+            symbol,
+            totalShares,
+            decimals,
+            lzEndpoint,
+            lzDelegate
+        );
 
         dLEND.setMaxSupply(operationCount, totalShares);
 
