@@ -20,7 +20,7 @@ tests:
 	forge test -vvv --fork-url https://eth.meowrpc.com
 
 coverage:
-	forge coverage
+	forge coverage -vvv --fork-url https://eth.meowrpc.com
 
 build:
 	forge compile

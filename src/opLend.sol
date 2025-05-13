@@ -16,9 +16,9 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         uint256 maxSupply,
         uint8 customDecimals,
         address lzEndpoint,
-        address delegate
+        address lzDelegate
     )
-        OFTCore(customDecimals, lzEndpoint, delegate)
+        OFTCore(customDecimals, lzEndpoint, lzDelegate)
         ERC20(name, symbol)
         Ownable(initialOwner)
     {
