@@ -1,7 +1,8 @@
 help:
 	@echo 'Usage: make [TARGET] [EXTRA_ARGUMENTS]'
 	@echo 'Targets:'
-	@echo 'make install: installs forge required toolchain'
+	@echo 'make install: installs required dependencies'
+	@echo 'make install-toolbox: installs forge required toolchain'
 	@echo 'make fmt: format code'
 	@echo 'make tests: run tests'
 	@echo 'make coverage: show tests coverage'
@@ -11,6 +12,9 @@ help:
 	@echo 'make deploy rpc=[your_rpc_url] pk=[your_private_key]: deploy contracts'
 
 install:
+	forge install && npm i
+
+install-toolbox:
 	curl -L https://foundry.paradigm.xyz | bash
 
 fmt:

@@ -1,0 +1,27 @@
+{
+  "name": "lend-contracts",
+  "version": "1.0.0",
+  "description": "Smart contracts for lend.xyz using Foundry",
+  "homepage": "https://github.com/lendxyz/lend-contracts#readme",
+  "bugs": {
+    "url": "https://github.com/lendxyz/lend-contracts/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/lendxyz/lend-contracts.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@layerzerolabs/lz-evm-v1-0.7": "^2.0.6"
+  }
+}
