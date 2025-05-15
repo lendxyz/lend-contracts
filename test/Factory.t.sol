@@ -62,6 +62,7 @@ contract FactoryTest is Test, TestBase {
         assertEq(dLend.balanceOf(address(user), 1), sharesToBuy);
         assertEq(factory.fundingProgress(1), sharesToBuy);
         assertEq(factory.operationStarted(1), true);
+        assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
     }
 
     function test_BurnDirect() public {

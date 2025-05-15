@@ -29,6 +29,22 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract LendFactory is Ownable, ERC1155Holder {
     //********** Init **********
+
+    event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
+    event OpTokenClaimed(address indexed opToken, address indexed recipient, uint256 amount);
+    event Invested(
+        address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
+    );
+    event OperationFinished(uint256 indexed operationId, uint256 indexed amountRaisedEuro);
+
+    struct Operation {
+        address opToken;
+        uint256 totalShares;
+        uint256 eurPerShares;
+        uint8 decimals;
+        string opName;
+    }
+
     DummyUSDC public immutable USDC;
     LendDebt public immutable dLEND;
 
@@ -42,26 +58,12 @@ contract LendFactory is Ownable, ERC1155Holder {
     mapping(uint256 => Operation) public operations;
     mapping(uint256 => uint256) public fundingProgress;
     mapping(uint256 => uint256) public usdcRaised;
+    mapping(uint256 => mapping(address => uint256)) public usdcRaisedPerClient;
     mapping(address => uint256) public opIdFromOpToken;
     mapping(uint256 => address) public opTokenFromOpId;
     mapping(uint256 => bool) public usdcWithdrawn;
     mapping(uint256 => bool) public fundingPaused;
     mapping(uint256 => bool) public operationStarted;
-
-    struct Operation {
-        address opToken;
-        uint256 totalShares;
-        uint256 eurPerShares;
-        uint8 decimals;
-        string opName;
-    }
-
-    event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
-    event OpTokenClaimed(address indexed opToken, address indexed recipient, uint256 amount);
-    event Invested(
-        address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
-    );
-    event OperationFinished(uint256 indexed operationId, uint256 indexed amountRaisedEuro);
 
     constructor(address _admin, address _USDC, address _EURUSDCOracle, address _lzEndpoint) Ownable(_admin) {
         dLEND = new LendDebt();
@@ -186,6 +188,7 @@ contract LendFactory is Ownable, ERC1155Holder {
         dLEND.mint(msg.sender, id, sharesAmount, "");
 
         usdcRaised[id] += cost;
+        usdcRaisedPerClient[id][msg.sender] += cost;
 
         emit Invested(msg.sender, id, cost, sharesAmount);
 
@@ -219,6 +222,8 @@ contract LendFactory is Ownable, ERC1155Holder {
     }
 
     function handleBurnOnReceive(address user, uint256 id, uint256 value) private {
+        require(isOperationFinished(id), "Operation is not finished");
+
         Operation memory op = getOperation(id);
         LendOperation opToken = LendOperation(address(op.opToken));
 

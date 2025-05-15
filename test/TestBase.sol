@@ -18,7 +18,7 @@ contract TestBase is Test {
     uint256 maxEurUsdcRange = 14; // 1.4 USD per EUR
     uint256 minEurUsdcRange = 10; // 1.0 USD per EUR
 
-    DummyUSDC public usdc;
+    DummyUSDC public usdc = new DummyUSDC();
     LendFactory public factory;
     LendDebt public dLend;
 
@@ -40,16 +40,19 @@ contract TestBase is Test {
         return factory.createOperation("Test operation", totalSharesAmount, sharePriceEur, sharesDecimal);
     }
 
-    function setUp() public {
+    function setupContracts() public {
         vm.deal(admin, 10 ether);
         vm.deal(user, 10 ether);
         vm.deal(user2, 10 ether);
         vm.startPrank(admin);
 
-        usdc = new DummyUSDC();
         factory = new LendFactory(address(admin), address(usdc), EURUSDOracle, lzEndpoint);
         dLend = LendDebt(factory.dLEND());
 
         vm.stopPrank();
+    }
+
+    function setUp() public virtual {
+        setupContracts();
     }
 }
