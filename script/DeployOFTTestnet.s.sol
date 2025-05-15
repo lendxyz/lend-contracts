@@ -5,11 +5,11 @@ import {Script, console} from "forge-std/Script.sol";
 import {LendOperation} from "../src/opLend.sol";
 import {LendDebt} from "../src/dLend.sol";
 
-contract DeployOFT is Script {
+contract DeployOFTTestnet is Script {
     LendOperation public oft;
 
-    address lzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c); // ETH mainnet endpoint
-    address admin = address(0); // Use Lend multisig here
+    address lzEndpoint = address(0x6EDCE65403992e310A62460808c4b910D972f10f); // ETH sepolia endpoint
+    address admin = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283); // Sepolia testnet deployer address
 
     string name = 'Lend Operation - [op name]';
     string symbol = 'opLEND-[]';

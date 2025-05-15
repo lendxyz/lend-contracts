@@ -9,7 +9,10 @@ help:
 	@echo 'make build: compile contracts'
 	@echo 'make clean: clean build cache and forge cache'
 	@echo 'make remappings: generate remappings links for dependencies'
-	@echo 'make deploy rpc=[your_rpc_url] pk=[your_private_key]: deploy contracts'
+	@echo 'make deploy-factory rpc=[your_rpc_url] pk=[your_private_key]: deploy factory and dlend'
+	@echo 'make deploy-oft rpc=[your_rpc_url] pk=[your_private_key]: deploy opLend OFT'
+	@echo 'make deploy-factory-testnet rpc=[your_rpc_url] pk=[your_private_key]: deploy factory and dlend on sepolia testnet'
+	@echo 'make deploy-oft-testnet rpc=[your_rpc_url] pk=[your_private_key]: deploy opLend OFT on sepolia testnet'
 	@echo 'make abi: generate contract abis in the `abis` folder'
 
 install:
@@ -38,6 +41,15 @@ remappings:
 
 deploy-factory:
 	forge script script/DeployFactory.s.sol:DeployFactory --slow --broadcast --private-key $(pk) --verify
+
+deploy-factory-testnet:
+	forge script script/DeployFactoryTestnet.s.sol:DeployFactoryTestnet --slow --broadcast --private-key $(pk) --verify
+
+deploy-oft:
+	forge script script/DeployOFT.s.sol:DeployOFT --slow --broadcast --private-key $(pk) --verify
+
+deploy-oft:
+	forge script script/DeployOFTTestnet.s.sol:DeployOFTTestnet --slow --broadcast --private-key $(pk) --verify
 
 abi:
 	rm -rf abis
