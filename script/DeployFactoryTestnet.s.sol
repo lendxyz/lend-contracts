@@ -3,14 +3,16 @@ pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
 import {LendFactory} from "../src/Factory.sol";
+import {DummyUSDC} from "../src/DummyUSDC.sol";
 
-contract DeployFactory is Script {
+contract DeployFactoryTestnet is Script {
     LendFactory public factory;
 
-    // ETH Mainnet addresses:
-    address USDC = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
-    address EURUSDOracle = address(0xb49f677943BC038e9857d61E7d053CaA2C1734C1);
-    address lzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c);
+    // ETH Sepolia addresses:
+    address EURUSDOracle = address(0x1a81afB8146aeFfCFc5E50e8479e826E7D55b910);
+    address lzEndpoint = address(0x6EDCE65403992e310A62460808c4b910D972f10f);
+    address usdc = 0x54585517BBA619F74107581D0aF828EA40C25A7F;
+
     address admin = msg.sender; // System owner - should be replaced with Lend multisig
 
     function setUp() public {}
@@ -18,7 +20,7 @@ contract DeployFactory is Script {
     function run() public {
         vm.startBroadcast();
 
-        factory = new LendFactory(admin, USDC, EURUSDOracle, lzEndpoint);
+        factory = new LendFactory(admin, usdc, EURUSDOracle, lzEndpoint);
 
         vm.stopBroadcast();
     }
