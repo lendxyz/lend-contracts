@@ -32,6 +32,9 @@ contract LendFactory is Ownable, ERC1155Holder {
 
     event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
     event OpTokenClaimed(address indexed opToken, address indexed recipient, uint256 amount);
+    event Refunded(
+        address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesRefunded
+    );
     event Invested(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
     );
@@ -126,15 +129,8 @@ contract LendFactory is Ownable, ERC1155Holder {
         string memory name = string(abi.encodePacked("Lend Operation - ", opName));
         string memory symbol = string(abi.encodePacked("opLEND-", Strings.toString(operationCount)));
 
-        LendOperation newOp = new LendOperation(
-            address(this),
-            name,
-            symbol,
-            totalShares,
-            decimals,
-            lzEndpoint,
-            lzDelegate
-        );
+        LendOperation newOp =
+            new LendOperation(address(this), name, symbol, totalShares, decimals, lzEndpoint, lzDelegate);
 
         dLEND.setMaxSupply(operationCount, totalShares);
 

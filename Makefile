@@ -48,7 +48,7 @@ deploy-factory-testnet:
 deploy-oft:
 	forge script script/DeployOFT.s.sol:DeployOFT --slow --broadcast --private-key $(pk) --verify
 
-deploy-oft:
+deploy-oft-testnet:
 	forge script script/DeployOFTTestnet.s.sol:DeployOFTTestnet --slow --broadcast --private-key $(pk) --verify
 
 abi:

@@ -11,8 +11,8 @@ contract DeployOFT is Script {
     address lzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c); // ETH mainnet endpoint
     address admin = address(0); // Use Lend multisig here
 
-    string name = 'Lend Operation - [op name]';
-    string symbol = 'opLEND-[]';
+    string name = "Lend Operation - [op name]";
+    string symbol = "opLEND-[]";
     uint8 decimals = 18; // use decimals from source chain
     uint256 maxSupply = 1_000_000 * 10 ** decimals; // use supply from source chain
 

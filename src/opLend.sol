@@ -17,11 +17,7 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         uint8 customDecimals,
         address lzEndpoint,
         address lzDelegate
-    )
-        OFTCore(customDecimals, lzEndpoint, lzDelegate)
-        ERC20(name, symbol)
-        Ownable(initialOwner)
-    {
+    ) OFTCore(customDecimals, lzEndpoint, lzDelegate) ERC20(name, symbol) Ownable(initialOwner) {
         MAX_SUPPLY = maxSupply;
         DECIMALS = customDecimals;
     }
@@ -35,7 +31,9 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         return DECIMALS;
     }
 
-    /**** LZ functions ****/
+    /**
+     * LZ functions ***
+     */
 
     /**
      * @dev Retrieves the address of the underlying ERC20 implementation.
@@ -66,12 +64,12 @@ contract LendOperation is Ownable, ERC20, OFTCore {
      * @return amountSentLD The amount sent in local decimals.
      * @return amountReceivedLD The amount received in local decimals on the remote.
      */
-    function _debit(
-        address _from,
-        uint256 _amountLD,
-        uint256 _minAmountLD,
-        uint32 _dstEid
-    ) internal virtual override returns (uint256 amountSentLD, uint256 amountReceivedLD) {
+    function _debit(address _from, uint256 _amountLD, uint256 _minAmountLD, uint32 _dstEid)
+        internal
+        virtual
+        override
+        returns (uint256 amountSentLD, uint256 amountReceivedLD)
+    {
         (amountSentLD, amountReceivedLD) = _debitView(_amountLD, _minAmountLD, _dstEid);
 
         // @dev In NON-default OFT, amountSentLD could be 100, with a 10% fee, the amountReceivedLD amount is 90,
@@ -88,11 +86,12 @@ contract LendOperation is Ownable, ERC20, OFTCore {
      * @dev _srcEid The source chain ID.
      * @return amountReceivedLD The amount of tokens ACTUALLY received in local decimals.
      */
-    function _credit(
-        address _to,
-        uint256 _amountLD,
-        uint32 /*_srcEid*/
-    ) internal virtual override returns (uint256 amountReceivedLD) {
+    function _credit(address _to, uint256 _amountLD, uint32 /*_srcEid*/ )
+        internal
+        virtual
+        override
+        returns (uint256 amountReceivedLD)
+    {
         if (_to == address(0x0)) _to = address(0xdead); // _mint(...) does not support address(0x0)
         // @dev Default OFT mints on dst.
         _mint(_to, _amountLD);
