@@ -12,8 +12,8 @@ contract LendDebt is ERC1155, Ownable, ERC1155Pausable, ERC1155Burnable, ERC1155
     mapping(uint256 => uint256) public maxSupplyForId;
     mapping(uint256 => uint256) public totalMintedTokens;
 
-    constructor() ERC1155("https://cdn.lend.xyz/token/{id}.json") Ownable(msg.sender) {
-        FACTORY_ADDRESS = msg.sender;
+    constructor(address factory) ERC1155("https://cdn.lend.xyz/token/{id}.json") Ownable(factory) {
+        FACTORY_ADDRESS = factory;
     }
 
     function setURI(string memory newuri) public onlyOwner {

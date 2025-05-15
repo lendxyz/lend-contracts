@@ -36,4 +36,4 @@ remappings:
 	forge remappings > remappings.txt
 
 deploy-factory:
-	forge script script/DeployFactory.s.sol:DeployFactory --rpc-url $(rpc) --private-key $(pk)
+	forge script script/DeployFactory.s.sol:DeployFactory --slow --broadcast --private-key $(pk) --verify

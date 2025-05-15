@@ -47,7 +47,8 @@ contract TestBase is Test {
         vm.startPrank(admin);
 
         factory = new LendFactory(address(admin), address(usdc), EURUSDOracle, lzEndpoint);
-        dLend = LendDebt(factory.dLEND());
+        dLend = new LendDebt(address(factory));
+        factory.setDLendAddress(address(dLend));
 
         vm.stopPrank();
     }

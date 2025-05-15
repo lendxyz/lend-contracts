@@ -46,7 +46,7 @@ contract LendFactory is Ownable, ERC1155Holder {
     }
 
     DummyUSDC public immutable USDC;
-    LendDebt public immutable dLEND;
+    LendDebt public dLEND;
 
     address public EURUSDOracle;
 
@@ -66,12 +66,12 @@ contract LendFactory is Ownable, ERC1155Holder {
     mapping(uint256 => bool) public operationStarted;
 
     constructor(address _admin, address _USDC, address _EURUSDCOracle, address _lzEndpoint) Ownable(_admin) {
-        dLEND = new LendDebt();
         USDC = DummyUSDC(_USDC);
         EURUSDOracle = _EURUSDCOracle;
         lzEndpoint = _lzEndpoint;
         lzDelegate = _admin;
     }
+
     //**********************************
 
     //********** Read functions **********
@@ -157,6 +157,10 @@ contract LendFactory is Ownable, ERC1155Holder {
 
     function updateOracleAddress(address newOracleAddress) external onlyOwner {
         EURUSDOracle = newOracleAddress;
+    }
+
+    function setDLendAddress(address dlend) public onlyOwner {
+        dLEND = LendDebt(dlend);
     }
 
     function withdrawUSDC(uint256 id, address destination) external onlyOwner {
