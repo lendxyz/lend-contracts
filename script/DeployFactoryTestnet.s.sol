@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Script, console} from "forge-std/Script.sol";
 import {LendFactory} from "../src/Factory.sol";
 import {LendDebt} from "../src/dLend.sol";
-import {DummyUSDC} from "../src/DummyUSDC.sol";
+import {USDC} from "../src/DummyUSDC.sol";
 
 contract DeployFactoryTestnet is Script {
     LendFactory public factory;

@@ -24,7 +24,7 @@ import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import {LendDebt} from "./dLend.sol";
 import {LendOperation} from "./opLend.sol";
-import {DummyUSDC} from "./DummyUSDC.sol";
+import {USDC} from "./DummyUSDC.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract LendFactory is Ownable, ERC1155Holder {
@@ -45,7 +45,7 @@ contract LendFactory is Ownable, ERC1155Holder {
         string opName;
     }
 
-    DummyUSDC public immutable USDC;
+    USDC public immutable usdc;
     LendDebt public dLEND;
 
     address public EURUSDOracle;
@@ -65,8 +65,8 @@ contract LendFactory is Ownable, ERC1155Holder {
     mapping(uint256 => bool) public fundingPaused;
     mapping(uint256 => bool) public operationStarted;
 
-    constructor(address _admin, address _USDC, address _EURUSDCOracle, address _lzEndpoint) Ownable(_admin) {
-        USDC = DummyUSDC(_USDC);
+    constructor(address _admin, address _USDCAddress, address _EURUSDCOracle, address _lzEndpoint) Ownable(_admin) {
+        usdc = USDC(_USDCAddress);
         EURUSDOracle = _EURUSDCOracle;
         lzEndpoint = _lzEndpoint;
         lzDelegate = _admin;
@@ -87,9 +87,9 @@ contract LendFactory is Ownable, ERC1155Holder {
         uint256 sharesPriceEur =
             (operations[operationId].eurPerShares * sharesAmount) / 10 ** operations[operationId].decimals;
         uint256 sharesPriceEurConverted =
-            uint256(scalePrice(int256(sharesPriceEur), operations[operationId].decimals, USDC.decimals()));
+            uint256(scalePrice(int256(sharesPriceEur), operations[operationId].decimals, usdc.decimals()));
 
-        return sharesPriceEurConverted * getEURUSDOraclePrice() / 10 ** USDC.decimals();
+        return sharesPriceEurConverted * getEURUSDOraclePrice() / 10 ** usdc.decimals();
     }
 
     function isOperationFinished(uint256 id) public view returns (bool) {
@@ -98,7 +98,7 @@ contract LendFactory is Ownable, ERC1155Holder {
 
     function getEURUSDOraclePrice() public view returns (uint256) {
         (, int256 eurUsd,,,) = AggregatorV3Interface(EURUSDOracle).latestRoundData();
-        eurUsd = scalePrice(eurUsd, AggregatorV3Interface(EURUSDOracle).decimals(), USDC.decimals());
+        eurUsd = scalePrice(eurUsd, AggregatorV3Interface(EURUSDOracle).decimals(), usdc.decimals());
 
         return uint256(eurUsd);
     }
@@ -169,7 +169,7 @@ contract LendFactory is Ownable, ERC1155Holder {
         require(isOperationFinished(id), "Operation is not finished");
 
         usdcWithdrawn[id] = true;
-        USDC.transfer(destination, usdcRaised[id]);
+        usdc.transfer(destination, usdcRaised[id]);
     }
     //**********************************
 
@@ -183,9 +183,9 @@ contract LendFactory is Ownable, ERC1155Holder {
         require(sharesAmount > 0, "Not enough shares");
 
         uint256 cost = getAmountIn(id, sharesAmount);
-        require(USDC.allowance(msg.sender, address(this)) >= cost, "Not enough tokens allowed to be spent");
+        require(usdc.allowance(msg.sender, address(this)) >= cost, "Not enough tokens allowed to be spent");
 
-        USDC.transferFrom(msg.sender, address(this), cost);
+        usdc.transferFrom(msg.sender, address(this), cost);
 
         fundingProgress[id] += sharesAmount;
 

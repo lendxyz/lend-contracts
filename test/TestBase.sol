@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console} from "forge-std/Test.sol";
 import {LendFactory} from "../src/Factory.sol";
 import {LendDebt} from "../src/dLend.sol";
-import {DummyUSDC} from "../src/DummyUSDC.sol";
+import {USDC} from "../src/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
 
 contract TestBase is Test {
@@ -18,7 +18,7 @@ contract TestBase is Test {
     uint256 maxEurUsdcRange = 14; // 1.4 USD per EUR
     uint256 minEurUsdcRange = 10; // 1.0 USD per EUR
 
-    DummyUSDC public usdc = new DummyUSDC();
+    USDC public usdc = new USDC();
     LendFactory public factory;
     LendDebt public dLend;
 
