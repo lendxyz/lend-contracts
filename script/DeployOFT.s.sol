@@ -13,8 +13,7 @@ contract DeployOFT is Script {
 
     string name = "Lend Operation - [op name]";
     string symbol = "opLEND-[]";
-    uint8 decimals = 18; // use decimals from source chain
-    uint256 maxSupply = 1_000_000 * 10 ** decimals; // use supply from source chain
+    uint256 maxSupply = 1_000_000 * 10 ** 18; // use supply from source chain
 
     function setUp() public {}
 
@@ -26,7 +25,6 @@ contract DeployOFT is Script {
             name,
             symbol,
             maxSupply,
-            decimals,
             lzEndpoint,
             admin // lz delegate - should be Lend multisig
         );

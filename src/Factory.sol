@@ -44,7 +44,6 @@ contract LendFactory is Ownable, ERC1155Holder {
         address opToken;
         uint256 totalShares;
         uint256 eurPerShares;
-        uint8 decimals;
         string opName;
     }
 
@@ -57,6 +56,7 @@ contract LendFactory is Ownable, ERC1155Holder {
     address private immutable lzDelegate;
 
     uint256 public operationCount = 0;
+    uint8 private operationDecimals = 18;
 
     mapping(uint256 => Operation) public operations;
     mapping(uint256 => uint256) public fundingProgress;
@@ -78,19 +78,15 @@ contract LendFactory is Ownable, ERC1155Holder {
     //**********************************
 
     //********** Read functions **********
-    function operationDecimals(uint256 id) public view returns (uint256) {
-        return operations[id].decimals;
-    }
-
     function getOperation(uint256 id) public view returns (Operation memory) {
         return operations[id];
     }
 
     function getAmountIn(uint256 operationId, uint256 sharesAmount) public view returns (uint256) {
         uint256 sharesPriceEur =
-            (operations[operationId].eurPerShares * sharesAmount) / 10 ** operations[operationId].decimals;
+            (operations[operationId].eurPerShares * sharesAmount) / 10 ** operationDecimals;
         uint256 sharesPriceEurConverted =
-            uint256(scalePrice(int256(sharesPriceEur), operations[operationId].decimals, usdc.decimals()));
+            uint256(scalePrice(int256(sharesPriceEur), operationDecimals, usdc.decimals()));
 
         return sharesPriceEurConverted * getEURUSDOraclePrice() / 10 ** usdc.decimals();
     }
@@ -117,7 +113,7 @@ contract LendFactory is Ownable, ERC1155Holder {
     //**********************************
 
     //********** Operation management **********
-    function createOperation(string calldata opName, uint256 totalShares, uint256 eurPerShares, uint8 decimals)
+    function createOperation(string calldata opName, uint256 totalShares, uint256 eurPerShares)
         external
         onlyOwner
         returns (address)
@@ -130,11 +126,11 @@ contract LendFactory is Ownable, ERC1155Holder {
         string memory symbol = string(abi.encodePacked("opLEND-", Strings.toString(operationCount)));
 
         LendOperation newOp =
-            new LendOperation(address(this), name, symbol, totalShares, decimals, lzEndpoint, lzDelegate);
+            new LendOperation(address(this), name, symbol, totalShares, lzEndpoint, lzDelegate);
 
         dLEND.setMaxSupply(operationCount, totalShares);
 
-        operations[operationCount] = Operation(address(newOp), totalShares, eurPerShares, decimals, opName);
+        operations[operationCount] = Operation(address(newOp), totalShares, eurPerShares, opName);
         opIdFromOpToken[address(newOp)] = operationCount;
         opTokenFromOpId[operationCount] = address(newOp);
 

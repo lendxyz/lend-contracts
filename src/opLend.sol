@@ -7,19 +7,17 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract LendOperation is Ownable, ERC20, OFTCore {
     uint256 public immutable MAX_SUPPLY;
-    uint8 private immutable DECIMALS;
+    uint8 private immutable DECIMALS = 18;
 
     constructor(
         address initialOwner,
         string memory name,
         string memory symbol,
         uint256 maxSupply,
-        uint8 customDecimals,
         address lzEndpoint,
         address lzDelegate
-    ) OFTCore(customDecimals, lzEndpoint, lzDelegate) ERC20(name, symbol) Ownable(initialOwner) {
+    ) OFTCore(DECIMALS, lzEndpoint, lzDelegate) ERC20(name, symbol) Ownable(initialOwner) {
         MAX_SUPPLY = maxSupply;
-        DECIMALS = customDecimals;
     }
 
     function mint(address to, uint256 amount) public onlyOwner {
@@ -27,7 +25,7 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         _mint(to, amount);
     }
 
-    function decimals() public view virtual override returns (uint8) {
+    function decimals() public pure virtual override returns (uint8) {
         return DECIMALS;
     }
 
@@ -99,7 +97,7 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         return _amountLD;
     }
 
-    function sharedDecimals() public view override returns (uint8) {
+    function sharedDecimals() public pure override returns (uint8) {
         return DECIMALS;
     }
 }

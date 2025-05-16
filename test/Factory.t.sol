@@ -22,11 +22,10 @@ contract FactoryTest is Test, TestBase {
         LendOperation opLEND = LendOperation(op);
 
         LendFactory.Operation memory expectedReturn =
-            LendFactory.Operation(op, totalSharesAmount, sharePriceEur, sharesDecimal, "Test operation");
+            LendFactory.Operation(op, totalSharesAmount, sharePriceEur, "Test operation");
         LendFactory.Operation memory actualReturn = factory.getOperation(1);
 
         assertEq(factory.operationCount(), 1);
-        assertEq(factory.operationDecimals(1), sharesDecimal);
         assertEq(abi.encode(actualReturn), abi.encode(expectedReturn));
         assertEq(opLEND.name(), "Lend Operation - Test operation");
         assertEq(opLEND.symbol(), "opLEND-1");

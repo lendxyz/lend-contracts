@@ -37,7 +37,7 @@ contract TestBase is Test {
 
     function createOperation() public returns (address) {
         vm.prank(admin);
-        return factory.createOperation("Test operation", totalSharesAmount, sharePriceEur, sharesDecimal);
+        return factory.createOperation("Test operation", totalSharesAmount, sharePriceEur);
     }
 
     function setupContracts() public {

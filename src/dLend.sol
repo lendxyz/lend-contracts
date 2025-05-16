@@ -32,6 +32,10 @@ contract LendDebt is ERC1155, Ownable, ERC1155Pausable, ERC1155Burnable, ERC1155
         _unpause();
     }
 
+    function adminBurn(address user, uint256 id, uint256 value) public onlyOwner {
+        _burn(user, id, value);
+    }
+
     function mint(address account, uint256 id, uint256 amount, bytes memory data) public onlyOwner {
         require(totalSupply(id) + amount <= maxSupplyForId[id], "Total supply cap exceeded");
         require(totalMintedTokens[id] + amount <= maxSupplyForId[id], "Total supply cap exceeded");
