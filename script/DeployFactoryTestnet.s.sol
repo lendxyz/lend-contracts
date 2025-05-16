@@ -20,6 +20,7 @@ contract DeployFactoryTestnet is Script {
     function setUp() public {}
 
     function run() public {
+        vm.createSelectFork("sepolia");
         vm.startBroadcast();
 
         factory = new LendFactory(admin, usdc, EURUSDOracle, lzEndpoint);
