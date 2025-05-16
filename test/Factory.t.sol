@@ -117,7 +117,8 @@ contract FactoryTest is Test, TestBase {
 
         vm.stopPrank();
 
-        LendOperation opLEND = LendOperation(address(factory.opTokenFromOpId(1)));
+        LendFactory.Operation memory operation = factory.getOperation(1);
+        LendOperation opLEND = LendOperation(address(operation.opToken));
 
         assertEq(dLend.balanceOf(address(user), 1), 0);
         assertEq(opLEND.balanceOf(address(user)), sharesToBuy);
@@ -148,7 +149,8 @@ contract FactoryTest is Test, TestBase {
 
         vm.stopPrank();
 
-        LendOperation opLEND = LendOperation(address(factory.opTokenFromOpId(1)));
+        LendFactory.Operation memory operation = factory.getOperation(1);
+        LendOperation opLEND = LendOperation(address(operation.opToken));
 
         assertEq(dLend.balanceOf(address(user), 1), 0);
         assertEq(opLEND.balanceOf(address(user)), sharesToBuy);

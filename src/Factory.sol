@@ -21,10 +21,10 @@ pragma solidity ^0.8.27;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
-import {LendDebt} from "./dLend.sol";
+import {ILendDebt} from "./interfaces/IdLend.sol";
 import {LendOperation} from "./opLend.sol";
-import {USDC} from "./DummyUSDC.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract LendFactory is Ownable, ERC1155Holder {
@@ -48,67 +48,53 @@ contract LendFactory is Ownable, ERC1155Holder {
         string opName;
     }
 
-    USDC public immutable usdc;
-    LendDebt public dLEND;
+    ILendDebt public dLEND;
+    IERC20 public immutable usdc;
 
-    address public EURUSDOracle;
-
+    address private EURUSDOracle;
     address private immutable lzEndpoint;
-    address private immutable lzDelegate;
 
     uint256 public operationCount = 0;
-    uint8 private operationDecimals = 18;
 
     mapping(uint256 => Operation) public operations;
     mapping(uint256 => uint256) public fundingProgress;
     mapping(uint256 => uint256) public usdcRaised;
     mapping(uint256 => bool) public operationCanceled;
     mapping(uint256 => mapping(address => uint256)) public usdcRaisedPerClient;
-    mapping(address => uint256) public opIdFromOpToken;
-    mapping(uint256 => address) public opTokenFromOpId;
     mapping(uint256 => bool) public usdcWithdrawn;
     mapping(uint256 => bool) public fundingPaused;
     mapping(uint256 => bool) public operationStarted;
 
     constructor(address _admin, address _USDCAddress, address _EURUSDCOracle, address _lzEndpoint) Ownable(_admin) {
-        usdc = USDC(_USDCAddress);
+        usdc = IERC20(_USDCAddress);
         EURUSDOracle = _EURUSDCOracle;
         lzEndpoint = _lzEndpoint;
-        lzDelegate = _admin;
     }
-
-    //**********************************
-
-    //********** Modifiers **********
-    modifier checkExistingOp(uint256 id) {
-        require(id <= operationCount, "Operation does not exists");
-        _;
-    }
-
     //**********************************
 
     //********** Read functions **********
-    function getOperation(uint256 id) public view returns (Operation memory) {
+    function getOperation(uint256 id) external view returns (Operation memory) {
+        require(id <= operationCount, "Operation does not exists");
         return operations[id];
     }
 
-    function getAmountIn(uint256 operationId, uint256 sharesAmount) public view returns (uint256) {
-        uint256 sharesPriceEur = (operations[operationId].eurPerShares * sharesAmount) / 10 ** operationDecimals;
-        uint256 sharesPriceEurConverted =
-            uint256(scalePrice(int256(sharesPriceEur), operationDecimals, usdc.decimals()));
+    function getAmountIn(uint256 id, uint256 sharesAmount) public view returns (uint256) {
+        // 18: operation decimals - 6: USDC decimals
 
-        return sharesPriceEurConverted * getEURUSDOraclePrice() / 10 ** usdc.decimals();
+        uint256 sharesPriceEur = (operations[id].eurPerShares * sharesAmount) / 10 ** 18;
+        uint256 sharesPriceEurConverted =
+            uint256(scalePrice(int256(sharesPriceEur), 18, 6));
+
+        return sharesPriceEurConverted * getEURUSDOraclePrice() / 10 ** 6;
     }
 
     function isOperationFinished(uint256 id) public view returns (bool) {
         return operationStarted[id] && fundingProgress[id] >= operations[id].totalShares;
     }
 
-    function getEURUSDOraclePrice() public view returns (uint256) {
-        (, int256 eurUsd,,,) = AggregatorV3Interface(EURUSDOracle).latestRoundData();
-        eurUsd = scalePrice(eurUsd, AggregatorV3Interface(EURUSDOracle).decimals(), usdc.decimals());
-
-        return uint256(eurUsd);
+    function getEURUSDOraclePrice() public view returns (uint256 eurUsd) {
+        (, int256 eurUsdRaw,,,) = AggregatorV3Interface(EURUSDOracle).latestRoundData();
+        eurUsd = uint256(scalePrice(eurUsdRaw, AggregatorV3Interface(EURUSDOracle).decimals(), 6));
     }
 
     function scalePrice(int256 _price, uint8 _priceDecimals, uint8 _targetDecimals) internal pure returns (int256) {
@@ -134,20 +120,19 @@ contract LendFactory is Ownable, ERC1155Holder {
         string memory name = string(abi.encodePacked("Lend Operation - ", opName));
         string memory symbol = string(abi.encodePacked("opLEND-", Strings.toString(operationCount)));
 
-        LendOperation newOp = new LendOperation(address(this), name, symbol, totalShares, lzEndpoint, lzDelegate);
+        LendOperation newOp = new LendOperation(address(this), name, symbol, totalShares, lzEndpoint, owner());
 
         dLEND.setMaxSupply(operationCount, totalShares);
 
         operations[operationCount] = Operation(address(newOp), totalShares, eurPerShares, opName);
-        opIdFromOpToken[address(newOp)] = operationCount;
-        opTokenFromOpId[operationCount] = address(newOp);
 
         emit OperationCreated(address(newOp), operationCount, totalShares);
 
         return address(newOp);
     }
 
-    function refundUser(uint256 id, address user) external onlyOwner checkExistingOp(id) {
+    function refundUser(uint256 id, address user) public onlyOwner {
+        require(id <= operationCount, "Operation does not exists");
         uint256 userInvestAmount = usdcRaisedPerClient[id][user];
 
         require(userInvestAmount > 0, "User has not participated");
@@ -164,15 +149,20 @@ contract LendFactory is Ownable, ERC1155Holder {
         emit Refunded(user, id, userInvestAmount, userDlendBalance);
     }
 
-    function batchRefundUsers(uint256 id, address[] memory users, uint256 len) public onlyOwner {
+    function batchRefundUsers(uint256 id, address[] calldata users, uint256 len) external onlyOwner {
         for (uint256 i = 0; i < len; i++) {
-            this.refundUser(id, users[i]);
+            refundUser(id, users[i]);
         }
     }
 
-    function cancelOperation(uint256 id) external onlyOwner checkExistingOp(id) {
-        operationCanceled[id] = true;
+    function setDLendAddress(address dlend) external onlyOwner {
+        dLEND = ILendDebt(dlend);
+    }
 
+    function cancelOperation(uint256 id) external onlyOwner {
+        require(id <= operationCount, "Operation does not exists");
+
+        operationCanceled[id] = true;
         emit OperationCanceled(id);
     }
 
@@ -188,11 +178,8 @@ contract LendFactory is Ownable, ERC1155Holder {
         EURUSDOracle = newOracleAddress;
     }
 
-    function setDLendAddress(address dlend) public onlyOwner {
-        dLEND = LendDebt(dlend);
-    }
-
-    function withdrawUSDC(uint256 id, address destination) external onlyOwner checkExistingOp(id) {
+    function withdrawUSDC(uint256 id, address destination) external onlyOwner {
+        require(id <= operationCount, "Operation does not exists");
         require(!usdcWithdrawn[id], "Already claimed USDC");
         require(!operationCanceled[id], "Operation is canceled");
         require(!fundingPaused[id], "Operation is paused");
@@ -204,7 +191,8 @@ contract LendFactory is Ownable, ERC1155Holder {
     //**********************************
 
     //********** User-facing functions **********
-    function invest(uint256 id, uint256 sharesAmount) external checkExistingOp(id) {
+    function invest(uint256 id, uint256 sharesAmount) external {
+        require(id <= operationCount, "Operation does not exists");
         require(operationStarted[id] == true, "Operation is not started");
         require(fundingProgress[id] + sharesAmount <= operations[id].totalShares, "Cannot buy that many shares");
         require(!isOperationFinished(id), "Operation is finished");
@@ -230,8 +218,11 @@ contract LendFactory is Ownable, ERC1155Holder {
             emit OperationFinished(id, operations[id].totalShares * operations[id].eurPerShares);
         }
     }
+    //**********************************
 
-    function claimOpTokens(uint256 id) external checkExistingOp(id) {
+    //********** dLEND Burn and opLEND mint **********
+    function claimOpTokens(uint256 id) external {
+        require(id <= operationCount, "Operation does not exists");
         require(isOperationFinished(id), "Operation is not finished");
         require(!operationCanceled[id], "Operation is canceled");
         require(!fundingPaused[id], "Operation is paused");
@@ -245,9 +236,7 @@ contract LendFactory is Ownable, ERC1155Holder {
 
         dLEND.safeTransferFrom(msg.sender, address(this), id, dLendBalance, sender);
     }
-    //**********************************
 
-    //********** dLEND Burn and opLEND mint **********
     function getUserFromOnReceive(address from, bytes memory data) private view returns (address user) {
         user = from;
         if (from == address(this) && data.length > 0) {
@@ -257,7 +246,11 @@ contract LendFactory is Ownable, ERC1155Holder {
     }
 
     function handleBurnOnReceive(address user, uint256 id, uint256 value) private {
-        Operation memory op = getOperation(id);
+        require(isOperationFinished(id), "Operation is not finished");
+        require(!operationCanceled[id], "Operation is canceled");
+        require(!fundingPaused[id], "Operation is paused");
+
+        Operation memory op = operations[id];
         LendOperation opToken = LendOperation(address(op.opToken));
 
         dLEND.burn(address(this), id, value);
@@ -271,10 +264,6 @@ contract LendFactory is Ownable, ERC1155Holder {
         override
         returns (bytes4)
     {
-        require(isOperationFinished(id), "Operation is not finished");
-        require(!operationCanceled[id], "Operation is canceled");
-        require(!fundingPaused[id], "Operation is paused");
-
         handleBurnOnReceive(getUserFromOnReceive(from, data), id, value);
         return this.onERC1155Received.selector;
     }
@@ -289,9 +278,6 @@ contract LendFactory is Ownable, ERC1155Holder {
         address user = getUserFromOnReceive(from, data);
 
         for (uint256 i = 0; i < ids.length; i++) {
-            require(isOperationFinished(ids[i]), "Operation is not finished");
-            require(!operationCanceled[ids[i]], "Operation is canceled");
-            require(!fundingPaused[ids[i]], "Operation is paused");
             handleBurnOnReceive(user, ids[i], values[i]);
         }
 

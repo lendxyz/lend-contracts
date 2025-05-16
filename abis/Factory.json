@@ -27,19 +27,6 @@
   },
   {
     "type": "function",
-    "name": "EURUSDOracle",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "batchRefundUsers",
     "inputs": [
       {
@@ -124,7 +111,7 @@
       {
         "name": "",
         "type": "address",
-        "internalType": "contract LendDebt"
+        "internalType": "contract ILendDebt"
       }
     ],
     "stateMutability": "view"
@@ -172,7 +159,7 @@
     "name": "getAmountIn",
     "inputs": [
       {
-        "name": "operationId",
+        "name": "id",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -197,7 +184,7 @@
     "inputs": [],
     "outputs": [
       {
-        "name": "",
+        "name": "eurUsd",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -359,44 +346,6 @@
       }
     ],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "opIdFromOpToken",
-    "inputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "opTokenFromOpId",
-    "inputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -618,7 +567,7 @@
       {
         "name": "",
         "type": "address",
-        "internalType": "contract USDC"
+        "internalType": "contract IERC20"
       }
     ],
     "stateMutability": "view"

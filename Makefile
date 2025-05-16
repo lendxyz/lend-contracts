@@ -43,7 +43,7 @@ deploy-factory:
 	forge script script/DeployFactory.s.sol:DeployFactory --slow --broadcast --private-key $(pk) --verify
 
 deploy-factory-testnet:
-	forge script script/DeployFactoryTestnet.s.sol:DeployFactoryTestnet --slow --broadcast --private-key $(pk) --verify
+	forge script script/DeployFactoryTestnet.s.sol:DeployFactoryTestnet --broadcast --slow --private-key $(pk) --verify
 
 deploy-oft:
 	forge script script/DeployOFT.s.sol:DeployOFT --slow --broadcast --private-key $(pk) --verify
@@ -52,8 +52,12 @@ deploy-oft-testnet:
 	forge script script/DeployOFTTestnet.s.sol:DeployOFTTestnet --slow --broadcast --private-key $(pk) --verify
 
 abi:
-	rm -rf abis
 	mkdir -p abis
 	forge inspect LendFactory abi > ./abis/Factory.json
 	forge inspect LendOperation abi > ./abis/opLend.json
 	forge inspect LendDebt abi > ./abis/dLend.json
+
+interfaces:
+	make abi
+	mkdir -p src/interfaces
+	cast interface -n ILendDebt -o ./src/interfaces/IdLend.sol ./abis/dLend.json
