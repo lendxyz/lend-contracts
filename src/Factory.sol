@@ -31,6 +31,7 @@ contract LendFactory is Ownable, ERC1155Holder {
     //********** Init **********
 
     event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
+    event OperationCanceled(uint256 indexed operationId);
     event OpTokenClaimed(address indexed opToken, address indexed recipient, uint256 amount);
     event Refunded(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesRefunded
@@ -61,6 +62,7 @@ contract LendFactory is Ownable, ERC1155Holder {
     mapping(uint256 => Operation) public operations;
     mapping(uint256 => uint256) public fundingProgress;
     mapping(uint256 => uint256) public usdcRaised;
+    mapping(uint256 => bool) public operationCanceled;
     mapping(uint256 => mapping(address => uint256)) public usdcRaisedPerClient;
     mapping(address => uint256) public opIdFromOpToken;
     mapping(uint256 => address) public opTokenFromOpId;
@@ -77,14 +79,21 @@ contract LendFactory is Ownable, ERC1155Holder {
 
     //**********************************
 
+    //********** Modifiers **********
+    modifier checkExistingOp(uint256 id) {
+        require(id <= operationCount, "Operation does not exists");
+        _;
+    }
+
+    //**********************************
+
     //********** Read functions **********
     function getOperation(uint256 id) public view returns (Operation memory) {
         return operations[id];
     }
 
     function getAmountIn(uint256 operationId, uint256 sharesAmount) public view returns (uint256) {
-        uint256 sharesPriceEur =
-            (operations[operationId].eurPerShares * sharesAmount) / 10 ** operationDecimals;
+        uint256 sharesPriceEur = (operations[operationId].eurPerShares * sharesAmount) / 10 ** operationDecimals;
         uint256 sharesPriceEurConverted =
             uint256(scalePrice(int256(sharesPriceEur), operationDecimals, usdc.decimals()));
 
@@ -125,8 +134,7 @@ contract LendFactory is Ownable, ERC1155Holder {
         string memory name = string(abi.encodePacked("Lend Operation - ", opName));
         string memory symbol = string(abi.encodePacked("opLEND-", Strings.toString(operationCount)));
 
-        LendOperation newOp =
-            new LendOperation(address(this), name, symbol, totalShares, lzEndpoint, lzDelegate);
+        LendOperation newOp = new LendOperation(address(this), name, symbol, totalShares, lzEndpoint, lzDelegate);
 
         dLEND.setMaxSupply(operationCount, totalShares);
 
@@ -139,10 +147,9 @@ contract LendFactory is Ownable, ERC1155Holder {
         return address(newOp);
     }
 
-    function refundUser(uint256 id, address user) external onlyOwner {
+    function refundUser(uint256 id, address user) external onlyOwner checkExistingOp(id) {
         uint256 userInvestAmount = usdcRaisedPerClient[id][user];
 
-        require(id <= operationCount, "Operation does not exists");
         require(userInvestAmount > 0, "User has not participated");
 
         uint256 userDlendBalance = dLEND.balanceOf(user, id);
@@ -163,6 +170,12 @@ contract LendFactory is Ownable, ERC1155Holder {
         }
     }
 
+    function cancelOperation(uint256 id) external onlyOwner checkExistingOp(id) {
+        operationCanceled[id] = true;
+
+        emit OperationCanceled(id);
+    }
+
     function startOperation(uint256 id) external onlyOwner {
         operationStarted[id] = true;
     }
@@ -179,9 +192,10 @@ contract LendFactory is Ownable, ERC1155Holder {
         dLEND = LendDebt(dlend);
     }
 
-    function withdrawUSDC(uint256 id, address destination) external onlyOwner {
-        require(id <= operationCount, "Operation does not exists");
-        require(usdcWithdrawn[id] == false, "Already claimed USDC");
+    function withdrawUSDC(uint256 id, address destination) external onlyOwner checkExistingOp(id) {
+        require(!usdcWithdrawn[id], "Already claimed USDC");
+        require(!operationCanceled[id], "Operation is canceled");
+        require(!fundingPaused[id], "Operation is paused");
         require(isOperationFinished(id), "Operation is not finished");
 
         usdcWithdrawn[id] = true;
@@ -190,11 +204,11 @@ contract LendFactory is Ownable, ERC1155Holder {
     //**********************************
 
     //********** User-facing functions **********
-    function invest(uint256 id, uint256 sharesAmount) external {
-        require(id <= operationCount, "Operation does not exists");
+    function invest(uint256 id, uint256 sharesAmount) external checkExistingOp(id) {
         require(operationStarted[id] == true, "Operation is not started");
         require(fundingProgress[id] + sharesAmount <= operations[id].totalShares, "Cannot buy that many shares");
         require(!isOperationFinished(id), "Operation is finished");
+        require(!operationCanceled[id], "Operation is canceled");
         require(!fundingPaused[id], "Operation is paused");
         require(sharesAmount > 0, "Not enough shares");
 
@@ -217,9 +231,10 @@ contract LendFactory is Ownable, ERC1155Holder {
         }
     }
 
-    function claimOpTokens(uint256 id) external {
-        require(id <= operationCount, "Operation does not exists");
+    function claimOpTokens(uint256 id) external checkExistingOp(id) {
         require(isOperationFinished(id), "Operation is not finished");
+        require(!operationCanceled[id], "Operation is canceled");
+        require(!fundingPaused[id], "Operation is paused");
 
         uint256 dLendBalance = dLEND.balanceOf(msg.sender, id);
 
@@ -242,8 +257,6 @@ contract LendFactory is Ownable, ERC1155Holder {
     }
 
     function handleBurnOnReceive(address user, uint256 id, uint256 value) private {
-        require(isOperationFinished(id), "Operation is not finished");
-
         Operation memory op = getOperation(id);
         LendOperation opToken = LendOperation(address(op.opToken));
 
@@ -258,6 +271,10 @@ contract LendFactory is Ownable, ERC1155Holder {
         override
         returns (bytes4)
     {
+        require(isOperationFinished(id), "Operation is not finished");
+        require(!operationCanceled[id], "Operation is canceled");
+        require(!fundingPaused[id], "Operation is paused");
+
         handleBurnOnReceive(getUserFromOnReceive(from, data), id, value);
         return this.onERC1155Received.selector;
     }
@@ -272,6 +289,9 @@ contract LendFactory is Ownable, ERC1155Holder {
         address user = getUserFromOnReceive(from, data);
 
         for (uint256 i = 0; i < ids.length; i++) {
+            require(isOperationFinished(ids[i]), "Operation is not finished");
+            require(!operationCanceled[ids[i]], "Operation is canceled");
+            require(!fundingPaused[ids[i]], "Operation is paused");
             handleBurnOnReceive(user, ids[i], values[i]);
         }
 
