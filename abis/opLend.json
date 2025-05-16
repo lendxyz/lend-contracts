@@ -23,11 +23,6 @@
         "internalType": "uint256"
       },
       {
-        "name": "customDecimals",
-        "type": "uint8",
-        "internalType": "uint8"
-      },
-      {
         "name": "lzEndpoint",
         "type": "address",
         "internalType": "address"
@@ -248,7 +243,7 @@
         "internalType": "uint8"
       }
     ],
-    "stateMutability": "view"
+    "stateMutability": "pure"
   },
   {
     "type": "function",
@@ -1095,7 +1090,7 @@
         "internalType": "uint8"
       }
     ],
-    "stateMutability": "view"
+    "stateMutability": "pure"
   },
   {
     "type": "function",

@@ -139,6 +139,30 @@ contract LendFactory is Ownable, ERC1155Holder {
         return address(newOp);
     }
 
+    function refundUser(uint256 id, address user) external onlyOwner {
+        uint256 userInvestAmount = usdcRaisedPerClient[id][user];
+
+        require(id <= operationCount, "Operation does not exists");
+        require(userInvestAmount > 0, "User has not participated");
+
+        uint256 userDlendBalance = dLEND.balanceOf(user, id);
+
+        fundingProgress[id] -= userDlendBalance;
+        usdcRaised[id] -= userInvestAmount;
+        usdcRaisedPerClient[id][user] -= userInvestAmount;
+
+        dLEND.adminBurn(user, id, userDlendBalance);
+        usdc.transfer(user, userInvestAmount);
+
+        emit Refunded(user, id, userInvestAmount, userDlendBalance);
+    }
+
+    function batchRefundUsers(uint256 id, address[] memory users, uint256 len) public onlyOwner {
+        for (uint256 i = 0; i < len; i++) {
+            this.refundUser(id, users[i]);
+        }
+    }
+
     function startOperation(uint256 id) external onlyOwner {
         operationStarted[id] = true;
     }
