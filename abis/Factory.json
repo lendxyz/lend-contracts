@@ -171,7 +171,31 @@
     ],
     "outputs": [
       {
-        "name": "",
+        "name": "usdcCost",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAmountOut",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "usdcAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "sharesAmount",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -242,7 +266,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "sharesAmount",
+        "name": "usdcAmount",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -485,6 +509,19 @@
     "type": "function",
     "name": "renounceOwnership",
     "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "selfRefund",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
     "outputs": [],
     "stateMutability": "nonpayable"
   },
