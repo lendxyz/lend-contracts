@@ -98,6 +98,31 @@ contract FactoryTest is Test, TestBase {
         assertEq(factory.usdcRaisedPerClient(1, address(user)), 0);
     }
 
+    function test_SelfRefund() public {
+        vm.prank(admin);
+        factory.startOperation(1);
+
+        vm.startPrank(user);
+
+        uint256 cost = factory.getAmountIn(1, sharesToBuy);
+        usdc.approve(address(factory), cost);
+        factory.invest(1, cost);
+
+        assertEq(usdc.balanceOf(address(user)), initialUSDCBalance - cost);
+        assertEq(usdc.balanceOf(address(factory)), cost);
+        assertEq(dLend.balanceOf(address(user), 1), sharesToBuy);
+        assertEq(factory.fundingProgress(1), sharesToBuy);
+        assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
+
+        factory.selfRefund(1);
+
+        assertEq(usdc.balanceOf(address(user)), initialUSDCBalance);
+        assertEq(usdc.balanceOf(address(factory)), 0);
+        assertEq(dLend.balanceOf(address(user), 1), 0);
+        assertEq(factory.fundingProgress(1), 0);
+        assertEq(factory.usdcRaisedPerClient(1, address(user)), 0);
+    }
+
     function test_BurnDirect() public {
         vm.prank(admin);
         factory.startOperation(1);

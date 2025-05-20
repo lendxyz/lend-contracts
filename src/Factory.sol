@@ -27,8 +27,6 @@ import {ILendDebt} from "./interfaces/IdLend.sol";
 import {LendOperation} from "./opLend.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import {console} from "forge-std/console.sol";
-
 contract LendFactory is Ownable, ERC1155Holder {
     //********** Init **********
 
@@ -139,7 +137,7 @@ contract LendFactory is Ownable, ERC1155Holder {
         return address(newOp);
     }
 
-    function refundUser(uint256 id, address user) public onlyOwner {
+    function _refund(uint256 id, address user) internal onlyOwner {
         require(id <= operationCount, "Operation does not exists");
         uint256 userInvestAmount = usdcRaisedPerClient[id][user];
 
@@ -155,6 +153,15 @@ contract LendFactory is Ownable, ERC1155Holder {
         usdc.transfer(user, userInvestAmount);
 
         emit Refunded(user, id, userInvestAmount, userDlendBalance);
+    }
+
+
+    function refundUser(uint256 id, address user) public onlyOwner {
+        _refund(id, user);
+    }
+
+    function selfRefund(uint256 id) public {
+        _refund(id, msg.sender);
     }
 
     function batchRefundUsers(uint256 id, address[] calldata users, uint256 len) external onlyOwner {
