@@ -137,13 +137,14 @@ contract LendFactory is Ownable, ERC1155Holder {
         return address(newOp);
     }
 
-    function _refund(uint256 id, address user) internal onlyOwner {
-        require(id <= operationCount, "Operation does not exists");
+    function _refund(uint256 id, address user) internal {
         uint256 userInvestAmount = usdcRaisedPerClient[id][user];
-
-        require(userInvestAmount > 0, "User has not participated");
-
         uint256 userDlendBalance = dLEND.balanceOf(user, id);
+
+        require(id <= operationCount, "Operation does not exists");
+        require(userInvestAmount > 0, "User has not participated");
+        require(userDlendBalance > 0, "User has no dLend");
+        require(LendOperation(operations[id].opToken).balanceOf(user) == 0, "User has already claimed opLend tokens");
 
         fundingProgress[id] -= userDlendBalance;
         usdcRaised[id] -= userInvestAmount;
@@ -154,7 +155,6 @@ contract LendFactory is Ownable, ERC1155Holder {
 
         emit Refunded(user, id, userInvestAmount, userDlendBalance);
     }
-
 
     function refundUser(uint256 id, address user) public onlyOwner {
         _refund(id, user);
