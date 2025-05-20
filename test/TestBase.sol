@@ -13,7 +13,7 @@ contract TestBase is Test {
     uint256 totalSharesAmount = 1_000_000 * 10 ** sharesDecimal;
     uint256 eurAmountPerShare = 2;
     uint256 sharePriceEur = eurAmountPerShare * 10 ** sharesDecimal;
-    uint256 sharesToBuy = 100 * 10 ** sharesDecimal;
+    uint256 sharesToBuy = 163 * 10 ** sharesDecimal;
 
     uint256 maxEurUsdcRange = 14; // 1.4 USD per EUR
     uint256 minEurUsdcRange = 10; // 1.0 USD per EUR

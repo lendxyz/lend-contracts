@@ -27,6 +27,8 @@ import {ILendDebt} from "./interfaces/IdLend.sol";
 import {LendOperation} from "./opLend.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+import {console} from "forge-std/console.sol";
+
 contract LendFactory is Ownable, ERC1155Holder {
     //********** Init **********
 
@@ -78,13 +80,20 @@ contract LendFactory is Ownable, ERC1155Holder {
         return operations[id];
     }
 
-    function getAmountIn(uint256 id, uint256 sharesAmount) public view returns (uint256) {
+    function getAmountIn(uint256 id, uint256 sharesAmount) public view returns (uint256 usdcCost) {
         // 18: operation decimals - 6: USDC decimals
 
         uint256 sharesPriceEur = (operations[id].eurPerShares * sharesAmount) / 10 ** 18;
         uint256 sharesPriceEurConverted = uint256(scalePrice(int256(sharesPriceEur), 18, 6));
 
-        return sharesPriceEurConverted * getEURUSDOraclePrice() / 10 ** 6;
+        usdcCost = sharesPriceEurConverted * getEURUSDOraclePrice() / 10 ** 6;
+    }
+
+    function getAmountOut(uint256 id, uint256 usdcAmount) public view returns (uint256 sharesAmount) {
+        uint256 eurPerShares = operations[id].eurPerShares; // 18 decimals
+        uint256 oraclePrice = getEURUSDOraclePrice(); // 6 decimals
+
+        sharesAmount = (usdcAmount * 10 ** 36) / (eurPerShares * oraclePrice);
     }
 
     function isOperationFinished(uint256 id) public view returns (bool) {
@@ -190,28 +199,29 @@ contract LendFactory is Ownable, ERC1155Holder {
     //**********************************
 
     //********** User-facing functions **********
-    function invest(uint256 id, uint256 sharesAmount) external {
+    function invest(uint256 id, uint256 usdcAmount) external {
         require(id <= operationCount, "Operation does not exists");
         require(operationStarted[id] == true, "Operation is not started");
-        require(fundingProgress[id] + sharesAmount <= operations[id].totalShares, "Cannot buy that many shares");
         require(!isOperationFinished(id), "Operation is finished");
         require(!operationCanceled[id], "Operation is canceled");
         require(!fundingPaused[id], "Operation is paused");
+        require(usdc.allowance(msg.sender, address(this)) >= usdcAmount, "Not enough tokens allowed to be spent");
+
+        uint256 sharesAmount = getAmountOut(id, usdcAmount);
+
+        require(fundingProgress[id] + sharesAmount <= operations[id].totalShares, "Cannot buy that many shares");
         require(sharesAmount > 0, "Not enough shares");
 
-        uint256 cost = getAmountIn(id, sharesAmount);
-        require(usdc.allowance(msg.sender, address(this)) >= cost, "Not enough tokens allowed to be spent");
-
-        usdc.transferFrom(msg.sender, address(this), cost);
+        usdc.transferFrom(msg.sender, address(this), usdcAmount);
 
         fundingProgress[id] += sharesAmount;
 
         dLEND.mint(msg.sender, id, sharesAmount, "");
 
-        usdcRaised[id] += cost;
-        usdcRaisedPerClient[id][msg.sender] += cost;
+        usdcRaised[id] += usdcAmount;
+        usdcRaisedPerClient[id][msg.sender] += usdcAmount;
 
-        emit Invested(msg.sender, id, cost, sharesAmount);
+        emit Invested(msg.sender, id, usdcAmount, sharesAmount);
 
         if (fundingProgress[id] >= operations[id].totalShares) {
             emit OperationFinished(id, operations[id].totalShares * operations[id].eurPerShares);
