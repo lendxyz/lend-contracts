@@ -82,8 +82,7 @@ contract LendFactory is Ownable, ERC1155Holder {
         // 18: operation decimals - 6: USDC decimals
 
         uint256 sharesPriceEur = (operations[id].eurPerShares * sharesAmount) / 10 ** 18;
-        uint256 sharesPriceEurConverted =
-            uint256(scalePrice(int256(sharesPriceEur), 18, 6));
+        uint256 sharesPriceEurConverted = uint256(scalePrice(int256(sharesPriceEur), 18, 6));
 
         return sharesPriceEurConverted * getEURUSDOraclePrice() / 10 ** 6;
     }

@@ -22,7 +22,7 @@ contract DeployFactory is Script {
         vm.startBroadcast();
 
         factory = new LendFactory(admin, USDC, EURUSDOracle, lzEndpoint);
-        dLend = new LendDebt(address(factory));
+        dLend = new LendDebt(address(factory), admin);
         factory.setDLendAddress(address(dLend));
 
         vm.stopBroadcast();

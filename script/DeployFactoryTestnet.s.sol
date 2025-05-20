@@ -24,8 +24,9 @@ contract DeployFactoryTestnet is Script {
         vm.startBroadcast();
 
         factory = new LendFactory(admin, usdc, EURUSDOracle, lzEndpoint);
-        dLend = new LendDebt(address(factory));
+        dLend = new LendDebt(address(factory), admin);
         factory.setDLendAddress(address(dLend));
+        dLend.setURI("https://cdn.lend.xyz/token-testnet/{id}.json");
 
         vm.stopBroadcast();
     }

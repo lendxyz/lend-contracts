@@ -176,4 +176,13 @@ contract FactoryTest is Test, TestBase {
         assertEq(factory.operationStarted(1), true);
         assertEq(factory.isOperationFinished(1), true);
     }
+
+    function test_ChangeUrl() public {
+        assertEq(dLend.uri(1), "https://cdn.lend.xyz/token/{id}.json");
+
+        vm.prank(admin);
+        dLend.setURI("https://cdn.lend.xyz/token-test/{id}.json");
+
+        assertEq(dLend.uri(1), "https://cdn.lend.xyz/token-test/{id}.json");
+    }
 }
