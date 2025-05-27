@@ -185,29 +185,29 @@ contract LendFactory is Ownable {
     //**********************************
 
     //********** User-facing functions **********
-    function invest(uint256 id, uint256 usdcAmount) external {
+    function invest(uint256 id, uint256 sharesAmount) external {
         require(id <= operationCount, "Operation does not exists");
         require(operationStarted[id] == true, "Operation is not started");
+        require(fundingProgress[id] + sharesAmount <= operations[id].totalShares, "Cannot buy that many shares");
         require(!isOperationFinished(id), "Operation is finished");
         require(!operationCanceled[id], "Operation is canceled");
         require(!fundingPaused[id], "Operation is paused");
-        require(usdc.allowance(msg.sender, address(this)) >= usdcAmount, "Not enough tokens allowed to be spent");
-
-        uint256 sharesAmount = getAmountOut(id, usdcAmount);
-
-        require(fundingProgress[id] + sharesAmount <= operations[id].totalShares, "Cannot buy that many shares");
         require(sharesAmount > 0, "Not enough shares");
 
-        usdc.transferFrom(msg.sender, address(this), usdcAmount);
+        uint256 cost = getAmountIn(id, sharesAmount);
+        require(usdc.allowance(msg.sender, address(this)) >= cost, "Not enough tokens allowed to be spent");
+
+        usdc.transferFrom(msg.sender, address(this), cost);
 
         fundingProgress[id] += sharesAmount;
 
+
+        usdcRaised[id] += cost;
+        usdcRaisedPerClient[id][msg.sender] += cost;
+
         LendOperation(operations[id].opToken).mint(msg.sender, sharesAmount);
 
-        usdcRaised[id] += usdcAmount;
-        usdcRaisedPerClient[id][msg.sender] += usdcAmount;
-
-        emit Invested(msg.sender, id, usdcAmount, sharesAmount);
+        emit Invested(msg.sender, id, cost, sharesAmount);
 
         if (fundingProgress[id] >= operations[id].totalShares) {
             emit OperationFinished(id, operations[id].totalShares * operations[id].eurPerShares);

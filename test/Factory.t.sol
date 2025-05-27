@@ -59,7 +59,7 @@ contract FactoryTest is Test, TestBase {
 
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
         usdc.approve(address(factory), cost);
-        factory.invest(1, cost);
+        factory.invest(1, sharesToBuy);
 
         vm.stopPrank();
 
@@ -81,7 +81,7 @@ contract FactoryTest is Test, TestBase {
 
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
         usdc.approve(address(factory), cost);
-        factory.invest(1, cost);
+        factory.invest(1, sharesToBuy);
 
         vm.stopPrank();
 
@@ -113,8 +113,7 @@ contract FactoryTest is Test, TestBase {
         vm.startPrank(user);
 
         usdc.approve(address(factory), UINT256_MAX);
-        uint256 cost = factory.getAmountIn(1, totalSharesAmount);
-        factory.invest(1, cost);
+        factory.invest(1, totalSharesAmount);
 
         vm.stopPrank();
 

@@ -240,7 +240,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "usdcAmount",
+        "name": "sharesAmount",
         "type": "uint256",
         "internalType": "uint256"
       }
