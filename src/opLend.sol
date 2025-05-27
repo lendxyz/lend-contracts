@@ -7,7 +7,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 contract LendOperation is Ownable, ERC20, OFTCore {
     uint256 public immutable MAX_SUPPLY;
-    uint8 private immutable DECIMALS = 18;
+    uint8 private immutable DECIMALS = 6;
 
     constructor(
         address initialOwner,

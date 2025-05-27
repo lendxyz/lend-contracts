@@ -50,6 +50,7 @@ contract LendFactory is Ownable, ERC1155Holder {
 
     ILendDebt public dLEND;
     IERC20 public immutable usdc;
+    uint256 public immutable opDecimals = 6;
 
     address private EURUSDOracle;
     address private immutable lzEndpoint;
@@ -79,19 +80,15 @@ contract LendFactory is Ownable, ERC1155Holder {
     }
 
     function getAmountIn(uint256 id, uint256 sharesAmount) public view returns (uint256 usdcCost) {
-        // 18: operation decimals - 6: USDC decimals
-
-        uint256 sharesPriceEur = (operations[id].eurPerShares * sharesAmount) / 10 ** 18;
-        uint256 sharesPriceEurConverted = uint256(scalePrice(int256(sharesPriceEur), 18, 6));
-
-        usdcCost = sharesPriceEurConverted * getEURUSDOraclePrice() / 10 ** 6;
+        uint256 sharesPriceEur = (operations[id].eurPerShares * sharesAmount) / 10 ** 6;
+        usdcCost = sharesPriceEur * getEURUSDOraclePrice() / 10 ** 6;
     }
 
     function getAmountOut(uint256 id, uint256 usdcAmount) public view returns (uint256 sharesAmount) {
-        uint256 eurPerShares = operations[id].eurPerShares; // 18 decimals
-        uint256 oraclePrice = getEURUSDOraclePrice(); // 6 decimals
+        uint256 eurPerShares = operations[id].eurPerShares;
+        uint256 oraclePrice = getEURUSDOraclePrice();
 
-        sharesAmount = (usdcAmount * 10 ** 36) / (eurPerShares * oraclePrice);
+        sharesAmount = (usdcAmount * 10 ** 12) / (eurPerShares * oraclePrice);
     }
 
     function isOperationFinished(uint256 id) public view returns (bool) {

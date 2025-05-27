@@ -9,7 +9,7 @@ import {LendOperation} from "../src/opLend.sol";
 
 contract TestBase is Test {
     uint256 initialUSDCBalance = 1_000_000_000 * 10 ** 6;
-    uint8 sharesDecimal = 18;
+    uint8 sharesDecimal = 6;
     uint256 totalSharesAmount = 1_000_000 * 10 ** sharesDecimal;
     uint256 eurAmountPerShare = 2;
     uint256 sharePriceEur = eurAmountPerShare * 10 ** sharesDecimal;

@@ -1,6 +1,6 @@
 {
   "name": "Lend Debt - Hello world",
-  "decimals": 18,
+  "decimals": 6,
   "description": "lorem ipsum.....",
   "image": "https://cdn.lend.xyz/token/images/[id|name]_image.png",
   "properties": {

@@ -373,6 +373,19 @@
   },
   {
     "type": "function",
+    "name": "opDecimals",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "operationCanceled",
     "inputs": [
       {
