@@ -55,9 +55,3 @@ abi:
 	mkdir -p abis
 	forge inspect LendFactory abi > ./abis/Factory.json
 	forge inspect LendOperation abi > ./abis/opLend.json
-	forge inspect LendDebt abi > ./abis/dLend.json
-
-interfaces:
-	make abi
-	mkdir -p src/interfaces
-	cast interface -n ILendDebt -o ./src/interfaces/IdLend.sol ./abis/dLend.json

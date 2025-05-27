@@ -3,7 +3,6 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 import {LendFactory} from "../src/Factory.sol";
-import {LendDebt} from "../src/dLend.sol";
 import {USDC} from "../src/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
 import {TestBase} from "./TestBase.sol";
@@ -51,6 +50,8 @@ contract FactoryTest is Test, TestBase {
     }
 
     function test_Invest() public {
+        LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
+
         vm.prank(admin);
         factory.startOperation(1);
 
@@ -64,13 +65,15 @@ contract FactoryTest is Test, TestBase {
 
         assertEq(usdc.balanceOf(address(user)), initialUSDCBalance - cost);
         assertEq(usdc.balanceOf(address(factory)), cost);
-        assertEq(dLend.balanceOf(address(user), 1), sharesToBuy);
+        assertEq(opLend.balanceOf(address(user)), sharesToBuy);
         assertEq(factory.fundingProgress(1), sharesToBuy);
         assertEq(factory.operationStarted(1), true);
         assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
     }
 
     function test_Refund() public {
+        LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
+
         vm.prank(admin);
         factory.startOperation(1);
 
@@ -84,7 +87,7 @@ contract FactoryTest is Test, TestBase {
 
         assertEq(usdc.balanceOf(address(user)), initialUSDCBalance - cost);
         assertEq(usdc.balanceOf(address(factory)), cost);
-        assertEq(dLend.balanceOf(address(user), 1), sharesToBuy);
+        assertEq(opLend.balanceOf(address(user)), sharesToBuy);
         assertEq(factory.fundingProgress(1), sharesToBuy);
         assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
 
@@ -93,100 +96,9 @@ contract FactoryTest is Test, TestBase {
 
         assertEq(usdc.balanceOf(address(user)), initialUSDCBalance);
         assertEq(usdc.balanceOf(address(factory)), 0);
-        assertEq(dLend.balanceOf(address(user), 1), 0);
+        assertEq(opLend.balanceOf(address(user)), 0);
         assertEq(factory.fundingProgress(1), 0);
         assertEq(factory.usdcRaisedPerClient(1, address(user)), 0);
-    }
-
-    function test_SelfRefund() public {
-        vm.prank(admin);
-        factory.startOperation(1);
-
-        vm.startPrank(user);
-
-        uint256 cost = factory.getAmountIn(1, sharesToBuy);
-        usdc.approve(address(factory), cost);
-        factory.invest(1, cost);
-
-        assertEq(usdc.balanceOf(address(user)), initialUSDCBalance - cost);
-        assertEq(usdc.balanceOf(address(factory)), cost);
-        assertEq(dLend.balanceOf(address(user), 1), sharesToBuy);
-        assertEq(factory.fundingProgress(1), sharesToBuy);
-        assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
-
-        factory.selfRefund(1);
-
-        assertEq(usdc.balanceOf(address(user)), initialUSDCBalance);
-        assertEq(usdc.balanceOf(address(factory)), 0);
-        assertEq(dLend.balanceOf(address(user), 1), 0);
-        assertEq(factory.fundingProgress(1), 0);
-        assertEq(factory.usdcRaisedPerClient(1, address(user)), 0);
-    }
-
-    function test_BurnDirect() public {
-        vm.prank(admin);
-        factory.startOperation(1);
-
-        // simulate operation near the end
-        vm.startPrank(user2);
-
-        usdc.approve(address(factory), UINT256_MAX);
-        uint256 costBig = factory.getAmountIn(1, totalSharesAmount - sharesToBuy);
-        factory.invest(1, costBig);
-
-        vm.stopPrank();
-
-        // simulate operation finish
-        vm.startPrank(user);
-
-        uint256 cost = factory.getAmountIn(1, sharesToBuy);
-        usdc.approve(address(factory), cost);
-        factory.invest(1, cost);
-
-        dLend.setApprovalForAll(address(factory), true);
-
-        factory.claimOpTokens(1);
-
-        vm.stopPrank();
-
-        LendFactory.Operation memory operation = factory.getOperation(1);
-        LendOperation opLEND = LendOperation(address(operation.opToken));
-
-        assertEq(dLend.balanceOf(address(user), 1), 0);
-        assertEq(opLEND.balanceOf(address(user)), sharesToBuy);
-    }
-
-    function test_BurnIndirect() public {
-        vm.prank(admin);
-        factory.startOperation(1);
-
-        // simulate operation near the end
-        vm.startPrank(user2);
-
-        usdc.approve(address(factory), UINT256_MAX);
-        uint256 costBig = factory.getAmountIn(1, totalSharesAmount - sharesToBuy);
-        factory.invest(1, costBig);
-
-        vm.stopPrank();
-
-        // simulate operation finish
-        vm.startPrank(user);
-
-        uint256 cost = factory.getAmountIn(1, sharesToBuy);
-        usdc.approve(address(factory), cost);
-        factory.invest(1, cost);
-
-        uint256 dLendBalance = dLend.balanceOf(address(user), 1);
-
-        dLend.safeTransferFrom(address(user), address(factory), 1, dLendBalance, "");
-
-        vm.stopPrank();
-
-        LendFactory.Operation memory operation = factory.getOperation(1);
-        LendOperation opLEND = LendOperation(address(operation.opToken));
-
-        assertEq(dLend.balanceOf(address(user), 1), 0);
-        assertEq(opLEND.balanceOf(address(user)), sharesToBuy);
     }
 
     function test_OpFinished() public {
@@ -209,14 +121,5 @@ contract FactoryTest is Test, TestBase {
         assertEq(factory.fundingProgress(1), totalSharesAmount);
         assertEq(factory.operationStarted(1), true);
         assertEq(factory.isOperationFinished(1), true);
-    }
-
-    function test_ChangeUrl() public {
-        assertEq(dLend.uri(1), "https://cdn.lend.xyz/token/{id}.json");
-
-        vm.prank(admin);
-        dLend.setURI("https://cdn.lend.xyz/token-test/{id}.json");
-
-        assertEq(dLend.uri(1), "https://cdn.lend.xyz/token-test/{id}.json");
     }
 }

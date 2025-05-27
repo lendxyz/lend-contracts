@@ -3,7 +3,6 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 import {LendFactory} from "../src/Factory.sol";
-import {LendDebt} from "../src/dLend.sol";
 import {USDC} from "../src/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
 
@@ -20,7 +19,6 @@ contract TestBase is Test {
 
     USDC public usdc = new USDC();
     LendFactory public factory;
-    LendDebt public dLend;
 
     address EURUSDOracle = address(0xb49f677943BC038e9857d61E7d053CaA2C1734C1); // ETH mainnet address
     address lzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c); // ETH mainnet endpoint
@@ -47,8 +45,6 @@ contract TestBase is Test {
         vm.startPrank(admin);
 
         factory = new LendFactory(address(admin), address(usdc), EURUSDOracle, lzEndpoint);
-        dLend = new LendDebt(address(factory), address(admin));
-        factory.setDLendAddress(address(dLend));
 
         vm.stopPrank();
     }

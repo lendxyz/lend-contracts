@@ -20,19 +20,16 @@ pragma solidity ^0.8.27;
 //   +++++++++ +++++++++  ++++     +++++ ++++++++++++
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {ERC1155Holder} from "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
-import {ILendDebt} from "./interfaces/IdLend.sol";
 import {LendOperation} from "./opLend.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract LendFactory is Ownable, ERC1155Holder {
+contract LendFactory is Ownable {
     //********** Init **********
 
     event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
     event OperationCanceled(uint256 indexed operationId);
-    event OpTokenClaimed(address indexed opToken, address indexed recipient, uint256 amount);
     event Refunded(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesRefunded
     );
@@ -48,7 +45,6 @@ contract LendFactory is Ownable, ERC1155Holder {
         string opName;
     }
 
-    ILendDebt public dLEND;
     IERC20 public immutable usdc;
     uint256 public immutable opDecimals = 6;
 
@@ -125,8 +121,6 @@ contract LendFactory is Ownable, ERC1155Holder {
 
         LendOperation newOp = new LendOperation(address(this), name, symbol, totalShares, lzEndpoint, owner());
 
-        dLEND.setMaxSupply(operationCount, totalShares);
-
         operations[operationCount] = Operation(address(newOp), totalShares, eurPerShares, opName);
 
         emit OperationCreated(address(newOp), operationCount, totalShares);
@@ -134,41 +128,29 @@ contract LendFactory is Ownable, ERC1155Holder {
         return address(newOp);
     }
 
-    function _refund(uint256 id, address user) internal {
+    function refundUser(uint256 id, address user) public onlyOwner {
+        LendOperation opToken = LendOperation(operations[id].opToken);
         uint256 userInvestAmount = usdcRaisedPerClient[id][user];
-        uint256 userDlendBalance = dLEND.balanceOf(user, id);
+        uint256 opLendBalance = opToken.balanceOf(user);
 
         require(id <= operationCount, "Operation does not exists");
         require(userInvestAmount > 0, "User has not participated");
-        require(userDlendBalance > 0, "User has no dLend");
-        require(LendOperation(operations[id].opToken).balanceOf(user) == 0, "User has already claimed opLend tokens");
+        require(opLendBalance > 0, "User has no opLend");
 
-        fundingProgress[id] -= userDlendBalance;
+        fundingProgress[id] -= opLendBalance;
         usdcRaised[id] -= userInvestAmount;
         usdcRaisedPerClient[id][user] -= userInvestAmount;
 
-        dLEND.adminBurn(user, id, userDlendBalance);
+        opToken.adminBurn(user, opLendBalance);
         usdc.transfer(user, userInvestAmount);
 
-        emit Refunded(user, id, userInvestAmount, userDlendBalance);
-    }
-
-    function refundUser(uint256 id, address user) public onlyOwner {
-        _refund(id, user);
-    }
-
-    function selfRefund(uint256 id) public {
-        _refund(id, msg.sender);
+        emit Refunded(user, id, userInvestAmount, opLendBalance);
     }
 
     function batchRefundUsers(uint256 id, address[] calldata users, uint256 len) external onlyOwner {
         for (uint256 i = 0; i < len; i++) {
             refundUser(id, users[i]);
         }
-    }
-
-    function setDLendAddress(address dlend) external onlyOwner {
-        dLEND = ILendDebt(dlend);
     }
 
     function cancelOperation(uint256 id) external onlyOwner {
@@ -220,7 +202,7 @@ contract LendFactory is Ownable, ERC1155Holder {
 
         fundingProgress[id] += sharesAmount;
 
-        dLEND.mint(msg.sender, id, sharesAmount, "");
+        LendOperation(operations[id].opToken).mint(msg.sender, sharesAmount);
 
         usdcRaised[id] += usdcAmount;
         usdcRaisedPerClient[id][msg.sender] += usdcAmount;
@@ -230,71 +212,6 @@ contract LendFactory is Ownable, ERC1155Holder {
         if (fundingProgress[id] >= operations[id].totalShares) {
             emit OperationFinished(id, operations[id].totalShares * operations[id].eurPerShares);
         }
-    }
-    //**********************************
-
-    //********** dLEND Burn and opLEND mint **********
-    function claimOpTokens(uint256 id) external {
-        require(id <= operationCount, "Operation does not exists");
-        require(isOperationFinished(id), "Operation is not finished");
-        require(!operationCanceled[id], "Operation is canceled");
-        require(!fundingPaused[id], "Operation is paused");
-
-        uint256 dLendBalance = dLEND.balanceOf(msg.sender, id);
-
-        require(dLendBalance > 0, "User has no dLEND");
-        require(dLEND.isApprovedForAll(msg.sender, address(this)), "dLEND tokens not approved");
-
-        bytes memory sender = abi.encode(msg.sender);
-
-        dLEND.safeTransferFrom(msg.sender, address(this), id, dLendBalance, sender);
-    }
-
-    function getUserFromOnReceive(address from, bytes memory data) private view returns (address user) {
-        user = from;
-        if (from == address(this) && data.length > 0) {
-            (address decodedUser) = abi.decode(data, (address));
-            user = decodedUser;
-        }
-    }
-
-    function handleBurnOnReceive(address user, uint256 id, uint256 value) private {
-        require(isOperationFinished(id), "Operation is not finished");
-        require(!operationCanceled[id], "Operation is canceled");
-        require(!fundingPaused[id], "Operation is paused");
-
-        Operation memory op = operations[id];
-        LendOperation opToken = LendOperation(address(op.opToken));
-
-        dLEND.burn(address(this), id, value);
-        opToken.mint(user, value);
-
-        emit OpTokenClaimed(op.opToken, user, value);
-    }
-
-    function onERC1155Received(address from, address, uint256 id, uint256 value, bytes memory data)
-        public
-        override
-        returns (bytes4)
-    {
-        handleBurnOnReceive(getUserFromOnReceive(from, data), id, value);
-        return this.onERC1155Received.selector;
-    }
-
-    function onERC1155BatchReceived(
-        address from,
-        address,
-        uint256[] memory ids,
-        uint256[] memory values,
-        bytes memory data
-    ) public override returns (bytes4) {
-        address user = getUserFromOnReceive(from, data);
-
-        for (uint256 i = 0; i < ids.length; i++) {
-            handleBurnOnReceive(user, ids[i], values[i]);
-        }
-
-        return this.onERC1155BatchReceived.selector;
     }
     //**********************************
 }

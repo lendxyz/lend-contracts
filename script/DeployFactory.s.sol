@@ -3,11 +3,9 @@ pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
 import {LendFactory} from "../src/Factory.sol";
-import {LendDebt} from "../src/dLend.sol";
 
 contract DeployFactory is Script {
     LendFactory public factory;
-    LendDebt public dLend;
 
     // ETH Mainnet addresses:
     address USDC = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
@@ -22,8 +20,6 @@ contract DeployFactory is Script {
         vm.startBroadcast();
 
         factory = new LendFactory(admin, USDC, EURUSDOracle, lzEndpoint);
-        dLend = new LendDebt(address(factory), admin);
-        factory.setDLendAddress(address(dLend));
 
         vm.stopBroadcast();
     }

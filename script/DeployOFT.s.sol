@@ -3,7 +3,6 @@ pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
 import {LendOperation} from "../src/opLend.sol";
-import {LendDebt} from "../src/dLend.sol";
 
 contract DeployOFT is Script {
     LendOperation public oft;

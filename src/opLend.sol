@@ -29,6 +29,10 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         return DECIMALS;
     }
 
+    function adminBurn(address user, uint256 value) public onlyOwner {
+        _burn(user, value);
+    }
+
     /**
      * LZ functions ***
      */

@@ -3,12 +3,10 @@ pragma solidity ^0.8.13;
 
 import {Script, console} from "forge-std/Script.sol";
 import {LendFactory} from "../src/Factory.sol";
-import {LendDebt} from "../src/dLend.sol";
 import {USDC} from "../src/DummyUSDC.sol";
 
 contract DeployFactoryTestnet is Script {
     LendFactory public factory;
-    LendDebt public dLend;
 
     // ETH Sepolia addresses:
     address EURUSDOracle = address(0x1a81afB8146aeFfCFc5E50e8479e826E7D55b910);
@@ -24,9 +22,6 @@ contract DeployFactoryTestnet is Script {
         vm.startBroadcast();
 
         factory = new LendFactory(admin, usdc, EURUSDOracle, lzEndpoint);
-        dLend = new LendDebt(address(factory), admin);
-        factory.setDLendAddress(address(dLend));
-        dLend.setURI("https://cdn.lend.xyz/token-testnet/{id}.json");
 
         vm.stopBroadcast();
     }
