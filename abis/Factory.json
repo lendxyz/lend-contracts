@@ -21,6 +21,11 @@
         "name": "_lzEndpoint",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "_backendSigner",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "stateMutability": "nonpayable"
@@ -243,6 +248,16 @@
         "name": "sharesAmount",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "nonce",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "signature",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -440,6 +455,19 @@
     "inputs": [
       {
         "name": "newOwner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "updateBackendSigner",
+    "inputs": [
+      {
+        "name": "newBackendSigner",
         "type": "address",
         "internalType": "address"
       }
