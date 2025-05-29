@@ -13,6 +13,7 @@ contract DeployFactoryTestnet is Script {
     address lzEndpoint = address(0x6EDCE65403992e310A62460808c4b910D972f10f);
     address usdc = address(0x54585517BBA619F74107581D0aF828EA40C25A7F);
 
+    address backendSigner = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283); // Backend signer to generate mint allowances
     address admin = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283); // Sepolia testnet deployer address
 
     function setUp() public {}
@@ -21,7 +22,7 @@ contract DeployFactoryTestnet is Script {
         vm.createSelectFork("sepolia");
         vm.startBroadcast();
 
-        factory = new LendFactory(admin, usdc, EURUSDOracle, lzEndpoint);
+        factory = new LendFactory(admin, usdc, EURUSDOracle, lzEndpoint, backendSigner);
 
         vm.stopBroadcast();
     }

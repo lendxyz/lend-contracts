@@ -8,7 +8,7 @@ contract DeployOFT is Script {
     LendOperation public oft;
 
     address lzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c); // ETH mainnet endpoint
-    address admin = address(0); // Use Lend multisig here
+    address admin = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283); // System owner - should be replaced with Lend multisig
 
     string name = "Lend Operation - [op name]";
     string symbol = "opLEND-[]";

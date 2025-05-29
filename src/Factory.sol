@@ -23,9 +23,10 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import {LendOperation} from "./opLend.sol";
+import {SignatureHelper} from "./SignatureHelper.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract LendFactory is Ownable {
+contract LendFactory is Ownable, SignatureHelper {
     //********** Init **********
 
     event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
@@ -62,7 +63,13 @@ contract LendFactory is Ownable {
     mapping(uint256 => bool) public fundingPaused;
     mapping(uint256 => bool) public operationStarted;
 
-    constructor(address _admin, address _USDCAddress, address _EURUSDCOracle, address _lzEndpoint) Ownable(_admin) {
+    constructor(
+        address _admin,
+        address _USDCAddress,
+        address _EURUSDCOracle,
+        address _lzEndpoint,
+        address _backendSigner
+    ) Ownable(_admin) SignatureHelper(_backendSigner) {
         usdc = IERC20(_USDCAddress);
         EURUSDOracle = _EURUSDCOracle;
         lzEndpoint = _lzEndpoint;
@@ -172,6 +179,10 @@ contract LendFactory is Ownable {
         EURUSDOracle = newOracleAddress;
     }
 
+    function updateBackendSigner(address newBackendSigner) external onlyOwner {
+        backendSigner = newBackendSigner;
+    }
+
     function withdrawUSDC(uint256 id, address destination) external onlyOwner {
         require(id <= operationCount, "Operation does not exists");
         require(!usdcWithdrawn[id], "Already claimed USDC");
@@ -185,7 +196,7 @@ contract LendFactory is Ownable {
     //**********************************
 
     //********** User-facing functions **********
-    function invest(uint256 id, uint256 sharesAmount) external {
+    function invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature) public {
         require(id <= operationCount, "Operation does not exists");
         require(operationStarted[id] == true, "Operation is not started");
         require(fundingProgress[id] + sharesAmount <= operations[id].totalShares, "Cannot buy that many shares");
@@ -195,12 +206,14 @@ contract LendFactory is Ownable {
         require(sharesAmount > 0, "Not enough shares");
 
         uint256 cost = getAmountIn(id, sharesAmount);
-        require(usdc.allowance(msg.sender, address(this)) >= cost, "Not enough tokens allowed to be spent");
+        require(usdc.allowance(msg.sender, address(this)) >= cost, "Not enough USDC allowed to be spent");
+
+        bool isSignatureValid = verifySignature(msg.sender, sharesAmount, id, nonce, signature);
+        require(isSignatureValid, "Invalid signature");
 
         usdc.transferFrom(msg.sender, address(this), cost);
 
         fundingProgress[id] += sharesAmount;
-
 
         usdcRaised[id] += cost;
         usdcRaisedPerClient[id][msg.sender] += cost;

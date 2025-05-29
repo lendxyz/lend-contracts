@@ -23,14 +23,30 @@ contract TestBase is Test {
     address EURUSDOracle = address(0xb49f677943BC038e9857d61E7d053CaA2C1734C1); // ETH mainnet address
     address lzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c); // ETH mainnet endpoint
 
+    address backendSigner;
+    uint256 backendSignerPk;
+
     address admin = makeAddr("admin");
     address user = makeAddr("user");
     address user2 = makeAddr("user2");
+
+    string testNonce = 'QSfd8gQE4WYzO29';
 
     function mintUSDC() public {
         vm.prank(admin);
         usdc.mint(address(user), initialUSDCBalance);
         usdc.mint(address(user2), initialUSDCBalance);
+    }
+
+    function getMintSignature(address _user, uint256 _amount, string memory _nonce) public returns (bytes memory) {
+        vm.startPrank(backendSigner);
+        bytes32 digest = keccak256(abi.encodePacked(_user, _amount, _nonce));
+        bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", digest));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(backendSignerPk, hash);
+        bytes memory signature = abi.encodePacked(r, s, v);
+        vm.stopPrank();
+
+        return signature;
     }
 
     function createOperation() public returns (address) {
@@ -44,7 +60,12 @@ contract TestBase is Test {
         vm.deal(user2, 10 ether);
         vm.startPrank(admin);
 
-        factory = new LendFactory(address(admin), address(usdc), EURUSDOracle, lzEndpoint);
+        (address _backendSigner, uint256 _backendSignerPk) = makeAddrAndKey("backend");
+
+        backendSigner = _backendSigner;
+        backendSignerPk = _backendSignerPk;
+
+        factory = new LendFactory(address(admin), address(usdc), EURUSDOracle, lzEndpoint, address(backendSigner));
 
         vm.stopPrank();
     }
