@@ -30,7 +30,7 @@ contract TestBase is Test {
     address user = makeAddr("user");
     address user2 = makeAddr("user2");
 
-    string testNonce = 'QSfd8gQE4WYzO29';
+    string testNonce = "QSfd8gQE4WYzO29";
 
     function mintUSDC() public {
         vm.prank(admin);

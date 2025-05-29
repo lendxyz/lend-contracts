@@ -73,6 +73,21 @@ contract FactoryTest is Test, TestBase {
         assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
     }
 
+    function test_CannotReuseSignature() public {
+        vm.prank(admin);
+        factory.startOperation(1);
+
+        bytes memory signature = getMintSignature(address(user), sharesToBuy, testNonce);
+
+        vm.startPrank(user);
+        uint256 cost = factory.getAmountIn(1, sharesToBuy);
+        usdc.approve(address(factory), cost);
+        factory.invest(1, sharesToBuy, testNonce, signature);
+        vm.expectRevert();
+        factory.invest(1, sharesToBuy, testNonce, signature);
+        vm.stopPrank();
+    }
+
     function test_Refund() public {
         LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
 
