@@ -55,7 +55,7 @@ contract FactoryTest is Test, TestBase {
         vm.prank(admin);
         factory.startOperation(1);
 
-        bytes memory signature = getMintSignature(address(user), sharesToBuy, testNonce);
+        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
 
         vm.startPrank(user);
 
@@ -77,7 +77,7 @@ contract FactoryTest is Test, TestBase {
         vm.prank(admin);
         factory.startOperation(1);
 
-        bytes memory signature = getMintSignature(address(user), sharesToBuy, testNonce);
+        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
 
         vm.startPrank(user);
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
@@ -94,7 +94,7 @@ contract FactoryTest is Test, TestBase {
         vm.prank(admin);
         factory.startOperation(1);
 
-        bytes memory signature = getMintSignature(address(user), sharesToBuy, testNonce);
+        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
 
         vm.startPrank(user);
 
@@ -127,7 +127,7 @@ contract FactoryTest is Test, TestBase {
         vm.prank(admin);
         factory.startOperation(1);
 
-        bytes memory signature = getMintSignature(address(user), totalSharesAmount, testNonce);
+        bytes memory signature = getMintSignature(address(user), 1, totalSharesAmount, testNonce);
 
         assertEq(factory.operationStarted(1), true);
 

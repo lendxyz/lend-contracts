@@ -24,7 +24,7 @@ abstract contract SignatureHelper {
             return false;
         }
 
-        bytes32 messageHash = keccak256(abi.encodePacked(_user, _amount, _nonce));
+        bytes32 messageHash = keccak256(abi.encodePacked(_opId, _user, _amount, _nonce));
         bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
         (bytes32 r, bytes32 s, uint8 v) = splitSignature(_signature);
         address recovered = ecrecover(ethSignedMessageHash, v, r, s);
