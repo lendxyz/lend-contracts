@@ -29,6 +29,7 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 contract LendFactory is Ownable, SignatureHelper {
     //********** Init **********
 
+    event OperationStarted(uint256 indexed operationId);
     event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
     event OperationCanceled(uint256 indexed operationId);
     event Refunded(
@@ -169,6 +170,8 @@ contract LendFactory is Ownable, SignatureHelper {
 
     function startOperation(uint256 id) external onlyOwner {
         operationStarted[id] = true;
+
+        emit OperationStarted(id);
     }
 
     function pauseFunding(uint256 id, bool state) external onlyOwner {
