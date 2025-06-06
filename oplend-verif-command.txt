@@ -1,0 +1,1 @@
+forge verify-contract --chain-id [chain_id] --watch --compiler-version "[compiler_version]" --constructor-args $(cast abi-encode "constructor(address,string,string,uint256,address,address)" [factory_address] "Lend Operation - [operation_name]" "opLEND-[factory_op_id]" [total_shares] [lz_endpoint] [factory_owner]) [oplend_address] LendOperation
