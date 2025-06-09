@@ -273,12 +273,18 @@ contract LendFactory is Ownable, SignatureHelper {
 
         LendOperation(operations[id].opToken).mint(address(this), sharesAmount);
 
-        SendParam memory sendParam =
-            SendParam(lzEndpointId, bytes32(uint256(uint160(msg.sender))), sharesAmount, sharesAmount, "", "", "");
         MessagingFee memory fee = MessagingFee(msg.value, 0);
-        address refundAddress;
+        SendParam memory sendParam = SendParam(
+            lzEndpointId,
+            bytes32(uint256(uint160(msg.sender))),
+            sharesAmount,
+            sharesAmount,
+            "0x0003010011010000000000000000000000000000ea60",
+            "",
+            ""
+        );
 
-        LendOperation(operations[id].opToken).send(sendParam, fee, refundAddress);
+        LendOperation(operations[id].opToken).send(sendParam, fee, msg.sender);
 
         _postInvest(id, sharesAmount, cost);
     }
