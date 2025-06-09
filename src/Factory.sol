@@ -24,6 +24,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import {LendOperation} from "./opLend.sol";
 import {SignatureHelper} from "./SignatureHelper.sol";
+import { SendParam, MessagingFee } from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract LendFactory is Ownable, SignatureHelper {
@@ -199,7 +200,7 @@ contract LendFactory is Ownable, SignatureHelper {
     //**********************************
 
     //********** User-facing functions **********
-    function invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature) public {
+    function _invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature) private returns (uint256) {
         require(id <= operationCount, "Operation does not exists");
         require(operationStarted[id] == true, "Operation is not started");
         require(fundingProgress[id] + sharesAmount <= operations[id].totalShares, "Cannot buy that many shares");
@@ -221,13 +222,43 @@ contract LendFactory is Ownable, SignatureHelper {
         usdcRaised[id] += cost;
         usdcRaisedPerClient[id][msg.sender] += cost;
 
-        LendOperation(operations[id].opToken).mint(msg.sender, sharesAmount);
-
         emit Invested(msg.sender, id, cost, sharesAmount);
 
         if (fundingProgress[id] >= operations[id].totalShares) {
             emit OperationFinished(id, operations[id].totalShares * operations[id].eurPerShares);
         }
+
+        return cost;
+    }
+
+    function _postInvest(uint256 id, uint256 sharesAmount, uint256 cost) private {
+        emit Invested(msg.sender, id, cost, sharesAmount);
+
+        if (fundingProgress[id] >= operations[id].totalShares) {
+            emit OperationFinished(id, operations[id].totalShares * operations[id].eurPerShares);
+        }
+    }
+
+    function invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature) public {
+        uint256 cost = _invest(id, sharesAmount, nonce, signature);
+        LendOperation(operations[id].opToken).mint(msg.sender, sharesAmount);
+        _postInvest(id, sharesAmount, cost);
+    }
+
+    function investAndBridge(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature, uint32 lzEndpointId) public payable {
+        require(msg.value > 0, "Must include LZ fees in ethers");
+
+        uint256 cost = _invest(id, sharesAmount, nonce, signature);
+
+        LendOperation(operations[id].opToken).mint(address(this), sharesAmount);
+
+        SendParam memory sendParam = SendParam(lzEndpointId, bytes32(uint256(uint160(msg.sender))), sharesAmount, sharesAmount, "", "", "");
+        MessagingFee memory fee = MessagingFee(msg.value, 0);
+        address refundAddress;
+
+        LendOperation(operations[id].opToken).send(sendParam, fee, refundAddress);
+
+        _postInvest(id, sharesAmount, cost);
     }
     //**********************************
 }
