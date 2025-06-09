@@ -18,6 +18,7 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         address lzDelegate
     ) OFTCore(DECIMALS, lzEndpoint, lzDelegate) ERC20(name, symbol) Ownable(initialOwner) {
         MAX_SUPPLY = maxSupply;
+        endpoint.setDelegate(lzDelegate);
     }
 
     function mint(address to, uint256 amount) public onlyOwner {
