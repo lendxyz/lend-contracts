@@ -471,6 +471,34 @@
   },
   {
     "type": "function",
+    "name": "setOpLendPeer",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "chainId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "lzEndpointId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "peerAddress",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "startOperation",
     "inputs": [
       {
@@ -647,6 +675,37 @@
   },
   {
     "type": "event",
+    "name": "OpLendPeerAdded",
+    "inputs": [
+      {
+        "name": "operationId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "chainId",
+        "type": "uint32",
+        "indexed": false,
+        "internalType": "uint32"
+      },
+      {
+        "name": "lzEndpointId",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "peerAddress",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "OperationCanceled",
     "inputs": [
       {
@@ -698,6 +757,25 @@
         "type": "uint256",
         "indexed": true,
         "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OperationPaused",
+    "inputs": [
+      {
+        "name": "operationId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "paused",
+        "type": "bool",
+        "indexed": true,
+        "internalType": "bool"
       }
     ],
     "anonymous": false

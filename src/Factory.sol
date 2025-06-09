@@ -24,7 +24,7 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import {LendOperation} from "./opLend.sol";
 import {SignatureHelper} from "./SignatureHelper.sol";
-import { SendParam, MessagingFee } from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
+import {SendParam, MessagingFee} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract LendFactory is Ownable, SignatureHelper {
@@ -32,7 +32,11 @@ contract LendFactory is Ownable, SignatureHelper {
 
     event OperationStarted(uint256 indexed operationId);
     event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
+    event OperationPaused(uint256 indexed operationId, bool indexed paused);
     event OperationCanceled(uint256 indexed operationId);
+    event OpLendPeerAdded(
+        uint256 indexed operationId, uint32 chainId, uint32 indexed lzEndpointId, address indexed peerAddress
+    );
     event Refunded(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesRefunded
     );
@@ -171,12 +175,12 @@ contract LendFactory is Ownable, SignatureHelper {
 
     function startOperation(uint256 id) external onlyOwner {
         operationStarted[id] = true;
-
         emit OperationStarted(id);
     }
 
     function pauseFunding(uint256 id, bool state) external onlyOwner {
         fundingPaused[id] = state;
+        emit OperationPaused(id, state);
     }
 
     function updateOracleAddress(address newOracleAddress) external onlyOwner {
@@ -185,6 +189,14 @@ contract LendFactory is Ownable, SignatureHelper {
 
     function updateBackendSigner(address newBackendSigner) external onlyOwner {
         backendSigner = newBackendSigner;
+    }
+
+    function setOpLendPeer(uint256 id, uint32 chainId, uint32 lzEndpointId, address peerAddress) external onlyOwner {
+        require(id <= operationCount, "Operation does not exists");
+        LendOperation opLend = LendOperation(operations[id].opToken);
+        opLend.setPeer(lzEndpointId, bytes32(uint256(uint160(peerAddress))));
+
+        emit OpLendPeerAdded(id, chainId, lzEndpointId, peerAddress);
     }
 
     function withdrawUSDC(uint256 id, address destination) external onlyOwner {
@@ -200,7 +212,10 @@ contract LendFactory is Ownable, SignatureHelper {
     //**********************************
 
     //********** User-facing functions **********
-    function _invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature) private returns (uint256) {
+    function _invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature)
+        private
+        returns (uint256)
+    {
         require(id <= operationCount, "Operation does not exists");
         require(operationStarted[id] == true, "Operation is not started");
         require(fundingProgress[id] + sharesAmount <= operations[id].totalShares, "Cannot buy that many shares");
@@ -245,14 +260,21 @@ contract LendFactory is Ownable, SignatureHelper {
         _postInvest(id, sharesAmount, cost);
     }
 
-    function investAndBridge(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature, uint32 lzEndpointId) public payable {
+    function investAndBridge(
+        uint256 id,
+        uint256 sharesAmount,
+        string calldata nonce,
+        bytes memory signature,
+        uint32 lzEndpointId
+    ) public payable {
         require(msg.value > 0, "Must include LZ fees in ethers");
 
         uint256 cost = _invest(id, sharesAmount, nonce, signature);
 
         LendOperation(operations[id].opToken).mint(address(this), sharesAmount);
 
-        SendParam memory sendParam = SendParam(lzEndpointId, bytes32(uint256(uint160(msg.sender))), sharesAmount, sharesAmount, "", "", "");
+        SendParam memory sendParam =
+            SendParam(lzEndpointId, bytes32(uint256(uint160(msg.sender))), sharesAmount, sharesAmount, "", "", "");
         MessagingFee memory fee = MessagingFee(msg.value, 0);
         address refundAddress;
 

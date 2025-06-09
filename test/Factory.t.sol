@@ -51,10 +51,6 @@ contract FactoryTest is Test, TestBase {
 
     function test_Invest() public {
         LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
-
-        vm.prank(admin);
-        factory.startOperation(1);
-
         bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
 
         vm.startPrank(user);
@@ -74,9 +70,6 @@ contract FactoryTest is Test, TestBase {
     }
 
     function test_CannotReuseSignature() public {
-        vm.prank(admin);
-        factory.startOperation(1);
-
         bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
 
         vm.startPrank(user);
@@ -90,10 +83,6 @@ contract FactoryTest is Test, TestBase {
 
     function test_Refund() public {
         LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
-
-        vm.prank(admin);
-        factory.startOperation(1);
-
         bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
 
         vm.startPrank(user);
@@ -122,14 +111,8 @@ contract FactoryTest is Test, TestBase {
 
     function test_OpFinished() public {
         assertEq(factory.isOperationFinished(1), false);
-        assertEq(factory.operationStarted(1), false);
-
-        vm.prank(admin);
-        factory.startOperation(1);
 
         bytes memory signature = getMintSignature(address(user), 1, totalSharesAmount, testNonce);
-
-        assertEq(factory.operationStarted(1), true);
 
         vm.startPrank(user);
 
@@ -141,5 +124,16 @@ contract FactoryTest is Test, TestBase {
         assertEq(factory.fundingProgress(1), totalSharesAmount);
         assertEq(factory.operationStarted(1), true);
         assertEq(factory.isOperationFinished(1), true);
+    }
+
+    function test_AddLZPeer() public {
+        vm.startPrank(admin);
+
+        vm.expectEmit(address(factory));
+        emit LendFactory.OpLendPeerAdded(1, 42161, 30110, address(admin));
+
+        factory.setOpLendPeer(1, 42161, 30110, address(admin));
+
+        vm.stopPrank();
     }
 }

@@ -43,18 +43,26 @@ contract TestBase is Test {
         returns (bytes memory)
     {
         vm.startPrank(backendSigner);
+
         bytes32 digest = keccak256(abi.encodePacked(_opId, _user, _amount, _nonce));
         bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", digest));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(backendSignerPk, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
+
         vm.stopPrank();
 
         return signature;
     }
 
     function createOperation() public returns (address) {
-        vm.prank(admin);
-        return factory.createOperation("Test operation", totalSharesAmount, sharePriceEur);
+        vm.startPrank(admin);
+
+        address op = factory.createOperation("Test operation", totalSharesAmount, sharePriceEur);
+        factory.startOperation(1);
+
+        vm.stopPrank();
+
+        return op;
     }
 
     function setupContracts() public {
