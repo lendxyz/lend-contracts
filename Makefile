@@ -25,10 +25,10 @@ fmt:
 	forge fmt
 
 tests:
-	forge test -vvv --fork-url https://eth.meowrpc.com
+	forge test -vvv --fork-url https://eth.drpc.org
 
 coverage:
-	forge coverage -vvv --fork-url https://eth.meowrpc.com
+	forge coverage -vvv --fork-url https://eth.drpc.org
 
 build:
 	forge compile

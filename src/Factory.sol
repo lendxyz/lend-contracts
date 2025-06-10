@@ -35,7 +35,7 @@ contract LendFactory is Ownable, SignatureHelper {
     event OperationPaused(uint256 indexed operationId, bool indexed paused);
     event OperationCanceled(uint256 indexed operationId);
     event OpLendPeerAdded(
-        uint256 indexed operationId, uint32 chainId, uint32 indexed lzEndpointId, address indexed peerAddress
+        uint256 indexed operationId, uint32 chainId, uint32 indexed lzEndpointId, bytes32 indexed peerAddress
     );
     event Refunded(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesRefunded
@@ -191,10 +191,10 @@ contract LendFactory is Ownable, SignatureHelper {
         backendSigner = newBackendSigner;
     }
 
-    function setOpLendPeer(uint256 id, uint32 chainId, uint32 lzEndpointId, address peerAddress) external onlyOwner {
+    function setOpLendPeer(uint256 id, uint32 chainId, uint32 lzEndpointId, bytes32 peerAddress) external onlyOwner {
         require(id <= operationCount, "Operation does not exists");
         LendOperation opLend = LendOperation(operations[id].opToken);
-        opLend.setPeer(lzEndpointId, bytes32(uint256(uint160(peerAddress))));
+        opLend.setPeer(lzEndpointId, peerAddress);
 
         emit OpLendPeerAdded(id, chainId, lzEndpointId, peerAddress);
     }
@@ -274,7 +274,7 @@ contract LendFactory is Ownable, SignatureHelper {
             new bytes(0)
         );
 
-        LendOperation(operations[id].opToken).send(sendParam, fee, msg.sender);
+        LendOperation(operations[id].opToken).send{value: msg.value}(sendParam, fee, msg.sender);
     }
     //**********************************
 }

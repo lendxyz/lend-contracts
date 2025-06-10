@@ -2,6 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
+import {SendParam, MessagingFee} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 import {LendFactory} from "../src/Factory.sol";
 import {USDC} from "../src/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
@@ -69,6 +70,43 @@ contract FactoryTest is Test, TestBase {
         assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
     }
 
+    function test_InvestAndBridge() public {
+        LendOperation opToken = LendOperation(factory.getOperation(1).opToken);
+        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
+
+        vm.prank(admin);
+        factory.setOpLendPeer(1, 42161, 30110, bytes32(uint256(uint160(address(opToken)))));
+
+        vm.deal(user, 10 ether);
+        vm.startPrank(user);
+
+        uint256 cost = factory.getAmountIn(1, sharesToBuy);
+        usdc.approve(address(factory), cost);
+
+
+        SendParam memory sendParam = SendParam(
+            30110,
+            bytes32(uint256(uint160(msg.sender))),
+            sharesToBuy,
+            sharesToBuy,
+            hex"0003010011010000000000000000000000000000ea60",
+            new bytes(0),
+            new bytes(0)
+        );
+
+
+        MessagingFee memory fees = opToken.quoteSend(sendParam, false);
+
+        factory.investAndBridge{value: fees.nativeFee}(1, sharesToBuy, testNonce, signature, 30110);
+
+        vm.stopPrank();
+
+        assertEq(usdc.balanceOf(address(user)), initialUSDCBalance - cost);
+        assertEq(usdc.balanceOf(address(factory)), cost);
+        assertEq(factory.fundingProgress(1), sharesToBuy);
+        assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
+    }
+
     function test_CannotReuseSignature() public {
         bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
 
@@ -127,12 +165,13 @@ contract FactoryTest is Test, TestBase {
     }
 
     function test_AddLZPeer() public {
+        bytes32 peer = bytes32(uint256(uint160(address(admin))));
         vm.startPrank(admin);
 
         vm.expectEmit(address(factory));
-        emit LendFactory.OpLendPeerAdded(1, 42161, 30110, address(admin));
+        emit LendFactory.OpLendPeerAdded(1, 42161, 30110, peer);
 
-        factory.setOpLendPeer(1, 42161, 30110, address(admin));
+        factory.setOpLendPeer(1, 42161, 30110, peer);
 
         vm.stopPrank();
     }

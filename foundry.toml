@@ -25,7 +25,7 @@ remappings = [
 ]
 
 [rpc_endpoints]
-mainnet = "https://eth.meowrpc.com"
+mainnet = "https://eth.drpc.org"
 sepolia = "https://ethereum-sepolia-rpc.publicnode.com"
 
 [etherscan]

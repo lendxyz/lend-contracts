@@ -490,8 +490,8 @@
       },
       {
         "name": "peerAddress",
-        "type": "address",
-        "internalType": "address"
+        "type": "bytes32",
+        "internalType": "bytes32"
       }
     ],
     "outputs": [],
@@ -697,9 +697,9 @@
       },
       {
         "name": "peerAddress",
-        "type": "address",
+        "type": "bytes32",
         "indexed": true,
-        "internalType": "address"
+        "internalType": "bytes32"
       }
     ],
     "anonymous": false
