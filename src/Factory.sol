@@ -246,18 +246,9 @@ contract LendFactory is Ownable, SignatureHelper {
         return cost;
     }
 
-    function _postInvest(uint256 id, uint256 sharesAmount, uint256 cost) private {
-        emit Invested(msg.sender, id, cost, sharesAmount);
-
-        if (fundingProgress[id] >= operations[id].totalShares) {
-            emit OperationFinished(id, operations[id].totalShares * operations[id].eurPerShares);
-        }
-    }
-
     function invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature) public {
-        uint256 cost = _invest(id, sharesAmount, nonce, signature);
+        _invest(id, sharesAmount, nonce, signature);
         LendOperation(operations[id].opToken).mint(msg.sender, sharesAmount);
-        _postInvest(id, sharesAmount, cost);
     }
 
     function investAndBridge(
@@ -268,8 +259,7 @@ contract LendFactory is Ownable, SignatureHelper {
         uint32 lzEndpointId
     ) public payable {
         require(msg.value > 0, "Must include LZ fees in ethers");
-
-        uint256 cost = _invest(id, sharesAmount, nonce, signature);
+        _invest(id, sharesAmount, nonce, signature);
 
         LendOperation(operations[id].opToken).mint(address(this), sharesAmount);
 
@@ -279,14 +269,12 @@ contract LendFactory is Ownable, SignatureHelper {
             bytes32(uint256(uint160(msg.sender))),
             sharesAmount,
             sharesAmount,
-            "0x0003010011010000000000000000000000000000ea60",
-            "",
-            ""
+            hex"0003010011010000000000000000000000000000ea60",
+            new bytes(0),
+            new bytes(0)
         );
 
         LendOperation(operations[id].opToken).send(sendParam, fee, msg.sender);
-
-        _postInvest(id, sharesAmount, cost);
     }
     //**********************************
 }
