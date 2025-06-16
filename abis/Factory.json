@@ -31,6 +31,14 @@
     "stateMutability": "nonpayable"
   },
   {
+    "type": "fallback",
+    "stateMutability": "payable"
+  },
+  {
+    "type": "receive",
+    "stateMutability": "payable"
+  },
+  {
     "type": "function",
     "name": "batchRefundUsers",
     "inputs": [
@@ -770,12 +778,19 @@
         "type": "uint256",
         "indexed": true,
         "internalType": "uint256"
-      },
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OperationResumed",
+    "inputs": [
       {
-        "name": "paused",
-        "type": "bool",
+        "name": "operationId",
+        "type": "uint256",
         "indexed": true,
-        "internalType": "bool"
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -864,5 +879,10 @@
         "internalType": "address"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "ReentrancyGuardReentrantCall",
+    "inputs": []
   }
 ]
