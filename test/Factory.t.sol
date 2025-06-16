@@ -83,7 +83,6 @@ contract FactoryTest is Test, TestBase {
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
         usdc.approve(address(factory), cost);
 
-
         SendParam memory sendParam = SendParam(
             30110,
             bytes32(uint256(uint160(msg.sender))),
@@ -93,7 +92,6 @@ contract FactoryTest is Test, TestBase {
             new bytes(0),
             new bytes(0)
         );
-
 
         MessagingFee memory fees = opToken.quoteSend(sendParam, false);
 

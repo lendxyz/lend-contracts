@@ -21,18 +21,20 @@ pragma solidity ^0.8.27;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 import {LendOperation} from "./opLend.sol";
 import {SignatureHelper} from "./SignatureHelper.sol";
 import {SendParam, MessagingFee} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract LendFactory is Ownable, SignatureHelper {
+contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
     //********** Init **********
 
     event OperationStarted(uint256 indexed operationId);
     event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
-    event OperationPaused(uint256 indexed operationId, bool indexed paused);
+    event OperationPaused(uint256 indexed operationId);
+    event OperationResumed(uint256 indexed operationId);
     event OperationCanceled(uint256 indexed operationId);
     event OpLendPeerAdded(
         uint256 indexed operationId, uint32 chainId, uint32 indexed lzEndpointId, bytes32 indexed peerAddress
@@ -80,6 +82,9 @@ contract LendFactory is Ownable, SignatureHelper {
         EURUSDOracle = _EURUSDCOracle;
         lzEndpoint = _lzEndpoint;
     }
+
+    fallback() external payable {}
+    receive() external payable {}
     //**********************************
 
     //********** Read functions **********
@@ -180,7 +185,11 @@ contract LendFactory is Ownable, SignatureHelper {
 
     function pauseFunding(uint256 id, bool state) external onlyOwner {
         fundingPaused[id] = state;
-        emit OperationPaused(id, state);
+        if (state) {
+            emit OperationPaused(id);
+        } else {
+            emit OperationResumed(id);
+        }
     }
 
     function updateOracleAddress(address newOracleAddress) external onlyOwner {
@@ -246,7 +255,10 @@ contract LendFactory is Ownable, SignatureHelper {
         return cost;
     }
 
-    function invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature) public {
+    function invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature)
+        public
+        nonReentrant
+    {
         _invest(id, sharesAmount, nonce, signature);
         LendOperation(operations[id].opToken).mint(msg.sender, sharesAmount);
     }
@@ -257,7 +269,7 @@ contract LendFactory is Ownable, SignatureHelper {
         string calldata nonce,
         bytes memory signature,
         uint32 lzEndpointId
-    ) public payable {
+    ) public payable nonReentrant {
         require(msg.value > 0, "Must include LZ fees in ethers");
         _invest(id, sharesAmount, nonce, signature);
 
