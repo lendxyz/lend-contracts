@@ -1,9 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
-import {Script, console} from "forge-std/Script.sol";
+import {Script} from "forge-std/Script.sol";
 import {LendFactory} from "../src/Factory.sol";
-import {USDC} from "../src/DummyUSDC.sol";
 
 contract DeployFactoryTestnet is Script {
     LendFactory public factory;
