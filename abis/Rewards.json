@@ -25,6 +25,69 @@
   },
   {
     "type": "function",
+    "name": "claimEpoch",
+    "inputs": [
+      {
+        "name": "_user",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_epoch",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_claimedBalance",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_merkleProof",
+        "type": "bytes32[]",
+        "internalType": "bytes32[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "claimEpochs",
+    "inputs": [
+      {
+        "name": "_user",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "claims",
+        "type": "tuple[]",
+        "internalType": "struct LendRewards.ClaimData[]",
+        "components": [
+          {
+            "name": "epoch",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "balance",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "merkleProof",
+            "type": "bytes32[]",
+            "internalType": "bytes32[]"
+          }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "claimStatus",
     "inputs": [
       {
@@ -75,69 +138,6 @@
       }
     ],
     "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "claimepoch",
-    "inputs": [
-      {
-        "name": "_user",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "_epoch",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_claimedBalance",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "_merkleProof",
-        "type": "bytes32[]",
-        "internalType": "bytes32[]"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "claimepochs",
-    "inputs": [
-      {
-        "name": "_user",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "claims",
-        "type": "tuple[]",
-        "internalType": "struct LendRewards.ClaimData[]",
-        "components": [
-          {
-            "name": "epoch",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "balance",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "merkleProof",
-            "type": "bytes32[]",
-            "internalType": "bytes32[]"
-          }
-        ]
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
   },
   {
     "type": "function",

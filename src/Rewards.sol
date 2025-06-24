@@ -87,7 +87,7 @@ contract LendRewards is Ownable {
         }
     }
 
-    function claimepoch(address _user, uint256 _epoch, uint256 _claimedBalance, bytes32[] memory _merkleProof) public {
+    function claimEpoch(address _user, uint256 _epoch, uint256 _claimedBalance, bytes32[] memory _merkleProof) public {
         require(!claimed[_epoch][_user]);
         require(verifyClaim(_user, _epoch, _claimedBalance, _merkleProof), "Incorrect merkle proof");
 
@@ -95,7 +95,7 @@ contract LendRewards is Ownable {
         transferRewards(_user, _claimedBalance);
     }
 
-    function claimepochs(address _user, ClaimData[] memory claims) public {
+    function claimEpochs(address _user, ClaimData[] memory claims) public {
         uint256 totalBalance = 0;
         ClaimData memory claim;
 
