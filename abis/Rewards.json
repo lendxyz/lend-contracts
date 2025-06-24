@@ -28,6 +28,11 @@
     "name": "claimEpoch",
     "inputs": [
       {
+        "name": "_opId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
         "name": "_user",
         "type": "address",
         "internalType": "address"
@@ -55,6 +60,11 @@
     "type": "function",
     "name": "claimEpochs",
     "inputs": [
+      {
+        "name": "_opId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
       {
         "name": "_user",
         "type": "address",
@@ -91,6 +101,11 @@
     "name": "claimStatus",
     "inputs": [
       {
+        "name": "_opId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
         "name": "_user",
         "type": "address",
         "internalType": "address"
@@ -126,6 +141,11 @@
       },
       {
         "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
         "type": "address",
         "internalType": "address"
       }
@@ -143,6 +163,11 @@
     "type": "function",
     "name": "distributeRewards",
     "inputs": [
+      {
+        "name": "_opId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
       {
         "name": "_epoch",
         "type": "uint256",
@@ -170,6 +195,11 @@
         "name": "",
         "type": "uint256",
         "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [
@@ -185,6 +215,11 @@
     "type": "function",
     "name": "merkleRoots",
     "inputs": [
+      {
+        "name": "_opId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
       {
         "name": "_begin",
         "type": "uint256",
@@ -269,6 +304,11 @@
     "name": "verifyClaim",
     "inputs": [
       {
+        "name": "_opId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
         "name": "_user",
         "type": "address",
         "internalType": "address"
@@ -302,6 +342,12 @@
     "type": "event",
     "name": "Claimed",
     "inputs": [
+      {
+        "name": "opId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
       {
         "name": "user",
         "type": "address",
@@ -340,6 +386,12 @@
     "type": "event",
     "name": "RewardsDistributed",
     "inputs": [
+      {
+        "name": "opId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
       {
         "name": "epoch",
         "type": "uint256",

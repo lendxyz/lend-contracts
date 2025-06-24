@@ -16,12 +16,15 @@ contract LendRewards is Ownable {
         bytes32[] merkleProof;
     }
 
-    event Claimed(address indexed user, uint256 balance);
-    event RewardsDistributed(uint256 indexed epoch, uint256 amount);
+    event Claimed(uint256 indexed opId, address indexed user, uint256 balance);
+    event RewardsDistributed(uint256 indexed opId, uint256 indexed epoch, uint256 amount);
     event RewardsTokenUpdated(address indexed newRewardsToken);
 
-    mapping(uint256 => bytes32) public epochMerkleRoots;
-    mapping(uint256 => mapping(address => bool)) public claimed;
+    // opId => epoch => merkleRoot
+    mapping(uint256 => mapping(uint256 => bytes32)) public epochMerkleRoots;
+
+    // opId => epoch => user => claimed
+    mapping(uint256 => mapping(uint256 => mapping(address => bool))) public claimed;
 
     constructor(address _admin, address _token) Ownable(_admin) {
         token = IERC20(_token);
@@ -32,45 +35,54 @@ contract LendRewards is Ownable {
 
     //********** Read **********
 
-    function claimStatus(address _user, uint256 _begin, uint256 _end) external view returns (bool[] memory) {
+    function claimStatus(uint256 _opId, address _user, uint256 _begin, uint256 _end)
+        external
+        view
+        returns (bool[] memory)
+    {
         uint256 size = 1 + _end - _begin;
         bool[] memory arr = new bool[](size);
 
         for (uint256 i = 0; i < size; i++) {
-            arr[i] = claimed[_begin + i][_user];
+            arr[i] = claimed[_opId][_begin + i][_user];
         }
 
         return arr;
     }
 
-    function merkleRoots(uint256 _begin, uint256 _end) external view returns (bytes32[] memory) {
+    function merkleRoots(uint256 _opId, uint256 _begin, uint256 _end) external view returns (bytes32[] memory) {
         uint256 size = 1 + _end - _begin;
         bytes32[] memory arr = new bytes32[](size);
 
         for (uint256 i = 0; i < size; i++) {
-            arr[i] = epochMerkleRoots[_begin + i];
+            arr[i] = epochMerkleRoots[_opId][_begin + i];
         }
 
         return arr;
     }
 
-    function verifyClaim(address _user, uint256 _epoch, uint256 _claimedBalance, bytes32[] memory _merkleProof)
-        public
-        view
-        returns (bool valid)
-    {
+    function verifyClaim(
+        uint256 _opId,
+        address _user,
+        uint256 _epoch,
+        uint256 _claimedBalance,
+        bytes32[] memory _merkleProof
+    ) public view returns (bool valid) {
         bytes32 leaf = keccak256(abi.encodePacked(_user, _claimedBalance));
-        return MerkleProof.verify(_merkleProof, epochMerkleRoots[_epoch], leaf);
+        return MerkleProof.verify(_merkleProof, epochMerkleRoots[_opId][_epoch], leaf);
     }
 
     //********** Admin **********
 
-    function distributeRewards(uint256 _epoch, bytes32 _merkleRoot, uint256 _totalAllocation) external onlyOwner {
-        require(epochMerkleRoots[_epoch] == bytes32(0), "cannot rewrite merkle root");
+    function distributeRewards(uint256 _opId, uint256 _epoch, bytes32 _merkleRoot, uint256 _totalAllocation)
+        external
+        onlyOwner
+    {
+        require(epochMerkleRoots[_opId][_epoch] == bytes32(0), "cannot rewrite merkle root");
         require(token.transferFrom(msg.sender, address(this), _totalAllocation), "ERR_TRANSFER_FAILED");
 
-        epochMerkleRoots[_epoch] = _merkleRoot;
-        emit RewardsDistributed(_epoch, _totalAllocation);
+        epochMerkleRoots[_opId][_epoch] = _merkleRoot;
+        emit RewardsDistributed(_opId, _epoch, _totalAllocation);
     }
 
     function setRewardToken(address _newTokenAddress) public onlyOwner {
@@ -80,35 +92,41 @@ contract LendRewards is Ownable {
 
     //********** Claim **********
 
-    function transferRewards(address _user, uint256 _balance) private {
+    function transferRewards(uint256 _opId, address _user, uint256 _balance) private {
         if (_balance > 0) {
             require(token.transfer(_user, _balance), "ERR_TRANSFER_FAILED");
-            emit Claimed(_user, _balance);
+            emit Claimed(_opId, _user, _balance);
         }
     }
 
-    function claimEpoch(address _user, uint256 _epoch, uint256 _claimedBalance, bytes32[] memory _merkleProof) public {
-        require(!claimed[_epoch][_user]);
-        require(verifyClaim(_user, _epoch, _claimedBalance, _merkleProof), "Incorrect merkle proof");
+    function claimEpoch(
+        uint256 _opId,
+        address _user,
+        uint256 _epoch,
+        uint256 _claimedBalance,
+        bytes32[] memory _merkleProof
+    ) public {
+        require(!claimed[_opId][_epoch][_user]);
+        require(verifyClaim(_opId, _user, _epoch, _claimedBalance, _merkleProof), "Incorrect merkle proof");
 
-        claimed[_epoch][_user] = true;
-        transferRewards(_user, _claimedBalance);
+        claimed[_opId][_epoch][_user] = true;
+        transferRewards(_opId, _user, _claimedBalance);
     }
 
-    function claimEpochs(address _user, ClaimData[] memory claims) public {
+    function claimEpochs(uint256 _opId, address _user, ClaimData[] memory claims) public {
         uint256 totalBalance = 0;
         ClaimData memory claim;
 
         for (uint256 i = 0; i < claims.length; i++) {
             claim = claims[i];
 
-            require(!claimed[claim.epoch][_user]);
-            require(verifyClaim(_user, claim.epoch, claim.balance, claim.merkleProof), "Incorrect merkle proof");
+            require(!claimed[_opId][claim.epoch][_user]);
+            require(verifyClaim(_opId, _user, claim.epoch, claim.balance, claim.merkleProof), "Incorrect merkle proof");
 
             totalBalance += claim.balance;
-            claimed[claim.epoch][_user] = true;
+            claimed[_opId][claim.epoch][_user] = true;
         }
 
-        transferRewards(_user, totalBalance);
+        transferRewards(_opId, _user, totalBalance);
     }
 }
