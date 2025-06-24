@@ -10,9 +10,11 @@ help:
 	@echo 'make clean: clean build cache and forge cache'
 	@echo 'make remappings: generate remappings links for dependencies'
 	@echo 'make deploy-factory rpc=[your_rpc_url] pk=[your_private_key]: deploy factory and dlend'
-	@echo 'make deploy-oft rpc=[your_rpc_url] pk=[your_private_key]: deploy opLend OFT'
 	@echo 'make deploy-factory-testnet rpc=[your_rpc_url] pk=[your_private_key]: deploy factory and dlend on sepolia testnet'
+	@echo 'make deploy-oft rpc=[your_rpc_url] pk=[your_private_key]: deploy opLend OFT'
 	@echo 'make deploy-oft-testnet rpc=[your_rpc_url] pk=[your_private_key]: deploy opLend OFT on sepolia testnet'
+	@echo 'make deploy-rewards rpc=[your_rpc_url] pk=[your_private_key]: deploy rewards contract'
+	@echo 'make deploy-rewards-testnet rpc=[your_rpc_url] pk=[your_private_key]: deploy rewards contract on sepolia testnet'
 	@echo 'make abi: generate contract abis in the `abis` folder'
 
 install:
@@ -51,7 +53,14 @@ deploy-oft:
 deploy-oft-testnet:
 	forge script script/DeployOFTTestnet.s.sol:DeployOFTTestnet --slow --broadcast --private-key $(pk) --verify
 
+deploy-rewards:
+	forge script script/DeployRewards.s.sol:DeployOFT --slow --broadcast --private-key $(pk) --verify
+
+deploy-rewards-testnet:
+	forge script script/DeployRewards.s.sol:DeployOFTTestnet --slow --broadcast --private-key $(pk) --verify
+
 abi:
 	mkdir -p abis
 	forge inspect LendFactory abi > ./abis/Factory.json
 	forge inspect LendOperation abi > ./abis/opLend.json
+	forge inspect LendRewards abi > ./abis/Rewards.json
