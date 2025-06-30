@@ -1,99 +1,888 @@
-
-╭-------------+----------------------------------------------------------------------+--------------------------------------------------------------------╮
-| Type        | Signature                                                            | Selector                                                           |
-+=========================================================================================================================================================+
-| event       | Invested(address,uint256,uint256,uint256)                            | 0x9bce88ff835d9d8831ccf5c7e04a2533f68510314393b3a54f990dea62e7134e |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | OpLendPeerAdded(uint256,uint32,uint32,bytes32)                       | 0x8d2008b00245e8af88e6967829655f6640cd25a0704c27cb5951bdfbf3f9c6a5 |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | OperationCanceled(uint256)                                           | 0x4d694ac6cd2c74574c8dbd00d18b11fdb388af0f45e774baa04c2af42345d934 |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | OperationCreated(address,uint256,uint256)                            | 0xa4eccc3ccf9bd0749bdd5cc6b235bead0d49b506edc03448ea781fdaa8658ebb |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | OperationFinished(uint256,uint256)                                   | 0x421e7b6c4fcbd375c88dba77b275a703bbe96107eda22720275c92312395c6b2 |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | OperationPaused(uint256)                                             | 0x13ededb0c9bb143d2004b9ef138f9d461a2680a20cb8bd52f9f225ac23b256b7 |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | OperationResumed(uint256)                                            | 0x4d2d7a4e406ba97d8ce69cc9b336837ba3d99a43ec288f2c2fa087d9d5a33ac4 |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | OperationStarted(uint256)                                            | 0x17f4ed82e23c1b54c09dcb6f46c99bf06a6bd2b801442f95d9ac7635b8e7b2c8 |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | OwnershipTransferred(address,address)                                | 0x8be0079c531659141344cd1fd0a4f28419497f9722a3daafe3b4186f6b6457e0 |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| event       | Refunded(address,uint256,uint256,uint256)                            | 0x7602f163f9cd3c891cea700d2243b6a7102008a104ad0770134f61d777661b2d |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | OwnableInvalidOwner(address)                                         | 0x1e4fbdf7                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | OwnableUnauthorizedAccount(address)                                  | 0x118cdaa7                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| error       | ReentrancyGuardReentrantCall()                                       | 0x3ee5aeb5                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | batchRefundUsers(uint256,address[],uint256) nonpayable               | 0x430cd2bc                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | cancelOperation(uint256) nonpayable                                  | 0x5c945227                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | createOperation(string,uint256,uint256) nonpayable returns (address) | 0xf7a06d07                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | fundingPaused(uint256) view returns (bool)                           | 0xb4842824                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | fundingProgress(uint256) view returns (uint256)                      | 0x07547412                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | getAmountIn(uint256,uint256) view returns (uint256)                  | 0x0666ee8f                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | getAmountOut(uint256,uint256) view returns (uint256)                 | 0x7cabb7cf                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | getEURUSDOraclePrice() view returns (uint256)                        | 0xc7492a3f                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | getOperation(uint256) view returns (LendFactory.Operation)           | 0x202e3924                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | invest(uint256,uint256,string,bytes) nonpayable                      | 0x06cb655b                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | investAndBridge(uint256,uint256,string,bytes,uint32) payable         | 0xa62a2c02                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | isOperationFinished(uint256) view returns (bool)                     | 0x4491c486                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | opDecimals() view returns (uint256)                                  | 0xf0eb79ef                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | operationCanceled(uint256) view returns (bool)                       | 0xf3431c1f                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | operationCount() view returns (uint256)                              | 0x23d3c142                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | operationStarted(uint256) view returns (bool)                        | 0x4e9b4d53                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | operations(uint256) view returns (address,uint256,uint256,string)    | 0xb2e9949d                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | owner() view returns (address)                                       | 0x8da5cb5b                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | pauseFunding(uint256,bool) nonpayable                                | 0x34fac982                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | refundUser(uint256,address) nonpayable                               | 0x51a9259b                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | renounceOwnership() nonpayable                                       | 0x715018a6                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | setOpLendPeer(uint256,uint32,uint32,bytes32) nonpayable              | 0x9202207b                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | startOperation(uint256) nonpayable                                   | 0x4fcff38f                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | transferOwnership(address) nonpayable                                | 0xf2fde38b                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | updateBackendSigner(address) nonpayable                              | 0x898cdb86                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | updateOracleAddress(address) nonpayable                              | 0xf7023bb6                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | usdc() view returns (IERC20)                                         | 0x3e413bee                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | usdcRaised(uint256) view returns (uint256)                           | 0xf186a9d5                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | usdcRaisedPerClient(uint256,address) view returns (uint256)          | 0x212c12fa                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | usdcWithdrawn(uint256) view returns (bool)                           | 0x538f482b                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| function    | withdrawUSDC(uint256,address) nonpayable                             | 0x0c1241b5                                                         |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| constructor | constructor(address,address,address,address,address) nonpayable      |                                                                    |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| fallback    | fallback() payable                                                   |                                                                    |
-|-------------+----------------------------------------------------------------------+--------------------------------------------------------------------|
-| receive     | receive() payable                                                    |                                                                    |
-╰-------------+----------------------------------------------------------------------+--------------------------------------------------------------------╯
-
+[
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "_admin",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_USDCAddress",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_EURUSDCOracle",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_lzEndpoint",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_backendSigner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "fallback",
+    "stateMutability": "payable"
+  },
+  {
+    "type": "receive",
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "batchRefundUsers",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "users",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "len",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "cancelOperation",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "createOperation",
+    "inputs": [
+      {
+        "name": "opName",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "totalShares",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "eurPerShares",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "fundingPaused",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "fundingProgress",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAmountIn",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "sharesAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "usdcCost",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAmountOut",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "usdcAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "sharesAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getEURUSDOraclePrice",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "eurUsd",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOperation",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct LendFactory.Operation",
+        "components": [
+          {
+            "name": "opToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "totalShares",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "eurPerShares",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "opName",
+            "type": "string",
+            "internalType": "string"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "invest",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "sharesAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "nonce",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "signature",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "investAndBridge",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "sharesAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "nonce",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "signature",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      {
+        "name": "lzEndpointId",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "isOperationFinished",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "opDecimals",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "operationCanceled",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "operationCount",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "operationStarted",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "operations",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "opToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "totalShares",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "eurPerShares",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "opName",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "pauseFunding",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "state",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "refundUser",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "renounceOwnership",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setOpLendPeer",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "chainId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "lzEndpointId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "peerAddress",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "startOperation",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "transferOwnership",
+    "inputs": [
+      {
+        "name": "newOwner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "updateBackendSigner",
+    "inputs": [
+      {
+        "name": "newBackendSigner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "updateOracleAddress",
+    "inputs": [
+      {
+        "name": "newOracleAddress",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "usdc",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract IERC20"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "usdcRaised",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "usdcRaisedPerClient",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "usdcWithdrawn",
+    "inputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "withdrawUSDC",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "destination",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "Invested",
+    "inputs": [
+      {
+        "name": "investor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "operationId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "usdcAmount",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "sharesBought",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OpLendPeerAdded",
+    "inputs": [
+      {
+        "name": "operationId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "chainId",
+        "type": "uint32",
+        "indexed": false,
+        "internalType": "uint32"
+      },
+      {
+        "name": "lzEndpointId",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
+        "name": "peerAddress",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OperationCanceled",
+    "inputs": [
+      {
+        "name": "operationId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OperationCreated",
+    "inputs": [
+      {
+        "name": "opToken",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "operationId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalShares",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OperationFinished",
+    "inputs": [
+      {
+        "name": "operationId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "amountRaisedEuro",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OperationPaused",
+    "inputs": [
+      {
+        "name": "operationId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OperationResumed",
+    "inputs": [
+      {
+        "name": "operationId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OperationStarted",
+    "inputs": [
+      {
+        "name": "operationId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OwnershipTransferred",
+    "inputs": [
+      {
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Refunded",
+    "inputs": [
+      {
+        "name": "investor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "operationId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "usdcAmount",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "sharesRefunded",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "OwnableInvalidOwner",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "OwnableUnauthorizedAccount",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "ReentrancyGuardReentrantCall",
+    "inputs": []
+  }
+]

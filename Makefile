@@ -61,6 +61,6 @@ deploy-rewards-testnet:
 
 abi:
 	mkdir -p abis
-	forge inspect LendFactory abi > ./abis/Factory.json
-	forge inspect LendOperation abi > ./abis/opLend.json
-	forge inspect LendRewards abi > ./abis/Rewards.json
+	forge inspect LendFactory abi --json > ./abis/Factory.json
+	forge inspect LendOperation abi --json > ./abis/opLend.json
+	forge inspect LendRewards abi --json > ./abis/Rewards.json
