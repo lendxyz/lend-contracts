@@ -106,7 +106,8 @@ contract LendRewards is Ownable {
         uint256 _claimedBalance,
         bytes32[] memory _merkleProof
     ) public {
-        require(!claimed[_opId][_epoch][_user]);
+        require(_claimedBalance > 0, "claim balance must be more than 0");
+        require(!claimed[_opId][_epoch][_user], "epoch already claimed for this user");
         require(verifyClaim(_opId, _user, _epoch, _claimedBalance, _merkleProof), "Incorrect merkle proof");
 
         claimed[_opId][_epoch][_user] = true;
@@ -120,13 +121,18 @@ contract LendRewards is Ownable {
         for (uint256 i = 0; i < claims.length; i++) {
             claim = claims[i];
 
-            require(!claimed[_opId][claim.epoch][_user]);
-            require(verifyClaim(_opId, _user, claim.epoch, claim.balance, claim.merkleProof), "Incorrect merkle proof");
+            if (!claimed[_opId][claim.epoch][_user]) {
+                require(
+                    verifyClaim(_opId, _user, claim.epoch, claim.balance, claim.merkleProof), "Incorrect merkle proof"
+                );
 
-            totalBalance += claim.balance;
-            claimed[_opId][claim.epoch][_user] = true;
+                totalBalance += claim.balance;
+                claimed[_opId][claim.epoch][_user] = true;
+            }
         }
 
-        transferRewards(_opId, _user, totalBalance);
+        if (totalBalance > 0) {
+            transferRewards(_opId, _user, totalBalance);
+        }
     }
 }

@@ -54,10 +54,10 @@ deploy-oft-testnet:
 	forge script script/DeployOFTTestnet.s.sol:DeployOFTTestnet --slow --broadcast --private-key $(pk) --verify
 
 deploy-rewards:
-	forge script script/DeployRewards.s.sol:DeployOFT --slow --broadcast --private-key $(pk) --verify
+	forge script script/DeployRewards.s.sol:DeployRewards --slow --broadcast --private-key $(pk) --verify
 
 deploy-rewards-testnet:
-	forge script script/DeployRewards.s.sol:DeployOFTTestnet --slow --broadcast --private-key $(pk) --verify
+	forge script script/DeployRewardsTestnet.s.sol:DeployRewardsTestnet --slow --broadcast --private-key $(pk) --verify
 
 abi:
 	mkdir -p abis

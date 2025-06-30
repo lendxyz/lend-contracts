@@ -27,7 +27,9 @@ remappings = [
 [rpc_endpoints]
 mainnet = "https://eth.drpc.org"
 sepolia = "https://ethereum-sepolia-rpc.publicnode.com"
+base-sepolia = "https://base-sepolia-rpc.publicnode.com"
 
 [etherscan]
 mainnet = { key = "${ETHERSCAN_API_KEY}" }
 sepolia = { key = "${ETHERSCAN_API_KEY}" }
+base-sepolia = { key = "${ETHERSCAN_API_KEY}" }
