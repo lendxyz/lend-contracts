@@ -70,6 +70,7 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
     mapping(uint256 => bool) public usdcWithdrawn;
     mapping(uint256 => bool) public fundingPaused;
     mapping(uint256 => bool) public operationStarted;
+    mapping(address => uint256) public userCredit;
 
     constructor(
         address _admin,
@@ -165,6 +166,10 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
         emit Refunded(user, id, userInvestAmount, opLendBalance);
     }
 
+    function setUserCredit(address user, uint256 amount) external onlyOwner {
+        userCredit[user] = amount;
+    }
+
     function batchRefundUsers(uint256 id, address[] calldata users, uint256 len) external onlyOwner {
         for (uint256 i = 0; i < len; i++) {
             refundUser(id, users[i]);
@@ -221,7 +226,7 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
     //**********************************
 
     //********** User-facing functions **********
-    function _invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature)
+    function _invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature, bool useCredits)
         private
         returns (uint256)
     {
@@ -233,13 +238,18 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
         require(!fundingPaused[id], "Operation is paused");
         require(sharesAmount > 0, "Not enough shares");
 
-        uint256 cost = getAmountIn(id, sharesAmount);
-        require(usdc.allowance(msg.sender, address(this)) >= cost, "Not enough USDC allowed to be spent");
-
         bool isSignatureValid = verifySignature(msg.sender, sharesAmount, id, nonce, signature);
         require(isSignatureValid, "Invalid signature");
 
-        usdc.transferFrom(msg.sender, address(this), cost);
+        uint256 cost = getAmountIn(id, sharesAmount);
+
+        if (!useCredits) {
+            require(usdc.allowance(msg.sender, address(this)) >= cost, "Not enough USDC allowed to be spent");
+            usdc.transferFrom(msg.sender, address(this), cost);
+        } else {
+            require(userCredit[msg.sender] >= cost, "Not enough credits to buy that many shares");
+            userCredit[msg.sender] -= cost;
+        }
 
         fundingProgress[id] += sharesAmount;
 
@@ -259,7 +269,16 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
         public
         nonReentrant
     {
-        _invest(id, sharesAmount, nonce, signature);
+        _invest(id, sharesAmount, nonce, signature, false);
+        LendOperation(operations[id].opToken).mint(msg.sender, sharesAmount);
+    }
+
+    function investUsingCredits(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature)
+        public
+        nonReentrant
+    {
+        require(userCredit[msg.sender] > 0, "User has no credit left");
+        _invest(id, sharesAmount, nonce, signature, true);
         LendOperation(operations[id].opToken).mint(msg.sender, sharesAmount);
     }
 
@@ -271,7 +290,7 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
         uint32 lzEndpointId
     ) public payable nonReentrant {
         require(msg.value > 0, "Must include LZ fees in ethers");
-        _invest(id, sharesAmount, nonce, signature);
+        _invest(id, sharesAmount, nonce, signature, false);
 
         LendOperation(operations[id].opToken).mint(address(this), sharesAmount);
 
@@ -288,5 +307,6 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
 
         LendOperation(operations[id].opToken).send{value: msg.value}(sendParam, fee, msg.sender);
     }
+
     //**********************************
 }
