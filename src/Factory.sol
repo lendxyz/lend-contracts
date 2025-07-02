@@ -45,6 +45,9 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
     event Invested(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
     );
+    event InvestedUsingCredits(
+        address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
+    );
     event OperationFinished(uint256 indexed operationId, uint256 indexed amountRaisedEuro);
 
     struct Operation {
@@ -167,7 +170,15 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
     }
 
     function setUserCredit(address user, uint256 amount) external onlyOwner {
+        require(usdc.allowance(msg.sender, address(this)) >= amount, "Not enough USDC allowed to be spent");
+        usdc.transferFrom(msg.sender, address(this), amount);
         userCredit[user] = amount;
+    }
+
+    function removeUserCredit(address user) external onlyOwner {
+        require(userCredit[user] > 0, "User has no credits");
+        usdc.transfer(msg.sender, userCredit[user]);
+        userCredit[user] = 0;
     }
 
     function batchRefundUsers(uint256 id, address[] calldata users, uint256 len) external onlyOwner {
@@ -256,7 +267,11 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
         usdcRaised[id] += cost;
         usdcRaisedPerClient[id][msg.sender] += cost;
 
-        emit Invested(msg.sender, id, cost, sharesAmount);
+        if (!useCredits) {
+            emit Invested(msg.sender, id, cost, sharesAmount);
+        } else {
+            emit InvestedUsingCredits(msg.sender, id, cost, sharesAmount);
+        }
 
         if (fundingProgress[id] >= operations[id].totalShares) {
             emit OperationFinished(id, operations[id].totalShares * operations[id].eurPerShares);
