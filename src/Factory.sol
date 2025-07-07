@@ -137,7 +137,8 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
         string memory name = string(abi.encodePacked("Lend Operation - ", opName));
         string memory symbol = string(abi.encodePacked("opLEND-", Strings.toString(operationCount)));
 
-        LendOperation newOp = new LendOperation(address(this), name, symbol, totalShares, lzEndpoint, owner());
+        LendOperation newOp =
+            new LendOperation(address(this), name, symbol, totalShares, lzEndpoint, owner(), backendSigner);
 
         operations[operationCount] = Operation(address(newOp), totalShares, eurPerShares, opName);
 
@@ -236,7 +237,7 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
         uint256 cost = getAmountIn(id, sharesAmount);
         require(usdc.allowance(msg.sender, address(this)) >= cost, "Not enough USDC allowed to be spent");
 
-        bool isSignatureValid = verifySignature(msg.sender, sharesAmount, id, nonce, signature);
+        bool isSignatureValid = verifySignatureMint(msg.sender, sharesAmount, id, nonce, signature);
         require(isSignatureValid, "Invalid signature");
 
         usdc.transferFrom(msg.sender, address(this), cost);

@@ -9,6 +9,7 @@ contract DeployOFT is Script {
 
     address lzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c); // ETH mainnet endpoint
     address admin = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283); // System owner - should be replaced with Lend multisig
+    address backendSigner = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283); // Backend signer to generate mint allowances
 
     string name = "Lend Operation - [op name]";
     string symbol = "opLEND-[]";
@@ -25,7 +26,8 @@ contract DeployOFT is Script {
             symbol,
             maxSupply,
             lzEndpoint,
-            admin // lz delegate - should be Lend multisig
+            admin, // lz delegate - should be Lend multisig
+            backendSigner
         );
 
         vm.stopBroadcast();
