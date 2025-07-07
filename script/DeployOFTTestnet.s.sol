@@ -10,17 +10,20 @@ contract DeployOFTTestnet is Script {
     address lzEndpoint = address(0x6EDCE65403992e310A62460808c4b910D972f10f); // ETH sepolia endpoint
     address admin = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283); // Sepolia testnet deployer address
 
-    string name = "Lend Operation - [op name]";
-    string symbol = "opLEND-[]";
-    uint256 maxSupply = 1_000_000 * 10 ** 18; // use supply from source chain
+    string name = "Lend Operation - [name here]";
+    string symbol = "opLEND-[factory op id here]";
+    uint256 maxSupply = 1_000_000_000_000; // use supply from source chain
 
     function setUp() public {}
 
     function run() public {
+        // Set chain here:
+        vm.createSelectFork("sepolia");
+        // vm.createSelectFork("base-sepolia");
         vm.startBroadcast();
 
         oft = new LendOperation(
-            address(0x000000000000000000000000000000000000dEaD), // token admin - should only be factory on source chain but dead address on other chains
+            address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283), // token admin - should only be factory on source chain but dead address on other chains
             name,
             symbol,
             maxSupply,
