@@ -256,8 +256,6 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
         bool isSignatureValid = verifySignatureMint(msg.sender, sharesAmount, id, nonce, signature);
         require(isSignatureValid, "Invalid signature");
 
-        uint256 cost = getAmountIn(id, sharesAmount);
-
         if (!useCredits) {
             require(usdc.allowance(msg.sender, address(this)) >= cost, "Not enough USDC allowed to be spent");
             usdc.transferFrom(msg.sender, address(this), cost);
