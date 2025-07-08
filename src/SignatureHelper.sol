@@ -13,7 +13,7 @@ abstract contract SignatureHelper {
         backendSigner = _backendSigner;
     }
 
-    function verifySignature(
+    function verifySignatureMint(
         address _user,
         uint256 _amount,
         uint256 _opId,
@@ -46,5 +46,26 @@ abstract contract SignatureHelper {
             s := mload(add(sig, 64))
             v := byte(0, mload(add(sig, 96)))
         }
+    }
+
+    function verifySignatureTransfer(address _user, string calldata _nonce, bytes memory _signature)
+        internal
+        returns (bool)
+    {
+        if (usedNonces[_nonce]) {
+            return false;
+        }
+
+        bytes32 messageHash = keccak256(abi.encodePacked(_user, _nonce));
+        bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+        (bytes32 r, bytes32 s, uint8 v) = splitSignature(_signature);
+        address recovered = ecrecover(ethSignedMessageHash, v, r, s);
+        bool isValid = recovered == backendSigner;
+
+        if (isValid) {
+            usedNonces[_nonce] = true;
+        }
+
+        return isValid;
     }
 }

@@ -4,10 +4,13 @@ pragma solidity ^0.8.27;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IOFT, OFTCore} from "@layerzerolabs/oft-evm/contracts/OFTCore.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {SignatureHelper} from "./SignatureHelper.sol";
 
-contract LendOperation is Ownable, ERC20, OFTCore {
+contract LendOperation is Ownable, SignatureHelper, ERC20, OFTCore {
     uint256 public immutable MAX_SUPPLY;
     uint8 private immutable DECIMALS = 6;
+
+    mapping(address => bool) public whitelisted;
 
     constructor(
         address initialOwner,
@@ -15,13 +18,20 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         string memory symbol,
         uint256 maxSupply,
         address lzEndpoint,
-        address lzDelegate
-    ) OFTCore(DECIMALS, lzEndpoint, lzDelegate) ERC20(name, symbol) Ownable(initialOwner) {
+        address lzDelegate,
+        address backendSigner
+    )
+        OFTCore(DECIMALS, lzEndpoint, lzDelegate)
+        SignatureHelper(backendSigner)
+        ERC20(name, symbol)
+        Ownable(initialOwner)
+    {
         MAX_SUPPLY = maxSupply;
     }
 
     function mint(address to, uint256 amount) public onlyOwner {
         require(totalSupply() + amount <= MAX_SUPPLY, "Total supply cap exceeded");
+        whitelisted[to] = true;
         _mint(to, amount);
     }
 
@@ -31,6 +41,11 @@ contract LendOperation is Ownable, ERC20, OFTCore {
 
     function adminBurn(address user, uint256 value) public onlyOwner {
         _burn(user, value);
+    }
+
+    function whitelistUser(address user, string calldata nonce, bytes memory signature) public {
+        bool isSignatureValid = verifySignatureTransfer(user, nonce, signature);
+        require(isSignatureValid, "Invalid signature");
     }
 
     /**
@@ -72,6 +87,7 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         override
         returns (uint256 amountSentLD, uint256 amountReceivedLD)
     {
+        require(whitelisted[_from] == true, "User is not whitelisted");
         (amountSentLD, amountReceivedLD) = _debitView(_amountLD, _minAmountLD, _dstEid);
 
         // @dev In NON-default OFT, amountSentLD could be 100, with a 10% fee, the amountReceivedLD amount is 90,
@@ -95,6 +111,7 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         returns (uint256 amountReceivedLD)
     {
         if (_to == address(0x0)) _to = address(0xdead); // _mint(...) does not support address(0x0)
+        whitelisted[_to] = true;
         // @dev Default OFT mints on dst.
         _mint(_to, _amountLD);
         // @dev In the case of NON-default OFT, the _amountLD MIGHT not be == amountReceivedLD.
