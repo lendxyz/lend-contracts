@@ -27,10 +27,10 @@ fmt:
 	forge fmt
 
 tests:
-	forge test -vvv --fork-url https://eth.drpc.org
+	forge test -vvv --fork-url https://ethereum-rpc.publicnode.com
 
 coverage:
-	forge coverage -vvv --fork-url https://eth.drpc.org
+	forge coverage -vvv --fork-url https://ethereum-rpc.publicnode.com
 
 build:
 	forge compile
