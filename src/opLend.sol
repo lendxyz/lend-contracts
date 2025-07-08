@@ -48,6 +48,26 @@ contract LendOperation is Ownable, SignatureHelper, ERC20, OFTCore {
         require(isSignatureValid, "Invalid signature");
     }
 
+    function transfer(address to, uint256 value) public override returns (bool) {
+        address owner = _msgSender();
+
+        require(whitelisted[owner] == true, "Source address is not whitelisted");
+        require(whitelisted[to] == true, "Destination address is not whitelisted");
+
+        _transfer(owner, to, value);
+        return true;
+    }
+
+    function transferFrom(address from, address to, uint256 value) public override returns (bool) {
+        require(whitelisted[from] == true, "Source address is not whitelisted");
+        require(whitelisted[to] == true, "Destination address is not whitelisted");
+
+        address spender = _msgSender();
+        _spendAllowance(from, spender, value);
+        _transfer(from, to, value);
+        return true;
+    }
+
     /**
      * LZ functions ***
      */
