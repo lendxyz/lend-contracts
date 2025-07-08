@@ -27,13 +27,13 @@ jobs:
         with:
           node-version: "22" # or your project's required version
 
+      - name: Install npm dependencies
+        run: npm install
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: nightly
-
-      - name: Install npm dependencies
-        run: npm install
 
       - name: Show Forge version
         run: |
@@ -51,5 +51,5 @@ jobs:
 
       - name: Run Forge tests
         run: |
-          forge test -vvv
+          forge test -vvv --fork-url https://ethereum-rpc.publicnode.com
         id: test
