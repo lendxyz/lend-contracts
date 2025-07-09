@@ -25,13 +25,15 @@ remappings = [
 ]
 
 [rpc_endpoints]
-mainnet = "https://eth.drpc.org"
+mainnet = "https://ethereum-rpc.publicnode.com"
 sepolia = "https://ethereum-sepolia-rpc.publicnode.com"
 base-sepolia = "https://base-sepolia-rpc.publicnode.com"
 arbitrum-sepolia = "https://arbitrum-sepolia-rpc.publicnode.com"
+monad-testnet = "https://testnet-rpc.monad.xyz"
 
 [etherscan]
 mainnet = { key = "${ETHERSCAN_API_KEY}" }
 sepolia = { key = "${ETHERSCAN_API_KEY}" }
 base-sepolia = { key = "${ETHERSCAN_API_KEY}" }
 arbitrum-sepolia = { key = "${ETHERSCAN_API_KEY}" }
+monad-testnet = { key = "${ETHERSCAN_API_KEY}" }

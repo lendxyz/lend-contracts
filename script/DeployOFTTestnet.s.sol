@@ -19,17 +19,18 @@ contract DeployOFTTestnet is Script {
 
     function run() public {
         // Set chain here:
-        vm.createSelectFork("sepolia");
+        vm.createSelectFork("arbitrum-sepolia");
+        // vm.createSelectFork("monad-testnet");
         // vm.createSelectFork("base-sepolia");
         vm.startBroadcast();
 
         oft = new LendOperation(
-            address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283), // token admin - should only be factory on source chain but dead address on other chains
+            admin, // token admin
             name,
             symbol,
             maxSupply,
             lzEndpoint,
-            admin, // lz delegate - should be Lend multisig in prod
+            admin, // lz delegate
             backendSigner
         );
 
