@@ -18,18 +18,18 @@ contract LendFaucet is Ownable {
 
     receive() external payable {}
 
-    function claim() external onlyOwner {
+    function claim(address user) external onlyOwner {
         require(
-            block.timestamp - lastClaimed[msg.sender] >= COOLDOWN,
+            block.timestamp - lastClaimed[user] >= COOLDOWN,
             "Claim cooldown not reached"
         );
 
         require(address(this).balance >= ETH_AMOUNT, "Not enough ETH in faucet");
-        require(token.transfer(msg.sender, TOKEN_AMOUNT), "Token transfer failed");
+        require(token.transfer(user, TOKEN_AMOUNT), "Token transfer failed");
 
-        lastClaimed[msg.sender] = block.timestamp;
+        lastClaimed[user] = block.timestamp;
 
-        (bool sent, ) = msg.sender.call{value: ETH_AMOUNT}("");
+        (bool sent, ) = user.call{value: ETH_AMOUNT}("");
         require(sent, "ETH transfer failed");
     }
 
