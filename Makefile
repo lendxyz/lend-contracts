@@ -62,8 +62,12 @@ deploy-rewards-testnet:
 set-peer-factory:
 	forge script script/SetOpLendPeerFactory.s.sol:SetOpLendPeerFactory --slow --broadcast --private-key $(pk)
 
+deploy-faucet:
+	forge script script/DeployFaucet.s.sol:DeployFaucet --slow --broadcast --private-key $(pk) --verify
+
 abi:
 	mkdir -p abis
 	forge inspect LendFactory abi --json > ./abis/Factory.json
 	forge inspect LendOperation abi --json > ./abis/opLend.json
 	forge inspect LendRewards abi --json > ./abis/Rewards.json
+	forge inspect LendFaucet abi --json > ./abis/Faucet.json
