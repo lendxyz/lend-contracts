@@ -59,6 +59,9 @@ deploy-rewards:
 deploy-rewards-testnet:
 	forge script script/DeployRewardsTestnet.s.sol:DeployRewardsTestnet --slow --broadcast --private-key $(pk) --verify
 
+set-peer-factory:
+	forge script script/SetOpLendPeerFactory.s.sol:SetOpLendPeerFactory --slow --broadcast --private-key $(pk)
+
 abi:
 	mkdir -p abis
 	forge inspect LendFactory abi --json > ./abis/Factory.json

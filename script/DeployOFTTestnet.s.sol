@@ -11,17 +11,17 @@ contract DeployOFTTestnet is Script {
     address admin = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283); // Sepolia testnet deployer address
     address backendSigner = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283); // Backend signer to generate mint allowances
 
-    string name = "Lend Operation - [name here]";
-    string symbol = "opLEND-[factory op id here]";
+    string name = "Lend Operation - [name]";
+    string symbol = "opLEND-[id]";
     uint256 maxSupply = 1_000_000_000_000; // use supply from source chain
 
     function setUp() public {}
 
     function run() public {
         // Set chain here:
-        vm.createSelectFork("arbitrum-sepolia");
         // vm.createSelectFork("monad-testnet");
-        // vm.createSelectFork("base-sepolia");
+        // vm.createSelectFork("arbitrum-sepolia");
+        vm.createSelectFork("base-sepolia");
         vm.startBroadcast();
 
         oft = new LendOperation(
@@ -33,6 +33,10 @@ contract DeployOFTTestnet is Script {
             admin, // lz delegate
             backendSigner
         );
+
+        // direct set peer the original oft
+        // bytes32 peer = bytes32(uint256(uint160(address(0x4BB650be88EF091BCE911a0415D272E67A339070))));
+        // oft.setPeer(40161, peer);
 
         vm.stopBroadcast();
     }
