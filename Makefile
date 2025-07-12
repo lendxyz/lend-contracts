@@ -65,6 +65,9 @@ set-peer-factory:
 deploy-faucet:
 	forge script script/DeployFaucet.s.sol:DeployFaucet --slow --broadcast --private-key $(pk) --verify
 
+deploy-usdc:
+	forge script script/DeployDummyUSDC.s.sol:DeployDummyUSDC --slow --broadcast --private-key $(pk) --verify
+
 abi:
 	mkdir -p abis
 	forge inspect LendFactory abi --json > ./abis/Factory.json

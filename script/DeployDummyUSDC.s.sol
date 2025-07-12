@@ -2,19 +2,21 @@
 pragma solidity ^0.8.13;
 
 import {Script} from "forge-std/Script.sol";
-import {LendFaucet} from "../src/Faucet.sol";
+import {USDC} from "../src/DummyUSDC.sol";
 
-contract DeployFaucet is Script {
-    address usdc = address(0x73DC60bb3f14852fF727C6C67B187e61A7BB26E8);
+contract DeployDummyUSDC is Script {
     address admin = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283);
 
     function setUp() public {}
 
     function run() public {
-        vm.createSelectFork("sepolia");
+        // vm.createSelectFork("sepolia");
+        vm.createSelectFork("arbitrum-sepolia");
+        // vm.createSelectFork("base-sepolia");
         vm.startBroadcast();
 
-        new LendFaucet(admin, usdc);
+        USDC usdc = new USDC();
+        usdc.mint(admin, 1_000_000_000_000 * 10 ** 6);
 
         vm.stopBroadcast();
     }
