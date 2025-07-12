@@ -17,7 +17,7 @@ contract TestBase is Test {
     uint256 maxEurUsdcRange = 14; // 1.4 USD per EUR
     uint256 minEurUsdcRange = 10; // 1.0 USD per EUR
 
-    USDC public usdc = new USDC();
+    USDC public usdc;
     LendFactory public factory;
 
     address EURUSDOracle = address(0xb49f677943BC038e9857d61E7d053CaA2C1734C1); // ETH mainnet address
@@ -33,9 +33,10 @@ contract TestBase is Test {
     string testNonce = "QSfd8gQE4WYzO29";
 
     function mintUSDC() public {
-        vm.prank(admin);
+        vm.startPrank(admin);
         usdc.mint(address(user), initialUSDCBalance);
         usdc.mint(address(user2), initialUSDCBalance);
+        vm.stopPrank();
     }
 
     function getMintSignature(address _user, uint256 _opId, uint256 _amount, string memory _nonce)
@@ -76,6 +77,7 @@ contract TestBase is Test {
         backendSigner = _backendSigner;
         backendSignerPk = _backendSignerPk;
 
+        usdc = new USDC();
         factory = new LendFactory(address(admin), address(usdc), EURUSDOracle, lzEndpoint, address(backendSigner));
 
         vm.stopPrank();

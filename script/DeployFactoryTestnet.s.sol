@@ -23,11 +23,12 @@ contract DeployFactoryTestnet is Script {
 
         factory = new LendFactory(admin, usdc, EURUSDOracle, lzEndpoint, backendSigner);
 
-        factory.createOperation("Villa Al Arima", 1000000000000, 1875000);
-        factory.createOperation("Apartment Beluga", 1000000000000, 1875000);
-
-        factory.startOperation(1);
-        factory.startOperation(2);
+        factory.createOperation("[placeholder-1]", 1, 1);
+        factory.createOperation("[placeholder-2]", 1, 1);
+        factory.createOperation("[placeholder-3]", 1, 1);
+        factory.createOperation("[placeholder-4]", 1, 1);
+        factory.createOperation("[placeholder-5]", 1, 1);
+        factory.createOperation("[placeholder-6]", 1, 1);
 
         vm.stopBroadcast();
     }
