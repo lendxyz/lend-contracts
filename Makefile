@@ -68,6 +68,9 @@ deploy-faucet:
 deploy-usdc:
 	forge script script/DeployDummyUSDC.s.sol:DeployDummyUSDC --slow --broadcast --private-key $(pk) --verify
 
+distribute-rewards-testnet:
+	forge script script/DistributeRewardsTestnet.s.sol:DistributeRewardsTestnet --slow --broadcast --private-key $(pk)
+
 abi:
 	mkdir -p abis
 	forge inspect LendFactory abi --json > ./abis/Factory.json
