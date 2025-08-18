@@ -12,13 +12,13 @@ contract SetOpLendPeerFactory is Script {
         vm.createSelectFork("sepolia");
         vm.startBroadcast();
 
-        LendFactory factory = LendFactory(payable(0xcC90663A4f20A41492e9e014f2012F9F48f73EF1));
+        LendFactory factory = LendFactory(payable(0x440C9415071A97be0fE2cE84522C3916907b638b));
 
-        bytes32 peer1 = bytes32(uint256(uint160(address(0x5aA12Eb0D864E089723681146c91D5F17ED6Fa21))));
-        bytes32 peer2 = bytes32(uint256(uint160(address(0xEb7c6573084E9e4f0e0a1101a05014F631Ec0AC6))));
+        bytes32 peerArbi = bytes32(uint256(uint160(address(0xC0978F13D3Ad40CFa489319AFeB943Be7C363eC2))));
+        bytes32 peerBase = bytes32(uint256(uint160(address(0x067f52C96393942483695C827b801c25762908D2))));
 
-        factory.setOpLendPeer(4, 421614, 40231, peer1);
-        factory.setOpLendPeer(4, 84532, 40245, peer2);
+        factory.setOpLendPeer(9, 421614, 40231, peerArbi);
+        factory.setOpLendPeer(9, 84532, 40245, peerBase);
 
         vm.stopBroadcast();
     }
