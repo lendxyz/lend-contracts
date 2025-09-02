@@ -3,7 +3,7 @@ pragma solidity ^0.8.13;
 
 import {Script} from "forge-std/Script.sol";
 import {LendRewards} from "../src/Rewards.sol";
-import {USDC} from "../src/DummyUSDC.sol";
+import {USDC} from "../src/testnet/DummyUSDC.sol";
 
 contract DeployRewardsTestnet is Script {
     address ethUsdcAddr = address(0x73DC60bb3f14852fF727C6C67B187e61A7BB26E8); // mock USDC on ETH sepolia

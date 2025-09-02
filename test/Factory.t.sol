@@ -4,7 +4,7 @@ pragma solidity ^0.8.13;
 import {Test, console} from "forge-std/Test.sol";
 import {SendParam, MessagingFee} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 import {LendFactory} from "../src/Factory.sol";
-import {USDC} from "../src/DummyUSDC.sol";
+import {USDC} from "../src/testnet/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
 import {TestBase} from "./TestBase.sol";
 

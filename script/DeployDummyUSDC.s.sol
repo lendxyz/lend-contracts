@@ -2,7 +2,7 @@
 pragma solidity ^0.8.13;
 
 import {Script} from "forge-std/Script.sol";
-import {USDC} from "../src/DummyUSDC.sol";
+import {USDC} from "../src/testnet/DummyUSDC.sol";
 
 contract DeployDummyUSDC is Script {
     address admin = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283);
