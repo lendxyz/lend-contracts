@@ -30,7 +30,7 @@ contract LendFaucet is Ownable {
         require(sent, "ETH transfer failed");
     }
 
-    function withdrawETH(uint256 amount) external onlyOwner {
+    function withdrawEth(uint256 amount) external onlyOwner {
         require(address(this).balance >= amount, "Insufficient ETH");
         payable(owner()).transfer(amount);
     }

@@ -12,14 +12,14 @@ contract FactoryTest is Test, TestBase {
     function beforeTestSetup(bytes4 testSelector) public pure returns (bytes[] memory beforeTestCalldata) {
         if (testSelector != this.test_CreateOperation.selector) {
             beforeTestCalldata = new bytes[](2);
-            beforeTestCalldata[0] = abi.encodePacked(this.mintUSDC.selector);
+            beforeTestCalldata[0] = abi.encodePacked(this.mintUsdc.selector);
             beforeTestCalldata[1] = abi.encodePacked(this.createOperation.selector);
         }
     }
 
     function test_CreateOperation() public {
         address op = createOperation();
-        LendOperation opLEND = LendOperation(op);
+        LendOperation opLend = LendOperation(op);
 
         LendFactory.Operation memory expectedReturn =
             LendFactory.Operation(op, totalSharesAmount, sharePriceEur, "Test operation");
@@ -27,21 +27,17 @@ contract FactoryTest is Test, TestBase {
 
         assertEq(factory.operationCount(), 1);
         assertEq(abi.encode(actualReturn), abi.encode(expectedReturn));
-        assertEq(opLEND.name(), "Lend Operation - Test operation");
-        assertEq(opLEND.symbol(), "opLEND-1");
-        assertEq(opLEND.MAX_SUPPLY(), totalSharesAmount);
+        assertEq(opLend.name(), "Lend Operation - Test operation");
+        assertEq(opLend.symbol(), "opLEND-1");
+        assertEq(opLend.MAX_SUPPLY(), totalSharesAmount);
     }
 
     function test_InvestCost() public view {
         uint256 computedCost = factory.getAmountIn(1, sharesToBuy);
-        assertLt(
-            computedCost,
-            (sharesToBuy / 10 ** sharesDecimal) * eurAmountPerShare * maxEurUsdcRange * 10 ** (usdc.decimals() - 1)
-        );
-        assertGt(
-            computedCost,
-            (sharesToBuy / 10 ** sharesDecimal) * eurAmountPerShare * minEurUsdcRange * 10 ** (usdc.decimals() - 1)
-        );
+        uint256 sharesDecimalConverted = 10 ** sharesDecimal;
+        uint256 sharesAmount = sharesToBuy / sharesDecimalConverted;
+        assertLt(computedCost, sharesAmount * eurAmountPerShare * maxEurUsdcRange * 10 ** (usdc.decimals() - 1));
+        assertGt(computedCost, sharesAmount * eurAmountPerShare * minEurUsdcRange * 10 ** (usdc.decimals() - 1));
     }
 
     function test_SharesAmount() public view {
@@ -62,7 +58,7 @@ contract FactoryTest is Test, TestBase {
 
         vm.stopPrank();
 
-        assertEq(usdc.balanceOf(address(user)), initialUSDCBalance - cost);
+        assertEq(usdc.balanceOf(address(user)), initialUsdcBalance - cost);
         assertEq(usdc.balanceOf(address(factory)), cost);
         assertEq(opLend.balanceOf(address(user)), sharesToBuy);
         assertEq(factory.fundingProgress(1), sharesToBuy);
@@ -99,7 +95,7 @@ contract FactoryTest is Test, TestBase {
 
         vm.stopPrank();
 
-        assertEq(usdc.balanceOf(address(user)), initialUSDCBalance - cost);
+        assertEq(usdc.balanceOf(address(user)), initialUsdcBalance - cost);
         assertEq(usdc.balanceOf(address(factory)), cost);
         assertEq(factory.fundingProgress(1), sharesToBuy);
         assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
@@ -129,7 +125,7 @@ contract FactoryTest is Test, TestBase {
 
         vm.stopPrank();
 
-        assertEq(usdc.balanceOf(address(user)), initialUSDCBalance - cost);
+        assertEq(usdc.balanceOf(address(user)), initialUsdcBalance - cost);
         assertEq(usdc.balanceOf(address(factory)), cost);
         assertEq(opLend.balanceOf(address(user)), sharesToBuy);
         assertEq(factory.fundingProgress(1), sharesToBuy);
@@ -138,7 +134,7 @@ contract FactoryTest is Test, TestBase {
         vm.prank(admin);
         factory.refundUser(1, address(user));
 
-        assertEq(usdc.balanceOf(address(user)), initialUSDCBalance);
+        assertEq(usdc.balanceOf(address(user)), initialUsdcBalance);
         assertEq(usdc.balanceOf(address(factory)), 0);
         assertEq(opLend.balanceOf(address(user)), 0);
         assertEq(factory.fundingProgress(1), 0);

@@ -23,12 +23,12 @@ contract OpLendOftTest is TestHelperOz5, TestBase {
     uint16 bEid = 2;
 
     // Declaration of mock contracts.
-    LendOperation opLend_a; // OApp A
-    LendOperation opLend_b; // OApp B
+    LendOperation opLendA; // OApp A
+    LendOperation opLendB; // OApp B
 
     function beforeTestSetup() public pure returns (bytes[] memory beforeTestCalldata) {
         beforeTestCalldata = new bytes[](4);
-        beforeTestCalldata[0] = abi.encodePacked(this.mintUSDC.selector);
+        beforeTestCalldata[0] = abi.encodePacked(this.mintUsdc.selector);
         beforeTestCalldata[1] = abi.encodePacked(this.setupContracts.selector);
         beforeTestCalldata[2] = abi.encodePacked(this.createOperation.selector);
         beforeTestCalldata[3] = abi.encodePacked(this.setupLzEndpoints.selector);
@@ -41,8 +41,8 @@ contract OpLendOftTest is TestHelperOz5, TestBase {
 
         // Initializes 2 opLEND OFT; one on chain A, one on chain B.
         address[] memory sender = setupOApps(type(LendOperation).creationCode, 1, 2);
-        opLend_a = LendOperation(payable(sender[0]));
-        opLend_b = LendOperation(payable(sender[1]));
+        opLendA = LendOperation(payable(sender[0]));
+        opLendB = LendOperation(payable(sender[1]));
     }
 
     function setUp() public override(TestBase, TestHelperOz5) {

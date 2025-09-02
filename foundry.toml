@@ -1,3 +1,5 @@
+# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+
 [profile.default]
 src = "src"
 out = "out"
@@ -12,7 +14,8 @@ out = "out"
 libs = ["lib"]
 optimizer = false
 
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+[lint]
+exclude_lints = ["asm-keccak256"]
 
 remappings = [
     'forge-std/=lib/forge-std/src/',

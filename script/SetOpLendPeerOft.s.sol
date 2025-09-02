@@ -13,7 +13,7 @@ contract SetOpLendPeerOft is Script {
         // vm.createSelectFork("arbitrum-sepolia");
         vm.startBroadcast();
 
-        (bytes32 peerETH, uint32 lzEidETH) =
+        (bytes32 peerEth, uint32 lzEidEth) =
             (bytes32(uint256(uint160(address(0x5818295773901eF40a3b0c624a3FC50E52856319)))), 40161);
 
         (bytes32 peerArbi, uint32 lzEidArbi) =
@@ -24,7 +24,7 @@ contract SetOpLendPeerOft is Script {
 
         LendOperation opLend = LendOperation(address(0x067f52C96393942483695C827b801c25762908D2));
 
-        // opLend.setPeer(lzEidETH, peerETH);
+        // opLend.setPeer(lzEidEth, peerEth);
         // opLend.setPeer(lzEidBase, peerBase);
         opLend.setPeer(lzEidArbi, peerArbi);
 

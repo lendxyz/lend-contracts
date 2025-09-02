@@ -6,7 +6,7 @@ import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interf
 library LendUtils {
     error InvalidSignatureLength();
 
-    function getEURUSDOraclePrice(address oracle) public view returns (uint256 eurUsd) {
+    function getEurUsdOraclePrice(address oracle) public view returns (uint256 eurUsd) {
         (, int256 eurUsdRaw,,,) = AggregatorV3Interface(oracle).latestRoundData();
         uint8 oracleDecimals = AggregatorV3Interface(oracle).decimals();
         int256 scaled = eurUsdRaw;
@@ -40,7 +40,7 @@ library LendUtils {
         return string(buffer);
     }
 
-    function computeEthSignedHash(bytes32 messageHash) internal pure returns (bytes32) {
+    function computeEthSignedHash(bytes32 messageHash) internal pure returns (bytes32 signedHash) {
         return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
     }
 

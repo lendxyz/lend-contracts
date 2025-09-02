@@ -7,7 +7,7 @@ import {USDC} from "../src/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
 
 contract TestBase is Test {
-    uint256 initialUSDCBalance = 1_000_000_000 * 10 ** 6;
+    uint256 initialUsdcBalance = 1_000_000_000 * 10 ** 6;
     uint8 sharesDecimal = 6;
     uint256 totalSharesAmount = 1_000_000 * 10 ** sharesDecimal;
     uint256 eurAmountPerShare = 2;
@@ -20,7 +20,7 @@ contract TestBase is Test {
     USDC public usdc;
     LendFactory public factory;
 
-    address EURUSDOracle = address(0xb49f677943BC038e9857d61E7d053CaA2C1734C1); // ETH mainnet address
+    address eurUsdOracle = address(0xb49f677943BC038e9857d61E7d053CaA2C1734C1); // ETH mainnet address
     address lzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c); // ETH mainnet endpoint
 
     address backendSigner;
@@ -32,10 +32,10 @@ contract TestBase is Test {
 
     string testNonce = "QSfd8gQE4WYzO29";
 
-    function mintUSDC() public {
+    function mintUsdc() public {
         vm.startPrank(admin);
-        usdc.mint(address(user), initialUSDCBalance);
-        usdc.mint(address(user2), initialUSDCBalance);
+        usdc.mint(address(user), initialUsdcBalance);
+        usdc.mint(address(user2), initialUsdcBalance);
         vm.stopPrank();
     }
 
@@ -78,7 +78,7 @@ contract TestBase is Test {
         backendSignerPk = _backendSignerPk;
 
         usdc = new USDC();
-        factory = new LendFactory(address(admin), address(usdc), EURUSDOracle, lzEndpoint, address(backendSigner));
+        factory = new LendFactory(address(admin), address(usdc), eurUsdOracle, lzEndpoint, address(backendSigner));
 
         vm.stopPrank();
     }

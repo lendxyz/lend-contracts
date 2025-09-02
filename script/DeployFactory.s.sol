@@ -8,8 +8,8 @@ contract DeployFactory is Script {
     LendFactory public factory;
 
     // ETH Mainnet addresses:
-    address USDC = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
-    address EURUSDOracle = address(0xb49f677943BC038e9857d61E7d053CaA2C1734C1);
+    address usdc = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48);
+    address eurUsdOracle = address(0xb49f677943BC038e9857d61E7d053CaA2C1734C1);
     address lzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c);
     address backendSigner = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283); // Backend signer to generate mint allowances
     address admin = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283); // System owner - should be replaced with Lend multisig
@@ -20,7 +20,7 @@ contract DeployFactory is Script {
         vm.createSelectFork("mainnet");
         vm.startBroadcast();
 
-        factory = new LendFactory(admin, USDC, EURUSDOracle, lzEndpoint, backendSigner);
+        factory = new LendFactory(admin, usdc, eurUsdOracle, lzEndpoint, backendSigner);
 
         vm.stopBroadcast();
     }

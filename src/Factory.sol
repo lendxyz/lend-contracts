@@ -18,7 +18,6 @@
 //   +++++++++++++++++++++++++     ++++++++++++++++++
 //   +++++++++ +++++++++  ++++     +++++ ++++++++++++
 //
-
 pragma solidity ^0.8.27;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
@@ -69,20 +68,20 @@ contract LendFactory is Ownable, SignatureHelper {
         string opName;
     }
 
-    IERC20 public immutable usdc;
+    IERC20 public immutable USDC;
 
-    address private EURUSDOracle;
-    address private immutable lzEndpoint;
+    address private eurUsdOracle;
+    address private immutable LZ_ENDPOINT;
 
     uint256 public operationCount = 0;
 
-    uint256 private re_status;
+    uint256 private reentrancyStatus;
 
     modifier nonReentrant() {
-        require(re_status == 0, "ReentrancyGuard: reentrant call");
-        re_status = 1;
+        require(reentrancyStatus == 0, "ReentrancyGuard: reentrant call");
+        reentrancyStatus = 1;
         _;
-        re_status = 0;
+        reentrancyStatus = 0;
     }
 
     mapping(uint256 => Operation) public operations;
@@ -96,14 +95,14 @@ contract LendFactory is Ownable, SignatureHelper {
 
     constructor(
         address _admin,
-        address _USDCAddress,
-        address _EURUSDCOracle,
+        address _usdcAddress,
+        address _eurUsdOracle,
         address _lzEndpoint,
         address _backendSigner
     ) Ownable(_admin) SignatureHelper(_backendSigner) {
-        usdc = IERC20(_USDCAddress);
-        EURUSDOracle = _EURUSDCOracle;
-        lzEndpoint = _lzEndpoint;
+        USDC = IERC20(_usdcAddress);
+        eurUsdOracle = _eurUsdOracle;
+        LZ_ENDPOINT = _lzEndpoint;
     }
 
     //********** Read functions **********
@@ -114,12 +113,12 @@ contract LendFactory is Ownable, SignatureHelper {
 
     function getAmountIn(uint256 id, uint256 sharesAmount) public view returns (uint256 usdcCost) {
         uint256 sharesPriceEur = (operations[id].eurPerShares * sharesAmount) / 10 ** 6;
-        usdcCost = sharesPriceEur * LendUtils.getEURUSDOraclePrice(EURUSDOracle) / 10 ** 6;
+        usdcCost = sharesPriceEur * LendUtils.getEurUsdOraclePrice(eurUsdOracle) / 10 ** 6;
     }
 
     function getAmountOut(uint256 id, uint256 usdcAmount) public view returns (uint256 sharesAmount) {
         uint256 eurPerShares = operations[id].eurPerShares;
-        uint256 oraclePrice = LendUtils.getEURUSDOraclePrice(EURUSDOracle);
+        uint256 oraclePrice = LendUtils.getEurUsdOraclePrice(eurUsdOracle);
 
         sharesAmount = (usdcAmount * 10 ** 12) / (eurPerShares * oraclePrice);
     }
@@ -144,7 +143,7 @@ contract LendFactory is Ownable, SignatureHelper {
         string memory symbol = string(abi.encodePacked("opLEND-", LendUtils.uintToString(operationCount)));
 
         LendOperation newOp =
-            new LendOperation(address(this), name, symbol, totalShares, lzEndpoint, owner(), backendSigner);
+            new LendOperation(address(this), name, symbol, totalShares, LZ_ENDPOINT, owner(), backendSigner);
 
         operations[operationCount] = Operation(address(newOp), totalShares, eurPerShares, opName);
 
@@ -167,7 +166,7 @@ contract LendFactory is Ownable, SignatureHelper {
         usdcRaisedPerClient[id][user] -= userInvestAmount;
 
         opToken.adminBurn(user, opLendBalance);
-        require(usdc.transfer(user, userInvestAmount), TransferFailed());
+        require(USDC.transfer(user, userInvestAmount), TransferFailed());
 
         emit Refunded(user, id, userInvestAmount, opLendBalance);
     }
@@ -200,7 +199,7 @@ contract LendFactory is Ownable, SignatureHelper {
     }
 
     function updateOracleAddress(address newOracleAddress) external onlyOwner {
-        EURUSDOracle = newOracleAddress;
+        eurUsdOracle = newOracleAddress;
     }
 
     function updateBackendSigner(address newBackendSigner) external onlyOwner {
@@ -215,13 +214,13 @@ contract LendFactory is Ownable, SignatureHelper {
         emit OpLendPeerAdded(id, chainId, lzEndpointId, peerAddress);
     }
 
-    function withdrawUSDC(uint256 id, address destination) external onlyOwner {
+    function withdrawUsdc(uint256 id, address destination) external onlyOwner {
         if (id > operationCount) revert OpNotExist();
         if (usdcWithdrawn[id]) revert AlreadyWithdrawn();
         if (!isOperationFinished(id)) revert OpNotFinished();
 
         usdcWithdrawn[id] = true;
-        require(usdc.transfer(destination, usdcRaised[id]), TransferFailed());
+        require(USDC.transfer(destination, usdcRaised[id]), TransferFailed());
     }
     //**********************************
 
@@ -242,8 +241,8 @@ contract LendFactory is Ownable, SignatureHelper {
 
         bool isSignatureValid = verifySignatureMint(msg.sender, sharesAmount, id, nonce, signature);
         if (!isSignatureValid) revert InvalidSignature();
-        if (usdc.allowance(msg.sender, address(this)) < cost) revert InsufficientAllowance();
-        require(usdc.transferFrom(msg.sender, address(this), cost), TransferFailed());
+        if (USDC.allowance(msg.sender, address(this)) < cost) revert InsufficientAllowance();
+        require(USDC.transferFrom(msg.sender, address(this), cost), TransferFailed());
 
         fundingProgress[id] += sharesAmount;
 
