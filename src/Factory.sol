@@ -25,10 +25,12 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SendParam, MessagingFee} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 import {LendOperation} from "./opLend.sol";
 import {SignatureHelper} from "./lib/SignatureHelper.sol";
-import {LendUtils} from "./lib/LendUtils.sol";
+import {Utils} from "./lib/Utils.sol";
+
+// TODO: split into different facets in the src/facets dir
 
 contract LendFactory is Ownable, SignatureHelper {
-    using LendUtils for *;
+    using Utils for *;
 
     event OperationStarted(uint256 indexed operationId);
     event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
@@ -113,12 +115,12 @@ contract LendFactory is Ownable, SignatureHelper {
 
     function getAmountIn(uint256 id, uint256 sharesAmount) public view returns (uint256 usdcCost) {
         uint256 sharesPriceEur = (operations[id].eurPerShares * sharesAmount) / 10 ** 6;
-        usdcCost = sharesPriceEur * LendUtils.getEurUsdOraclePrice(eurUsdOracle) / 10 ** 6;
+        usdcCost = sharesPriceEur * Utils.getEurUsdOraclePrice(eurUsdOracle) / 10 ** 6;
     }
 
     function getAmountOut(uint256 id, uint256 usdcAmount) public view returns (uint256 sharesAmount) {
         uint256 eurPerShares = operations[id].eurPerShares;
-        uint256 oraclePrice = LendUtils.getEurUsdOraclePrice(eurUsdOracle);
+        uint256 oraclePrice = Utils.getEurUsdOraclePrice(eurUsdOracle);
 
         sharesAmount = (usdcAmount * 10 ** 12) / (eurPerShares * oraclePrice);
     }
@@ -140,7 +142,7 @@ contract LendFactory is Ownable, SignatureHelper {
         }
 
         string memory name = string(abi.encodePacked("Lend Operation - ", opName));
-        string memory symbol = string(abi.encodePacked("opLEND-", LendUtils.uintToString(operationCount)));
+        string memory symbol = string(abi.encodePacked("opLEND-", Utils.uintToString(operationCount)));
 
         LendOperation newOp =
             new LendOperation(address(this), name, symbol, totalShares, LZ_ENDPOINT, owner(), backendSigner);
