@@ -4,7 +4,7 @@ pragma solidity ^0.8.27;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IOFT, OFTCore} from "@layerzerolabs/oft-evm/contracts/OFTCore.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {SignatureHelper} from "./SignatureHelper.sol";
+import {SignatureHelper} from "./lib/SignatureHelper.sol";
 
 contract LendOperation is Ownable, SignatureHelper, ERC20, OFTCore {
     uint256 public immutable MAX_SUPPLY;

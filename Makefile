@@ -62,6 +62,9 @@ deploy-rewards-testnet:
 set-peer-factory:
 	forge script script/SetOpLendPeerFactory.s.sol:SetOpLendPeerFactory --slow --broadcast --private-key $(pk)
 
+set-peer-oft:
+	forge script script/SetOpLendPeerOft.s.sol:SetOpLendPeerOft --slow --broadcast --private-key $(pk)
+
 deploy-faucet:
 	forge script script/DeployFaucet.s.sol:DeployFaucet --slow --broadcast --private-key $(pk) --verify
 

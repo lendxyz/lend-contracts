@@ -1,6 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.27;
-
+//
 //         ++++++++++++++++++++++
 //        ++++++++++++++++++++++++
 //        ++++++++++++++++++++++++++++++++
@@ -18,18 +17,19 @@ pragma solidity ^0.8.27;
 //    +++++  +++++        ++++     +++++++++    +++++
 //   +++++++++++++++++++++++++     ++++++++++++++++++
 //   +++++++++ +++++++++  ++++     +++++ ++++++++++++
+//
+
+pragma solidity ^0.8.27;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {ReentrancyGuard} from "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
-import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
-import {LendOperation} from "./opLend.sol";
-import {SignatureHelper} from "./SignatureHelper.sol";
 import {SendParam, MessagingFee} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import {LendOperation} from "./opLend.sol";
+import {SignatureHelper} from "./lib/SignatureHelper.sol";
+import {LendUtils} from "./lib/LendUtils.sol";
 
-contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
-    //********** Init **********
+contract LendFactory is Ownable, SignatureHelper {
+    using LendUtils for *;
 
     event OperationStarted(uint256 indexed operationId);
     event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
@@ -47,6 +47,21 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
     );
     event OperationFinished(uint256 indexed operationId, uint256 indexed amountRaisedEuro);
 
+    error OpNotExist();
+    error OpNotStarted();
+    error OpFinished();
+    error OpNotFinished();
+    error OpPaused();
+    error OpCanceled();
+    error TooManyShares();
+    error ZeroShares();
+    error InsufficientAllowance();
+    error InvalidSignature();
+    error TransferFailed();
+    error UserNotParticipated();
+    error NoOpLendBalance();
+    error AlreadyWithdrawn();
+
     struct Operation {
         address opToken;
         uint256 totalShares;
@@ -55,12 +70,20 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
     }
 
     IERC20 public immutable usdc;
-    uint256 public immutable opDecimals = 6;
 
     address private EURUSDOracle;
     address private immutable lzEndpoint;
 
     uint256 public operationCount = 0;
+
+    uint256 private re_status;
+
+    modifier nonReentrant() {
+        require(re_status == 0, "ReentrancyGuard: reentrant call");
+        re_status = 1;
+        _;
+        re_status = 0;
+    }
 
     mapping(uint256 => Operation) public operations;
     mapping(uint256 => uint256) public fundingProgress;
@@ -83,24 +106,20 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
         lzEndpoint = _lzEndpoint;
     }
 
-    fallback() external payable {}
-    receive() external payable {}
-    //**********************************
-
     //********** Read functions **********
     function getOperation(uint256 id) external view returns (Operation memory) {
-        require(id <= operationCount, "Operation does not exists");
+        if (id > operationCount) revert OpNotExist();
         return operations[id];
     }
 
     function getAmountIn(uint256 id, uint256 sharesAmount) public view returns (uint256 usdcCost) {
         uint256 sharesPriceEur = (operations[id].eurPerShares * sharesAmount) / 10 ** 6;
-        usdcCost = sharesPriceEur * getEURUSDOraclePrice() / 10 ** 6;
+        usdcCost = sharesPriceEur * LendUtils.getEURUSDOraclePrice(EURUSDOracle) / 10 ** 6;
     }
 
     function getAmountOut(uint256 id, uint256 usdcAmount) public view returns (uint256 sharesAmount) {
         uint256 eurPerShares = operations[id].eurPerShares;
-        uint256 oraclePrice = getEURUSDOraclePrice();
+        uint256 oraclePrice = LendUtils.getEURUSDOraclePrice(EURUSDOracle);
 
         sharesAmount = (usdcAmount * 10 ** 12) / (eurPerShares * oraclePrice);
     }
@@ -109,19 +128,6 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
         return operationStarted[id] && fundingProgress[id] >= operations[id].totalShares;
     }
 
-    function getEURUSDOraclePrice() public view returns (uint256 eurUsd) {
-        (, int256 eurUsdRaw,,,) = AggregatorV3Interface(EURUSDOracle).latestRoundData();
-        eurUsd = uint256(scalePrice(eurUsdRaw, AggregatorV3Interface(EURUSDOracle).decimals(), 6));
-    }
-
-    function scalePrice(int256 _price, uint8 _priceDecimals, uint8 _targetDecimals) internal pure returns (int256) {
-        if (_priceDecimals < _targetDecimals) {
-            return _price * int256(10 ** uint256(_targetDecimals - _priceDecimals));
-        } else if (_priceDecimals > _targetDecimals) {
-            return _price / int256(10 ** uint256(_priceDecimals - _targetDecimals));
-        }
-        return _price;
-    }
     //**********************************
 
     //********** Operation management **********
@@ -135,7 +141,7 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
         }
 
         string memory name = string(abi.encodePacked("Lend Operation - ", opName));
-        string memory symbol = string(abi.encodePacked("opLEND-", Strings.toString(operationCount)));
+        string memory symbol = string(abi.encodePacked("opLEND-", LendUtils.uintToString(operationCount)));
 
         LendOperation newOp =
             new LendOperation(address(this), name, symbol, totalShares, lzEndpoint, owner(), backendSigner);
@@ -152,16 +158,16 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
         uint256 userInvestAmount = usdcRaisedPerClient[id][user];
         uint256 opLendBalance = opToken.balanceOf(user);
 
-        require(id <= operationCount, "Operation does not exists");
-        require(userInvestAmount > 0, "User has not participated");
-        require(opLendBalance > 0, "User has no opLend");
+        if (id > operationCount) revert OpNotExist();
+        if (userInvestAmount == 0) revert UserNotParticipated();
+        if (opLendBalance == 0) revert NoOpLendBalance();
 
         fundingProgress[id] -= opLendBalance;
         usdcRaised[id] -= userInvestAmount;
         usdcRaisedPerClient[id][user] -= userInvestAmount;
 
         opToken.adminBurn(user, opLendBalance);
-        require(usdc.transfer(user, userInvestAmount), "Failed to transfer USDC");
+        require(usdc.transfer(user, userInvestAmount), TransferFailed());
 
         emit Refunded(user, id, userInvestAmount, opLendBalance);
     }
@@ -173,7 +179,7 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
     }
 
     function cancelOperation(uint256 id) external onlyOwner {
-        require(id <= operationCount, "Operation does not exists");
+        if (id > operationCount) revert OpNotExist();
 
         operationCanceled[id] = true;
         emit OperationCanceled(id);
@@ -202,7 +208,7 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
     }
 
     function setOpLendPeer(uint256 id, uint32 chainId, uint32 lzEndpointId, bytes32 peerAddress) external onlyOwner {
-        require(id <= operationCount, "Operation does not exists");
+        if (id > operationCount) revert OpNotExist();
         LendOperation opLend = LendOperation(operations[id].opToken);
         opLend.setPeer(lzEndpointId, peerAddress);
 
@@ -210,14 +216,12 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
     }
 
     function withdrawUSDC(uint256 id, address destination) external onlyOwner {
-        require(id <= operationCount, "Operation does not exists");
-        require(!usdcWithdrawn[id], "Already claimed USDC");
-        require(!operationCanceled[id], "Operation is canceled");
-        require(!fundingPaused[id], "Operation is paused");
-        require(isOperationFinished(id), "Operation is not finished");
+        if (id > operationCount) revert OpNotExist();
+        if (usdcWithdrawn[id]) revert AlreadyWithdrawn();
+        if (!isOperationFinished(id)) revert OpNotFinished();
 
         usdcWithdrawn[id] = true;
-        require(usdc.transfer(destination, usdcRaised[id]), "Failed to transfer USDC");
+        require(usdc.transfer(destination, usdcRaised[id]), TransferFailed());
     }
     //**********************************
 
@@ -226,21 +230,20 @@ contract LendFactory is Ownable, SignatureHelper, ReentrancyGuard {
         private
         returns (uint256)
     {
-        require(id <= operationCount, "Operation does not exists");
-        require(operationStarted[id] == true, "Operation is not started");
-        require(fundingProgress[id] + sharesAmount <= operations[id].totalShares, "Cannot buy that many shares");
-        require(!isOperationFinished(id), "Operation is finished");
-        require(!operationCanceled[id], "Operation is canceled");
-        require(!fundingPaused[id], "Operation is paused");
-        require(sharesAmount > 0, "Not enough shares");
+        if (id > operationCount) revert OpNotExist();
+        if (!operationStarted[id]) revert OpNotStarted();
+        if (fundingProgress[id] + sharesAmount > operations[id].totalShares) revert TooManyShares();
+        if (isOperationFinished(id)) revert OpFinished();
+        if (operationCanceled[id]) revert OpCanceled();
+        if (fundingPaused[id]) revert OpPaused();
+        if (sharesAmount <= 0) revert ZeroShares();
 
         uint256 cost = getAmountIn(id, sharesAmount);
-        require(usdc.allowance(msg.sender, address(this)) >= cost, "Not enough USDC allowed to be spent");
 
         bool isSignatureValid = verifySignatureMint(msg.sender, sharesAmount, id, nonce, signature);
-        require(isSignatureValid, "Invalid signature");
-        require(usdc.allowance(msg.sender, address(this)) >= cost, "Not enough USDC allowed to be spent");
-        require(usdc.transferFrom(msg.sender, address(this), cost), "Failed to transfer USDC");
+        if (!isSignatureValid) revert InvalidSignature();
+        if (usdc.allowance(msg.sender, address(this)) < cost) revert InsufficientAllowance();
+        require(usdc.transferFrom(msg.sender, address(this), cost), TransferFailed());
 
         fundingProgress[id] += sharesAmount;
 
