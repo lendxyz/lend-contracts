@@ -26,9 +26,8 @@ import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
 import {IDiamondLoupe} from "./interfaces/IDiamondLoupe.sol";
 import {LibDiamond} from "./lib/LibDiamond.sol";
 import {AppStorage, LibAppStorage} from "./lib/Storage.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract Diamond is IDiamondCut, IDiamondLoupe, Ownable {
+contract Diamond is IDiamondCut, IDiamondLoupe {
     error UnsupportedOperation();
 
     constructor(
@@ -37,7 +36,9 @@ contract Diamond is IDiamondCut, IDiamondLoupe, Ownable {
         address _eurUsdOracle,
         address _lzEndpoint,
         address _backendSigner
-    ) Ownable(_admin) {
+    ) {
+        LibDiamond.setContractOwner(_admin);
+
         AppStorage storage s = LibAppStorage.appStorage();
         s.USDC = IERC20(_usdcAddress);
         s.eurUsdOracle = _eurUsdOracle;
