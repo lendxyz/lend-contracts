@@ -7,6 +7,7 @@ libs = ["lib"]
 via-ir = true
 optimizer = true
 optimizer-runs = 200
+gas_reports = ["LendFactory", "LendOperation"]
 
 [profile.lite]
 src = "src"

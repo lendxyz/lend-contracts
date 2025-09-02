@@ -5,6 +5,7 @@ help:
 	@echo 'make install-toolbox: installs forge required toolchain'
 	@echo 'make fmt: format code'
 	@echo 'make tests: run tests'
+	@echo 'make gas-report: get gas reports'
 	@echo 'make coverage: show tests coverage'
 	@echo 'make build: compile contracts'
 	@echo 'make clean: clean build cache and forge cache'
@@ -28,6 +29,9 @@ fmt:
 
 tests:
 	forge test -vvv --fork-url https://ethereum-rpc.publicnode.com
+
+gas-report:
+	forge test --fork-url https://ethereum-rpc.publicnode.com --gas-report
 
 coverage:
 	forge coverage -vvv --fork-url https://ethereum-rpc.publicnode.com
