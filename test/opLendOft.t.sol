@@ -11,7 +11,7 @@ import {MessagingReceipt} from "@layerzerolabs/oapp-evm/contracts/oapp/OAppSende
 import {TestHelperOz5} from "@layerzerolabs/test-devtools-evm-foundry/contracts/TestHelperOz5.sol";
 
 import {LendOperation} from "../src/opLend.sol";
-import {TestBase} from "./TestBase.sol";
+import {TestBase} from "./TestBase.t.sol";
 
 /// @notice Unit test for LendOperation using the TestHelper.
 /// @dev Inherits from TestHelper to utilize its setup and utility functions.

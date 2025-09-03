@@ -33,7 +33,7 @@
         "internalType": "address"
       },
       {
-        "name": "backendSigner",
+        "name": "signer",
         "type": "address",
         "internalType": "address"
       }
@@ -1585,6 +1585,11 @@
         "internalType": "bytes"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "InvalidSignature",
+    "inputs": []
   },
   {
     "type": "error",
