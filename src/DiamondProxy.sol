@@ -54,7 +54,8 @@ contract Diamond is IDiamondCut, IDiamondLoupe, IERC165 {
     fallback() external payable {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         address facet = ds.selectorToFacetAndPosition[msg.sig].facetAddress;
-        require(facet != address(0), "Function does not exist");
+        if (facet == address(0)) revert UnsupportedOperation();
+
         assembly {
             calldatacopy(0, 0, calldatasize())
             let result := delegatecall(gas(), facet, 0, calldatasize(), 0, 0)
