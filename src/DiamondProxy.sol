@@ -22,12 +22,13 @@
 pragma solidity ^0.8.27;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC165} from "./interfaces/IERC165.sol";
 import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
 import {IDiamondLoupe} from "./interfaces/IDiamondLoupe.sol";
 import {LibDiamond} from "./lib/LibDiamond.sol";
 import {AppStorage, LibAppStorage} from "./lib/Storage.sol";
 
-contract Diamond is IDiamondCut, IDiamondLoupe {
+contract Diamond is IDiamondCut, IDiamondLoupe, IERC165 {
     error UnsupportedOperation();
 
     constructor(
@@ -125,5 +126,11 @@ contract Diamond is IDiamondCut, IDiamondLoupe {
     function facetAddress(bytes4 _functionSelector) external view override returns (address facetAddress_) {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         facetAddress_ = ds.selectorToFacetAndPosition[_functionSelector].facetAddress;
+    }
+
+    // This implements ERC-165.
+    function supportsInterface(bytes4 _interfaceId) external override view returns (bool) {
+        LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
+        return ds.supportedInterfaces[_interfaceId];
     }
 }
