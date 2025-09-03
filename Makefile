@@ -80,7 +80,7 @@ distribute-rewards-testnet:
 
 abi:
 	mkdir -p abis
-	forge inspect LendFactory abi --json > ./abis/Factory.json
+	forge inspect ILendFactory abi --json > ./abis/Factory.json
 	forge inspect LendOperation abi --json > ./abis/opLend.json
 	forge inspect LendRewards abi --json > ./abis/Rewards.json
 	forge inspect LendFaucet abi --json > ./abis/Faucet.json

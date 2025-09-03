@@ -25,11 +25,7 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         address lzEndpoint,
         address lzDelegate,
         address signer
-    )
-        OFTCore(DECIMALS, lzEndpoint, lzDelegate)
-        ERC20(name, symbol)
-        Ownable(initialOwner)
-    {
+    ) OFTCore(DECIMALS, lzEndpoint, lzDelegate) ERC20(name, symbol) Ownable(initialOwner) {
         backendSigner = signer;
         MAX_SUPPLY = maxSupply;
     }
@@ -53,10 +49,7 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         if (!isSignatureValid) revert InvalidSignature();
     }
 
-    function verifySignature(address _user, string calldata _nonce, bytes memory _signature)
-        internal
-        returns (bool)
-    {
+    function verifySignature(address _user, string calldata _nonce, bytes memory _signature) internal returns (bool) {
         if (usedNonces[_nonce]) {
             return false;
         }
