@@ -2,7 +2,7 @@
 pragma solidity ^0.8.27;
 
 import {Test, console} from "forge-std/Test.sol";
-import {LendFactory} from "../src/Factory.sol";
+import {LendFactory} from "../src/legacy/Factory.sol";
 import {USDC} from "../src/testnet/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
 

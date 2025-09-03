@@ -2,9 +2,9 @@
 pragma solidity ^0.8.27;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {Utils} from "./Utils.sol";
+import {Utils} from "../lib/Utils.sol";
 
-// TODO: adapt to use state from libAppStorage
+// Contract only used by legacy factory - useless in diamond system
 abstract contract SignatureHelper {
     address internal backendSigner;
 

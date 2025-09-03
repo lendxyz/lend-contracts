@@ -2,7 +2,7 @@
 pragma solidity ^0.8.27;
 
 import {Script} from "forge-std/Script.sol";
-import {LendFactory} from "../src/Factory.sol";
+import {LendFactory} from "../src/legacy/Factory.sol";
 
 contract SetOpLendPeerFactory is Script {
     function setUp() public {}

@@ -18,7 +18,6 @@
 //   +++++++++++++++++++++++++     ++++++++++++++++++
 //   +++++++++ +++++++++  ++++     +++++ ++++++++++++
 //
-
 pragma solidity ^0.8.27;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
@@ -41,9 +40,9 @@ contract Diamond is IDiamondCut, IDiamondLoupe, IERC165 {
         LibDiamond.setContractOwner(_admin);
 
         AppStorage storage s = LibAppStorage.appStorage();
-        s.USDC = IERC20(_usdcAddress);
+        s.usdc = IERC20(_usdcAddress);
         s.eurUsdOracle = _eurUsdOracle;
-        s.LZ_ENDPOINT = _lzEndpoint;
+        s.lzEndpoint = _lzEndpoint;
         s.backendSigner = _backendSigner;
         s.operationCount = 0;
     }
@@ -129,7 +128,7 @@ contract Diamond is IDiamondCut, IDiamondLoupe, IERC165 {
     }
 
     // This implements ERC-165.
-    function supportsInterface(bytes4 _interfaceId) external override view returns (bool) {
+    function supportsInterface(bytes4 _interfaceId) external view override returns (bool) {
         LibDiamond.DiamondStorage storage ds = LibDiamond.diamondStorage();
         return ds.supportedInterfaces[_interfaceId];
     }

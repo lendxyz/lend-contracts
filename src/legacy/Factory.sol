@@ -1,34 +1,14 @@
 // SPDX-License-Identifier: MIT
-//
-//         ++++++++++++++++++++++
-//        ++++++++++++++++++++++++
-//        ++++++++++++++++++++++++++++++++
-//        +++++++++               +++++++++
-//         ++++++++++++++++++++++++++++++++
-//                 ++++++++++++++++++++++++
-//                  ++++++++++++++++++++++
-//
-//  +++++++                                      ++++
-//  +++++++                                      ++++
-//    +++++       +++            +++        ++   ++++
-//    +++++   ++++++++++  +++++++++++++  ++++++++++++
-//    +++++  +++++   ++++++++++++++++++++++++++++++++
-//    +++++  ++++++++++++++++++    +++++++++     ++++
-//    +++++  +++++        ++++     +++++++++    +++++
-//   +++++++++++++++++++++++++     ++++++++++++++++++
-//   +++++++++ +++++++++  ++++     +++++ ++++++++++++
-//
 pragma solidity ^0.8.27;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SendParam, MessagingFee} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
-import {LendOperation} from "./opLend.sol";
-import {SignatureHelper} from "./lib/SignatureHelper.sol";
-import {Utils} from "./lib/Utils.sol";
+import {LendOperation} from "../opLend.sol";
+import {SignatureHelper} from "./SignatureHelper.sol";
+import {Utils} from "../lib/Utils.sol";
 
-// TODO: split into different facets in the src/facets dir
-
+// Legacy factory here only for reference - useless is diamond system
 contract LendFactory is Ownable, SignatureHelper {
     using Utils for *;
 
@@ -128,7 +108,6 @@ contract LendFactory is Ownable, SignatureHelper {
     function isOperationFinished(uint256 id) public view returns (bool) {
         return operationStarted[id] && fundingProgress[id] >= operations[id].totalShares;
     }
-
     //**********************************
 
     //********** Operation management **********

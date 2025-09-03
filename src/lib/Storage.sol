@@ -11,9 +11,9 @@ struct Operation {
 }
 
 struct AppStorage {
-    IERC20 USDC;
+    IERC20 usdc;
     address eurUsdOracle;
-    address LZ_ENDPOINT;
+    address lzEndpoint;
     address backendSigner;
     uint256 operationCount;
     uint256 reentrancyStatus;
@@ -25,6 +25,8 @@ struct AppStorage {
     mapping(uint256 => bool) usdcWithdrawn;
     mapping(uint256 => bool) fundingPaused;
     mapping(uint256 => bool) operationStarted;
+    mapping(uint256 => mapping(address => uint256)) mintAllowance;
+    mapping(string => bool) usedNonces;
 }
 
 library LibAppStorage {
