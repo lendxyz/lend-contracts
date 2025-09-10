@@ -6,8 +6,17 @@ out = "out"
 libs = ["lib"]
 via-ir = true
 optimizer = true
-optimizer-runs = 200
-gas_reports = ["LendFactory", "LendOperation"]
+optimizer-runs = 10000
+gas_reports = [
+    "Diamond",
+    "LendOperation",
+    "LendRewards",
+    "Admin",
+    "Getters",
+    "Invest",
+    "Operations",
+    "Ownership"
+]
 
 [profile.lite]
 src = "src"

@@ -2,8 +2,9 @@
 pragma solidity ^0.8.27;
 
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {LendUtils} from "./LendUtils.sol";
+import {Utils} from "../lib/Utils.sol";
 
+// Contract only used by legacy factory - useless in diamond system
 abstract contract SignatureHelper {
     address internal backendSigner;
 
@@ -26,8 +27,8 @@ abstract contract SignatureHelper {
         }
 
         bytes32 messageHash = keccak256(abi.encodePacked(_opId, _user, _amount, _nonce));
-        bytes32 ethSignedMessageHash = LendUtils.computeEthSignedHash(messageHash);
-        address recovered = LendUtils.recoverSigner(ethSignedMessageHash, _signature);
+        bytes32 ethSignedMessageHash = Utils.computeEthSignedHash(messageHash);
+        address recovered = Utils.recoverSigner(ethSignedMessageHash, _signature);
         bool isValid = recovered == backendSigner;
 
         if (isValid) {
@@ -47,8 +48,8 @@ abstract contract SignatureHelper {
         }
 
         bytes32 messageHash = keccak256(abi.encodePacked(_user, _nonce));
-        bytes32 ethSignedMessageHash = LendUtils.computeEthSignedHash(messageHash);
-        address recovered = LendUtils.recoverSigner(ethSignedMessageHash, _signature);
+        bytes32 ethSignedMessageHash = Utils.computeEthSignedHash(messageHash);
+        address recovered = Utils.recoverSigner(ethSignedMessageHash, _signature);
         bool isValid = recovered == backendSigner;
 
         if (isValid) {

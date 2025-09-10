@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.27;
 
 import {Test, console} from "forge-std/Test.sol";
 import {SendParam, MessagingFee} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
-import {LendFactory} from "../src/Factory.sol";
+import {ILendFactory} from "../src/interfaces/IFactory.sol";
 import {USDC} from "../src/testnet/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
-import {TestBase} from "./TestBase.sol";
+import {TestBase} from "./TestBase.t.sol";
 
 contract FactoryTest is Test, TestBase {
     function beforeTestSetup(bytes4 testSelector) public pure returns (bytes[] memory beforeTestCalldata) {
@@ -21,9 +21,9 @@ contract FactoryTest is Test, TestBase {
         address op = createOperation();
         LendOperation opLend = LendOperation(op);
 
-        LendFactory.Operation memory expectedReturn =
-            LendFactory.Operation(op, totalSharesAmount, sharePriceEur, "Test operation");
-        LendFactory.Operation memory actualReturn = factory.getOperation(1);
+        ILendFactory.Operation memory expectedReturn =
+            ILendFactory.Operation(op, totalSharesAmount, sharePriceEur, "Test operation");
+        ILendFactory.Operation memory actualReturn = factory.getOperation(1);
 
         assertEq(factory.operationCount(), 1);
         assertEq(abi.encode(actualReturn), abi.encode(expectedReturn));
@@ -163,7 +163,7 @@ contract FactoryTest is Test, TestBase {
         vm.startPrank(admin);
 
         vm.expectEmit(address(factory));
-        emit LendFactory.OpLendPeerAdded(1, 42161, 30110, peer);
+        emit ILendFactory.OpLendPeerAdded(1, 42161, 30110, peer);
 
         factory.setOpLendPeer(1, 42161, 30110, peer);
 

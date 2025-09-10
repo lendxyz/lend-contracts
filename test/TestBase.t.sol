@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.27;
 
 import {Test, console} from "forge-std/Test.sol";
-import {LendFactory} from "../src/Factory.sol";
+import {ILendFactory} from "../src/interfaces/IFactory.sol";
 import {USDC} from "../src/testnet/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
+import {DeployDiamondTest} from "./DeployDiamond.t.sol";
 
-contract TestBase is Test {
+contract TestBase is Test, DeployDiamondTest {
     uint256 initialUsdcBalance = 1_000_000_000 * 10 ** 6;
     uint8 sharesDecimal = 6;
     uint256 totalSharesAmount = 1_000_000 * 10 ** sharesDecimal;
@@ -18,7 +19,7 @@ contract TestBase is Test {
     uint256 minEurUsdcRange = 10; // 1.0 USD per EUR
 
     USDC public usdc;
-    LendFactory public factory;
+    ILendFactory public factory;
 
     address eurUsdOracle = address(0xb49f677943BC038e9857d61E7d053CaA2C1734C1); // ETH mainnet address
     address lzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c); // ETH mainnet endpoint
@@ -78,7 +79,16 @@ contract TestBase is Test {
         backendSignerPk = _backendSignerPk;
 
         usdc = new USDC();
-        factory = new LendFactory(address(admin), address(usdc), eurUsdOracle, lzEndpoint, address(backendSigner));
+
+        address diamondAddress = setupDiamond(
+            address(admin),
+            address(usdc),
+            address(eurUsdOracle),
+            address(lzEndpoint),
+            address(backendSigner)
+        );
+
+        factory = ILendFactory(diamondAddress);
 
         vm.stopPrank();
     }

@@ -45,6 +45,9 @@ clean:
 remappings:
 	forge remappings > remappings.txt
 
+deploy-diamond:
+	forge script script/DeployDiamond.s.sol:DeployDiamond --slow --broadcast --private-key $(pk) --verify
+
 deploy-factory:
 	forge script script/DeployFactory.s.sol:DeployFactory --slow --broadcast --private-key $(pk) --verify
 
@@ -80,6 +83,7 @@ distribute-rewards-testnet:
 
 abi:
 	mkdir -p abis
+	forge inspect ILendFactory abi --json > ./abis/IFactory.json
 	forge inspect LendFactory abi --json > ./abis/Factory.json
 	forge inspect LendOperation abi --json > ./abis/opLend.json
 	forge inspect LendRewards abi --json > ./abis/Rewards.json

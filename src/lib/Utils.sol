@@ -2,10 +2,9 @@
 pragma solidity ^0.8.27;
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+import {Events} from "./Events.sol";
 
-library LendUtils {
-    error InvalidSignatureLength();
-
+library Utils {
     function getEurUsdOraclePrice(address oracle) public view returns (uint256 eurUsd) {
         (, int256 eurUsdRaw,,,) = AggregatorV3Interface(oracle).latestRoundData();
         uint8 oracleDecimals = AggregatorV3Interface(oracle).decimals();
@@ -45,7 +44,7 @@ library LendUtils {
     }
 
     function splitSignature(bytes memory sig) internal pure returns (bytes32 r, bytes32 s, uint8 v) {
-        if (sig.length != 65) revert InvalidSignatureLength();
+        if (sig.length != 65) revert Events.InvalidSignatureLength();
         assembly {
             r := mload(add(sig, 32))
             s := mload(add(sig, 64))

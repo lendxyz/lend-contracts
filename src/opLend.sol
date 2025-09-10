@@ -4,13 +4,18 @@ pragma solidity ^0.8.27;
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IOFT, OFTCore} from "@layerzerolabs/oft-evm/contracts/OFTCore.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {SignatureHelper} from "./lib/SignatureHelper.sol";
 
-contract LendOperation is Ownable, SignatureHelper, ERC20, OFTCore {
+contract LendOperation is Ownable, ERC20, OFTCore {
     uint256 public immutable MAX_SUPPLY;
     uint8 private immutable DECIMALS = 6;
+    address internal backendSigner;
 
+    mapping(uint256 => mapping(address => uint256)) mintAllowance;
+    mapping(string => bool) usedNonces;
     mapping(address => bool) public whitelisted;
+
+    error InvalidSignature();
+    error InvalidSignatureLength();
 
     constructor(
         address initialOwner,
@@ -19,13 +24,9 @@ contract LendOperation is Ownable, SignatureHelper, ERC20, OFTCore {
         uint256 maxSupply,
         address lzEndpoint,
         address lzDelegate,
-        address backendSigner
-    )
-        OFTCore(DECIMALS, lzEndpoint, lzDelegate)
-        SignatureHelper(backendSigner)
-        ERC20(name, symbol)
-        Ownable(initialOwner)
-    {
+        address signer
+    ) OFTCore(DECIMALS, lzEndpoint, lzDelegate) ERC20(name, symbol) Ownable(initialOwner) {
+        backendSigner = signer;
         MAX_SUPPLY = maxSupply;
     }
 
@@ -44,8 +45,43 @@ contract LendOperation is Ownable, SignatureHelper, ERC20, OFTCore {
     }
 
     function whitelistUser(address user, string calldata nonce, bytes memory signature) public {
-        bool isSignatureValid = verifySignatureTransfer(user, nonce, signature);
-        require(isSignatureValid, "Invalid signature");
+        bool isSignatureValid = verifySignature(user, nonce, signature);
+        if (!isSignatureValid) revert InvalidSignature();
+    }
+
+    function verifySignature(address _user, string calldata _nonce, bytes memory _signature) internal returns (bool) {
+        if (usedNonces[_nonce]) {
+            return false;
+        }
+
+        bytes32 messageHash = keccak256(abi.encodePacked(_user, _nonce));
+        bytes32 ethSignedMessageHash = computeEthSignedHash(messageHash);
+        address recovered = recoverSigner(ethSignedMessageHash, _signature);
+        bool isValid = recovered == backendSigner;
+
+        if (isValid) {
+            usedNonces[_nonce] = true;
+        }
+
+        return isValid;
+    }
+
+    function computeEthSignedHash(bytes32 messageHash) internal pure returns (bytes32 signedHash) {
+        return keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+    }
+
+    function splitSignature(bytes memory sig) internal pure returns (bytes32 r, bytes32 s, uint8 v) {
+        if (sig.length != 65) revert InvalidSignatureLength();
+        assembly {
+            r := mload(add(sig, 32))
+            s := mload(add(sig, 64))
+            v := byte(0, mload(add(sig, 96)))
+        }
+    }
+
+    function recoverSigner(bytes32 ethSignedMessageHash, bytes memory signature) internal pure returns (address) {
+        (bytes32 r, bytes32 s, uint8 v) = splitSignature(signature);
+        return ecrecover(ethSignedMessageHash, v, r, s);
     }
 
     function transfer(address to, uint256 value) public override returns (bool) {
