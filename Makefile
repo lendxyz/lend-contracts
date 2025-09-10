@@ -10,11 +10,11 @@ help:
 	@echo 'make build: compile contracts'
 	@echo 'make clean: clean build cache and forge cache'
 	@echo 'make remappings: generate remappings links for dependencies'
-	@echo 'make deploy-factory rpc=[your_rpc_url] pk=[your_private_key]: deploy factory and dlend'
-	@echo 'make deploy-factory-testnet rpc=[your_rpc_url] pk=[your_private_key]: deploy factory and dlend on sepolia testnet'
-	@echo 'make deploy-oft rpc=[your_rpc_url] pk=[your_private_key]: deploy opLend OFT'
+	@echo 'make deploy-factory-mainnet rpc=[your_rpc_url] pk=[your_private_key]: deploy factory on mainnet'
+	@echo 'make deploy-factory-testnet rpc=[your_rpc_url] pk=[your_private_key]: deploy factory on sepolia testnet'
+	@echo 'make deploy-oft-mainnet rpc=[your_rpc_url] pk=[your_private_key]: deploy opLend OFT'
 	@echo 'make deploy-oft-testnet rpc=[your_rpc_url] pk=[your_private_key]: deploy opLend OFT on sepolia testnet'
-	@echo 'make deploy-rewards rpc=[your_rpc_url] pk=[your_private_key]: deploy rewards contract'
+	@echo 'make deploy-rewards-mainnet rpc=[your_rpc_url] pk=[your_private_key]: deploy rewards contract'
 	@echo 'make deploy-rewards-testnet rpc=[your_rpc_url] pk=[your_private_key]: deploy rewards contract on sepolia testnet'
 	@echo 'make abi: generate contract abis in the `abis` folder'
 
@@ -45,26 +45,23 @@ clean:
 remappings:
 	forge remappings > remappings.txt
 
-deploy-diamond:
-	forge script script/DeployDiamond.s.sol:DeployDiamond --slow --broadcast --private-key $(pk) --verify
+deploy-factory-mainnet:
+	forge script script/mainnet/DeployFactory.s.sol:DeployFactory --slow --broadcast --private-key $(pk) --verify
 
-deploy-factory:
-	forge script script/DeployFactory.s.sol:DeployFactory --slow --broadcast --private-key $(pk) --verify
+deploy-diamond-testnet:
+	forge script script/testnet/DeployFactory.s.sol:DeployFactoryTestnet --slow --broadcast --private-key $(pk) --verify
 
-deploy-factory-testnet:
-	forge script script/DeployFactoryTestnet.s.sol:DeployFactoryTestnet --broadcast --slow --private-key $(pk) --verify
-
-deploy-oft:
-	forge script script/DeployOFT.s.sol:DeployOFT --slow --broadcast --private-key $(pk) --verify
+deploy-oft-mainnet:
+	forge script script/mainnet/DeployOFT.s.sol:DeployOFT --slow --broadcast --private-key $(pk) --verify
 
 deploy-oft-testnet:
-	forge script script/DeployOFTTestnet.s.sol:DeployOFTTestnet --slow --broadcast --private-key $(pk) --verify
+	forge script script/testnet/DeployOFT.s.sol:DeployOFTTestnet --slow --broadcast --private-key $(pk) --verify
 
-deploy-rewards:
-	forge script script/DeployRewards.s.sol:DeployRewards --slow --broadcast --private-key $(pk) --verify
+deploy-rewards-mainnet:
+	forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --private-key $(pk) --verify
 
 deploy-rewards-testnet:
-	forge script script/DeployRewardsTestnet.s.sol:DeployRewardsTestnet --slow --broadcast --private-key $(pk) --verify
+	forge script script/testnet/DeployRewards.s.sol:DeployRewardsTestnet --slow --broadcast --private-key $(pk) --verify
 
 set-peer-factory:
 	forge script script/SetOpLendPeerFactory.s.sol:SetOpLendPeerFactory --slow --broadcast --private-key $(pk)
@@ -73,18 +70,14 @@ set-peer-oft:
 	forge script script/SetOpLendPeerOft.s.sol:SetOpLendPeerOft --slow --broadcast --private-key $(pk)
 
 deploy-faucet:
-	forge script script/DeployFaucet.s.sol:DeployFaucet --slow --broadcast --private-key $(pk) --verify
+	forge script script/testnet/DeployFaucet.s.sol:DeployFaucet --slow --broadcast --private-key $(pk) --verify
 
 deploy-usdc:
-	forge script script/DeployDummyUSDC.s.sol:DeployDummyUSDC --slow --broadcast --private-key $(pk) --verify
-
-distribute-rewards-testnet:
-	forge script script/DistributeRewardsTestnet.s.sol:DistributeRewardsTestnet --slow --broadcast --private-key $(pk)
+	forge script script/testnet/DeployDummyUSDC.s.sol:DeployDummyUSDC --slow --broadcast --private-key $(pk) --verify
 
 abi:
 	mkdir -p abis
 	forge inspect ILendFactory abi --json > ./abis/IFactory.json
-	forge inspect LendFactory abi --json > ./abis/Factory.json
 	forge inspect LendOperation abi --json > ./abis/opLend.json
 	forge inspect LendRewards abi --json > ./abis/Rewards.json
 	forge inspect LendFaucet abi --json > ./abis/Faucet.json

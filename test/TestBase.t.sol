@@ -81,11 +81,7 @@ contract TestBase is Test, DeployDiamondTest {
         usdc = new USDC();
 
         address diamondAddress = setupDiamond(
-            address(admin),
-            address(usdc),
-            address(eurUsdOracle),
-            address(lzEndpoint),
-            address(backendSigner)
+            address(admin), address(usdc), address(eurUsdOracle), address(lzEndpoint), address(backendSigner)
         );
 
         factory = ILendFactory(diamondAddress);

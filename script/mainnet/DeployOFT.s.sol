@@ -2,14 +2,11 @@
 pragma solidity ^0.8.27;
 
 import {Script} from "forge-std/Script.sol";
-import {LendOperation} from "../src/opLend.sol";
+import {LendOperation} from "../../src/opLend.sol";
+import {Constants} from "../common/Constants.s.sol";
 
-contract DeployOFT is Script {
+contract DeployOFT is Script, Constants {
     LendOperation public oft;
-
-    address lzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c); // ETH mainnet endpoint
-    address admin = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283); // System owner - should be replaced with Lend multisig
-    address backendSigner = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283); // Backend signer to generate mint allowances
 
     string name = "Lend Operation - [op name]";
     string symbol = "opLEND-[]";
@@ -25,9 +22,9 @@ contract DeployOFT is Script {
             name,
             symbol,
             maxSupply,
-            lzEndpoint,
-            admin, // lz delegate - should be Lend multisig
-            backendSigner
+            mnFactArgs.lzEndpoint,
+            mnFactArgs.admin, // lz delegate - should be Lend multisig
+            mnFactArgs.backendSigner
         );
 
         vm.stopBroadcast();

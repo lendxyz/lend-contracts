@@ -1,35 +1,26 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.27;
 
-import {Test, console} from "forge-std/Test.sol";
-import {LendFactory} from "../src/legacy/Factory.sol";
-import {USDC} from "../src/testnet/DummyUSDC.sol";
-import {LendOperation} from "../src/opLend.sol";
-import {Diamond} from "../src/DiamondProxy.sol";
-import {IDiamondCut} from "../src/interfaces/IDiamondCut.sol";
-import {Admin} from "../src/facets/Admin.sol";
-import {Getters} from "../src/facets/Getters.sol";
-import {Invest} from "../src/facets/Invest.sol";
-import {Operations} from "../src/facets/Operations.sol";
-import {Ownership} from "../src/facets/Ownership.sol";
+import {IDiamondCut} from "../../src/interfaces/IDiamondCut.sol";
 
-contract DeployDiamondTest is Test {
-    function setupDiamond(address admin, address usdc, address eurUsdOracle, address lzEndpoint, address backendSigner)
-        public
-        returns (address)
-    {
-        Admin adminFacet = new Admin();
-        Getters gettersFacet = new Getters();
-        Invest investFacet = new Invest();
-        Operations operationsFacet = new Operations();
-        Ownership ownershipFacet = new Ownership();
+import {Admin} from "../../src/facets/Admin.sol";
+import {Getters} from "../../src/facets/Getters.sol";
+import {Invest} from "../../src/facets/Invest.sol";
+import {Operations} from "../../src/facets/Operations.sol";
+import {Ownership} from "../../src/facets/Ownership.sol";
 
-        Diamond diamond = new Diamond(admin, usdc, eurUsdOracle, lzEndpoint, backendSigner);
-
+contract FactoryDiamondCuts {
+    function getFacets(
+        address adminFacet,
+        address gettersFacet,
+        address investFacet,
+        address operationsFacet,
+        address ownershipFacet
+    ) public pure returns (IDiamondCut.FacetCut[] memory) {
         IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](5);
 
         // AdminFacet selectors
-        bytes4[] memory adminSelectors = new bytes4[](7); // Add all your admin funcs
+        bytes4[] memory adminSelectors = new bytes4[](7);
 
         adminSelectors[0] = Admin.refundUser.selector;
         adminSelectors[1] = Admin.batchRefundUsers.selector;
@@ -40,13 +31,13 @@ contract DeployDiamondTest is Test {
         adminSelectors[6] = Admin.withdrawUsdc.selector;
 
         cut[0] = IDiamondCut.FacetCut({
-            facetAddress: address(adminFacet),
+            facetAddress: adminFacet,
             action: IDiamondCut.FacetCutAction.Add,
             functionSelectors: adminSelectors
         });
 
         // GettersFacet selectors
-        bytes4[] memory gettersSelectors = new bytes4[](10); // Add all your admin funcs
+        bytes4[] memory gettersSelectors = new bytes4[](10);
 
         gettersSelectors[0] = Getters.usdc.selector;
         gettersSelectors[1] = Getters.operationCount.selector;
@@ -60,7 +51,7 @@ contract DeployDiamondTest is Test {
         gettersSelectors[9] = Getters.usdcRaisedPerClient.selector;
 
         cut[1] = IDiamondCut.FacetCut({
-            facetAddress: address(gettersFacet),
+            facetAddress: gettersFacet,
             action: IDiamondCut.FacetCutAction.Add,
             functionSelectors: gettersSelectors
         });
@@ -74,7 +65,7 @@ contract DeployDiamondTest is Test {
         investSelectors[3] = Invest.getAmountOut.selector;
 
         cut[2] = IDiamondCut.FacetCut({
-            facetAddress: address(investFacet),
+            facetAddress: investFacet,
             action: IDiamondCut.FacetCutAction.Add,
             functionSelectors: investSelectors
         });
@@ -102,13 +93,11 @@ contract DeployDiamondTest is Test {
         ownershipSelectors[1] = Ownership.owner.selector;
 
         cut[4] = IDiamondCut.FacetCut({
-            facetAddress: address(ownershipFacet),
+            facetAddress: ownershipFacet,
             action: IDiamondCut.FacetCutAction.Add,
             functionSelectors: ownershipSelectors
         });
 
-        diamond.diamondCut(cut, address(0), ""); // Perform cut
-
-        return address(diamond);
+        return cut;
     }
 }

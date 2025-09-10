@@ -215,6 +215,24 @@
   },
   {
     "type": "function",
+    "name": "batchSetPeers",
+    "inputs": [
+      {
+        "name": "_eids",
+        "type": "uint32[]",
+        "internalType": "uint32[]"
+      },
+      {
+        "name": "_peers",
+        "type": "bytes32[]",
+        "internalType": "bytes32[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "combineOptions",
     "inputs": [
       {
