@@ -67,6 +67,13 @@ interface ILendFactory {
 
     function updateBackendSigner(address newBackendSigner) external;
 
+    function batchSetOpLendPeers(
+        uint256[] calldata ids,
+        uint32[] calldata chainIds,
+        uint32[] calldata lzEids,
+        bytes32[] calldata peers
+    ) external;
+
     function setOpLendPeer(uint256 id, uint32 chainId, uint32 lzEndpointId, bytes32 peerAddress) external;
 
     function withdrawUsdc(uint256 id, address destination) external;
