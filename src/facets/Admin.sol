@@ -53,6 +53,23 @@ contract Admin {
         s.backendSigner = newBackendSigner;
     }
 
+    function batchSetOpLendPeers(
+        uint256[] calldata ids,
+        uint32[] calldata chainIds,
+        uint32[] calldata lzEids,
+        bytes32[] calldata peers
+    ) external {
+        LibDiamond.enforceIsContractOwner();
+
+        require(ids.length == peers.length, "OP ids length mismatch");
+        require(lzEids.length == peers.length, "LzEids length mismatch");
+        require(chainIds.length == peers.length, "ChainIds length mismatch");
+
+        for (uint256 i = 0; i < lzEids.length; i++) {
+            this.setOpLendPeer(ids[i], chainIds[i], lzEids[i], peers[i]);
+        }
+    }
+
     function setOpLendPeer(uint256 id, uint32 chainId, uint32 lzEndpointId, bytes32 peerAddress) external {
         LibDiamond.enforceIsContractOwner();
         AppStorage storage s = LibAppStorage.appStorage();

@@ -177,4 +177,11 @@ contract LendOperation is Ownable, ERC20, OFTCore {
     function sharedDecimals() public pure override returns (uint8) {
         return DECIMALS;
     }
+
+    function batchSetPeers(uint32[] calldata _eids, bytes32[] calldata _peers) external onlyOwner {
+        require(_eids.length == _peers.length, "Length mismatch");
+        for (uint256 i = 0; i < _eids.length; i++) {
+            setPeer(_eids[i], _peers[i]);
+        }
+    }
 }
