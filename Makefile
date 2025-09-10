@@ -45,6 +45,9 @@ clean:
 remappings:
 	forge remappings > remappings.txt
 
+deploy-diamond:
+	forge script script/DeployDiamond.s.sol:DeployDiamond --slow --broadcast --private-key $(pk) --verify
+
 deploy-factory:
 	forge script script/DeployFactory.s.sol:DeployFactory --slow --broadcast --private-key $(pk) --verify
 
