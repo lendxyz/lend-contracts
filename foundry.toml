@@ -15,7 +15,8 @@ gas_reports = [
     "Getters",
     "Invest",
     "Operations",
-    "Ownership"
+    "Ownership",
+    "OneInchAdapter"
 ]
 
 [profile.lite]

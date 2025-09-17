@@ -75,6 +75,9 @@ deploy-faucet:
 deploy-usdc:
 	forge script script/testnet/DeployDummyUSDC.s.sol:DeployDummyUSDC --slow --broadcast --private-key $(pk) --verify
 
+deploy-adapter-testnet:
+	forge script script/testnet/Deploy1InchAdapter.s.sol:Deploy1InchAdapter --slow --broadcast --private-key $(pk) --verify
+
 abi:
 	mkdir -p abis
 	forge inspect ILendFactory abi --json > ./abis/IFactory.json
