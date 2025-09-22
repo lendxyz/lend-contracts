@@ -12,6 +12,8 @@ contract DeployDummyUSDC is Script {
     function run() public {
         vm.createSelectFork("sepolia");
         // vm.createSelectFork("arbitrum-sepolia");
+        // vm.createSelectFork("bsc-testnet");
+        // vm.createSelectFork("polygon-testnet");
         // vm.createSelectFork("base-sepolia");
         vm.startBroadcast();
 
