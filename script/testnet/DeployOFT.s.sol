@@ -8,17 +8,17 @@ import {Constants} from "../common/Constants.s.sol";
 contract DeployOFTTestnet is Script, Constants {
     LendOperation public oft;
 
-    string name = "Lend Operation - Apartment Kensington";
-    string symbol = "opLEND-9";
+    string name = "Lend Operation - Dubai Short";
+    string symbol = "opLEND-10";
     uint256 maxSupply = 1_000_000_000_000; // use supply from source chain
 
     function setUp() public {}
 
     function run() public {
         // Set chain here:
-        vm.createSelectFork("arbitrum-sepolia");
+        // vm.createSelectFork("arbitrum-sepolia");
         // vm.createSelectFork("bsc-testnet");
-        // vm.createSelectFork("polygon-testnet");
+        vm.createSelectFork("polygon-testnet");
         // vm.createSelectFork("base-sepolia");
         // vm.createSelectFork("monad-testnet");
         vm.startBroadcast();
