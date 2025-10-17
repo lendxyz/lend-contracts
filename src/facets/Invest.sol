@@ -39,12 +39,12 @@ contract Invest {
         bool isSignatureValid = _verifySignature(msg.sender, sharesAmount, id, nonce, signature);
         if (!isSignatureValid) revert Events.InvalidSignature();
         if (s.usdc.allowance(msg.sender, address(this)) < cost) revert Events.InsufficientAllowance();
-        require(s.usdc.transferFrom(msg.sender, address(this), cost), Events.TransferFailed());
 
         s.fundingProgress[id] += sharesAmount;
         s.usdcRaised[id] += cost;
         s.usdcRaisedPerClient[id][msg.sender] += cost;
 
+        require(s.usdc.transferFrom(msg.sender, address(this), cost), Events.TransferFailed());
         emit Events.Invested(msg.sender, id, cost, sharesAmount);
 
         if (s.fundingProgress[id] >= s.operations[id].totalShares) {
@@ -117,6 +117,7 @@ contract Invest {
         LendOperation(s.operations[id].opToken).send{value: msg.value}(sendParam, fee, msg.sender);
     }
 
+    // TODO: testing
     function preDeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature)
         external
         nonReentrant
@@ -135,12 +136,13 @@ contract Invest {
         bool isSignatureValid = _verifySignature(msg.sender, sharesAmount, id, nonce, signature);
         if (!isSignatureValid) revert Events.InvalidSignature();
         if (s.usdc.allowance(msg.sender, address(this)) < cost) revert Events.InsufficientAllowance();
-        require(s.usdc.transferFrom(msg.sender, address(this), cost), Events.TransferFailed());
 
         s.fundingProgress[id] += sharesAmount;
         s.usdcRaised[id] += cost;
         s.usdcRaisedPerClient[id][msg.sender] += cost;
         s.predeposits[id][msg.sender] += sharesAmount;
+
+        require(s.usdc.transferFrom(msg.sender, address(this), cost), Events.TransferFailed());
 
         emit Events.Invested(msg.sender, id, cost, sharesAmount);
         emit Events.Predeposit(msg.sender, id, cost, sharesAmount);
@@ -149,6 +151,22 @@ contract Invest {
             s.operationStarted[id] = true;
             emit Events.OperationFinished(id, s.operations[id].totalShares * s.operations[id].eurPerShares);
         }
+    }
+
+    // TODO: testing
+    function claimPredeposit(uint256 id) external {
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
+        if (s.operationStarted[id]) revert Events.OpNotStarted();
+
+        uint256 amount = s.predeposits[id][msg.sender];
+        if (amount == 0) revert Events.AlreadyClaimed();
+
+        s.predeposits[id][msg.sender] = 0;
+        LendOperation(s.operations[id].opToken).mint(msg.sender, amount);
+
+        emit Events.ClaimedOpToken(msg.sender, id, amount);
     }
 
     function getAmountIn(uint256 id, uint256 sharesAmount) external view returns (uint256 usdcCost) {

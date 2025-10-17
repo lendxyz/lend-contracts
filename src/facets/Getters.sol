@@ -57,4 +57,9 @@ contract Getters {
         AppStorage storage s = LibAppStorage.appStorage();
         return s.usdcRaisedPerClient[id][user];
     }
+
+    function predeposits(uint256 id, address user) external view returns (uint256) {
+        AppStorage storage s = LibAppStorage.appStorage();
+        return s.predeposits[id][user];
+    }
 }

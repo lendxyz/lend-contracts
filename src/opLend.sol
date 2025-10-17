@@ -43,6 +43,7 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         _burn(user, value);
     }
 
+    // TODO: testing
     function whitelistUser(address user, string calldata nonce, bytes memory signature) public {
         bool isSignatureValid = verifySignature(user, nonce, signature);
         if (!isSignatureValid) revert InvalidSignature();
