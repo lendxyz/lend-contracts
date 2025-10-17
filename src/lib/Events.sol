@@ -16,10 +16,14 @@ library Events {
     event Invested(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
     );
+    event Predeposit(
+        address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
+    );
     event OperationFinished(uint256 indexed operationId, uint256 indexed amountRaisedEuro);
 
     error OpNotExist();
     error OpNotStarted();
+    error OpAlreadyStarted();
     error OpFinished();
     error OpNotFinished();
     error OpPaused();

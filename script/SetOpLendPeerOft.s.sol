@@ -24,20 +24,16 @@ contract SetOpLendPeerOft is Script {
         address peerPolyAddr = address(0x08227874137d2A38F3c908C456C5b33e20fa2aBE);
         address peerBscAddr = address(0x5aA12Eb0D864E089723681146c91D5F17ED6Fa21);
 
-        (bytes32 peerEth, uint32 lzEidEth) =
-            (bytes32(uint256(uint160(peerEthAddr))), 40161);
+        (bytes32 peerEth, uint32 lzEidEth) = (bytes32(uint256(uint160(peerEthAddr))), 40161);
 
-        (bytes32 peerArbi, uint32 lzEidArbi) =
-            (bytes32(uint256(uint160(peerArbiAddr))), 40231);
+        (bytes32 peerArbi, uint32 lzEidArbi) = (bytes32(uint256(uint160(peerArbiAddr))), 40231);
 
         // (bytes32 peerBase, uint32 lzEidBase) =
-            // (bytes32(uint256(uint160(peerBaseAddr))), 40245);
+        // (bytes32(uint256(uint160(peerBaseAddr))), 40245);
 
-        (bytes32 peerPoly, uint32 lzEidPoly) =
-            (bytes32(uint256(uint160(peerPolyAddr))), 40267);
+        (bytes32 peerPoly, uint32 lzEidPoly) = (bytes32(uint256(uint160(peerPolyAddr))), 40267);
 
-        (bytes32 peerBsc, uint32 lzEidBsc) =
-            (bytes32(uint256(uint160(peerBscAddr))), 40102);
+        (bytes32 peerBsc, uint32 lzEidBsc) = (bytes32(uint256(uint160(peerBscAddr))), 40102);
 
         LendOperation opLend = LendOperation(peerBaseAddr);
 

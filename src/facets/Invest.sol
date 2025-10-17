@@ -42,7 +42,6 @@ contract Invest {
         require(s.usdc.transferFrom(msg.sender, address(this), cost), Events.TransferFailed());
 
         s.fundingProgress[id] += sharesAmount;
-
         s.usdcRaised[id] += cost;
         s.usdcRaisedPerClient[id][msg.sender] += cost;
 
@@ -116,6 +115,40 @@ contract Invest {
         );
 
         LendOperation(s.operations[id].opToken).send{value: msg.value}(sendParam, fee, msg.sender);
+    }
+
+    function preDeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature)
+        external
+        nonReentrant
+    {
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
+        if (s.operationStarted[id]) revert Events.OpAlreadyStarted();
+        if (s.fundingProgress[id] + sharesAmount > s.operations[id].totalShares) revert Events.TooManyShares();
+        if (s.operationCanceled[id]) revert Events.OpCanceled();
+        if (s.fundingPaused[id]) revert Events.OpPaused();
+        if (sharesAmount <= 0) revert Events.ZeroShares();
+
+        uint256 cost = this.getAmountIn(id, sharesAmount);
+
+        bool isSignatureValid = _verifySignature(msg.sender, sharesAmount, id, nonce, signature);
+        if (!isSignatureValid) revert Events.InvalidSignature();
+        if (s.usdc.allowance(msg.sender, address(this)) < cost) revert Events.InsufficientAllowance();
+        require(s.usdc.transferFrom(msg.sender, address(this), cost), Events.TransferFailed());
+
+        s.fundingProgress[id] += sharesAmount;
+        s.usdcRaised[id] += cost;
+        s.usdcRaisedPerClient[id][msg.sender] += cost;
+        s.predeposits[id][msg.sender] += sharesAmount;
+
+        emit Events.Invested(msg.sender, id, cost, sharesAmount);
+        emit Events.Predeposit(msg.sender, id, cost, sharesAmount);
+
+        if (s.fundingProgress[id] >= s.operations[id].totalShares) {
+            s.operationStarted[id] = true;
+            emit Events.OperationFinished(id, s.operations[id].totalShares * s.operations[id].eurPerShares);
+        }
     }
 
     function getAmountIn(uint256 id, uint256 sharesAmount) external view returns (uint256 usdcCost) {
