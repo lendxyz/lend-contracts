@@ -10,7 +10,6 @@ contract LendOperation is Ownable, ERC20, OFTCore {
     uint8 private immutable DECIMALS = 6;
     address internal backendSigner;
 
-    mapping(uint256 => mapping(address => uint256)) mintAllowance;
     mapping(string => bool) usedNonces;
     mapping(address => bool) public whitelisted;
 
@@ -47,6 +46,7 @@ contract LendOperation is Ownable, ERC20, OFTCore {
     function whitelistUser(address user, string calldata nonce, bytes memory signature) public {
         bool isSignatureValid = verifySignature(user, nonce, signature);
         if (!isSignatureValid) revert InvalidSignature();
+        whitelisted[user] = true;
     }
 
     function verifySignature(address _user, string calldata _nonce, bytes memory _signature) internal returns (bool) {
