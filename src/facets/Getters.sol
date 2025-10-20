@@ -62,4 +62,14 @@ contract Getters {
         AppStorage storage s = LibAppStorage.appStorage();
         return s.predeposits[id][user];
     }
+
+    function gifted(uint256 id, address user) external view returns (uint256) {
+        AppStorage storage s = LibAppStorage.appStorage();
+        return s.gifted[id][user];
+    }
+
+    function claimableTotal(uint256 id, address user) external view returns (uint256) {
+        AppStorage storage s = LibAppStorage.appStorage();
+        return s.gifted[id][user] + s.predeposits[id][user];
+    }
 }

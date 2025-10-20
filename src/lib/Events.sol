@@ -18,11 +18,13 @@ library Events {
     event Invested(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
     );
+    event Gifted(
+        address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
+    );
     event Predeposit(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
     );
 
-    error AlreadyClaimed();
     error OpNotExist();
     error OpNotStarted();
     error OpAlreadyStarted();

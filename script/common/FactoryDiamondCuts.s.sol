@@ -37,7 +37,7 @@ contract FactoryDiamondCuts {
         });
 
         // GettersFacet selectors
-        bytes4[] memory gettersSelectors = new bytes4[](11);
+        bytes4[] memory gettersSelectors = new bytes4[](13);
 
         gettersSelectors[0] = Getters.usdc.selector;
         gettersSelectors[1] = Getters.operationCount.selector;
@@ -50,6 +50,8 @@ contract FactoryDiamondCuts {
         gettersSelectors[8] = Getters.operationCanceled.selector;
         gettersSelectors[9] = Getters.usdcRaisedPerClient.selector;
         gettersSelectors[10] = Getters.predeposits.selector;
+        gettersSelectors[11] = Getters.gifted.selector;
+        gettersSelectors[12] = Getters.claimableTotal.selector;
 
         cut[1] = IDiamondCut.FacetCut({
             facetAddress: gettersFacet,
@@ -58,14 +60,15 @@ contract FactoryDiamondCuts {
         });
 
         // InvestFacet selectors
-        bytes4[] memory investSelectors = new bytes4[](6);
+        bytes4[] memory investSelectors = new bytes4[](7);
 
         investSelectors[0] = Invest.invest.selector;
         investSelectors[1] = Invest.investAndBridge.selector;
         investSelectors[2] = Invest.predeposit.selector;
-        investSelectors[3] = Invest.claimPredeposit.selector;
+        investSelectors[3] = Invest.claimOpTokens.selector;
         investSelectors[4] = Invest.getAmountIn.selector;
         investSelectors[5] = Invest.getAmountOut.selector;
+        investSelectors[6] = Invest.giftOpTokens.selector;
 
         cut[2] = IDiamondCut.FacetCut({
             facetAddress: investFacet,

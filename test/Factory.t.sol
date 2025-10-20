@@ -90,13 +90,46 @@ contract FactoryTest is Test, TestBase {
         factory.startOperation(1);
 
         vm.prank(user);
-        factory.claimPredeposit(1);
+        factory.claimOpTokens(1, address(user));
 
         LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
 
         assertEq(opLend.balanceOf(address(user)), sharesToBuy);
         assertEq(factory.operationStarted(1), true);
         assertEq(factory.predeposits(1, address(user)), 0);
+    }
+
+    function test_GiftAdmin() public {
+        vm.startPrank(admin);
+        uint256 cost = factory.getAmountIn(1, sharesToBuy);
+        usdc.approve(address(factory), cost);
+        factory.giftOpTokens(1, sharesToBuy, address(user));
+        vm.stopPrank();
+
+        assertEq(usdc.balanceOf(address(admin)), initialUsdcBalance - cost);
+        assertEq(usdc.balanceOf(address(factory)), cost);
+        assertEq(factory.fundingProgress(1), sharesToBuy);
+        assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
+        assertEq(factory.gifted(1, address(user)), sharesToBuy);
+    }
+
+    function test_ClaimGift() public {
+        vm.startPrank(admin);
+        uint256 cost = factory.getAmountIn(1, sharesToBuy);
+        usdc.approve(address(factory), cost);
+        factory.giftOpTokens(1, sharesToBuy, address(user));
+        vm.stopPrank();
+
+        assertEq(factory.gifted(1, address(user)), sharesToBuy);
+
+        vm.prank(user);
+        factory.claimOpTokens(1, address(user));
+
+        LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
+
+        assertEq(opLend.balanceOf(address(user)), sharesToBuy);
+        assertEq(factory.operationStarted(1), true);
+        assertEq(factory.gifted(1, address(user)), 0);
     }
 
     function test_Invest() public {
