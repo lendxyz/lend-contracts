@@ -11,9 +11,14 @@ import {TestBase} from "./TestBase.t.sol";
 contract FactoryTest is Test, TestBase {
     function beforeTestSetup(bytes4 testSelector) public pure returns (bytes[] memory beforeTestCalldata) {
         if (testSelector != this.test_CreateOperation.selector) {
-            beforeTestCalldata = new bytes[](2);
-            beforeTestCalldata[0] = abi.encodePacked(this.mintUsdc.selector);
-            beforeTestCalldata[1] = abi.encodePacked(this.createOperation.selector);
+            if (testSelector != this.test_ClaimPredeposit.selector && testSelector != this.test_Predeposit.selector) {
+                beforeTestCalldata = new bytes[](2);
+                beforeTestCalldata[0] = abi.encodePacked(this.mintUsdc.selector);
+                beforeTestCalldata[1] = abi.encodePacked(this.createOperation.selector);
+            } else {
+                beforeTestCalldata = new bytes[](1);
+                beforeTestCalldata[0] = abi.encodePacked(this.mintUsdc.selector);
+            }
         }
     }
 
@@ -44,6 +49,54 @@ contract FactoryTest is Test, TestBase {
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
         uint256 calculatedSharesAmount = factory.getAmountOut(1, cost);
         assertEq(sharesToBuy, calculatedSharesAmount);
+    }
+
+    function test_Predeposit() public {
+        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
+
+        vm.prank(admin);
+        factory.createOperation("Test operation", totalSharesAmount, sharePriceEur);
+
+        vm.startPrank(user);
+        uint256 cost = factory.getAmountIn(1, sharesToBuy);
+        usdc.approve(address(factory), cost);
+        factory.predeposit(1, sharesToBuy, testNonce, signature);
+        vm.stopPrank();
+
+        assertEq(usdc.balanceOf(address(user)), initialUsdcBalance - cost);
+        assertEq(usdc.balanceOf(address(factory)), cost);
+        assertEq(factory.fundingProgress(1), sharesToBuy);
+        assertEq(factory.operationStarted(1), false);
+        assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
+        assertEq(factory.predeposits(1, address(user)), sharesToBuy);
+    }
+
+    function test_ClaimPredeposit() public {
+        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
+
+        vm.prank(admin);
+        factory.createOperation("Test operation", totalSharesAmount, sharePriceEur);
+
+        vm.startPrank(user);
+        uint256 cost = factory.getAmountIn(1, sharesToBuy);
+        usdc.approve(address(factory), cost);
+        factory.predeposit(1, sharesToBuy, testNonce, signature);
+        vm.stopPrank();
+
+        assertEq(factory.operationStarted(1), false);
+        assertEq(factory.predeposits(1, address(user)), sharesToBuy);
+
+        vm.prank(admin);
+        factory.startOperation(1);
+
+        vm.prank(user);
+        factory.claimPredeposit(1);
+
+        LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
+
+        assertEq(opLend.balanceOf(address(user)), sharesToBuy);
+        assertEq(factory.operationStarted(1), true);
+        assertEq(factory.predeposits(1, address(user)), 0);
     }
 
     function test_Invest() public {

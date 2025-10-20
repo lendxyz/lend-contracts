@@ -117,8 +117,7 @@ contract Invest {
         LendOperation(s.operations[id].opToken).send{value: msg.value}(sendParam, fee, msg.sender);
     }
 
-    // TODO: testing
-    function preDeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature)
+    function predeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature)
         external
         nonReentrant
     {
@@ -153,12 +152,11 @@ contract Invest {
         }
     }
 
-    // TODO: testing
     function claimPredeposit(uint256 id) external {
         AppStorage storage s = LibAppStorage.appStorage();
 
         if (id > s.operationCount) revert Events.OpNotExist();
-        if (s.operationStarted[id]) revert Events.OpNotStarted();
+        if (!s.operationStarted[id]) revert Events.OpNotStarted();
 
         uint256 amount = s.predeposits[id][msg.sender];
         if (amount == 0) revert Events.AlreadyClaimed();
