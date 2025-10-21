@@ -11,6 +11,7 @@ help:
 	@echo 'make clean: clean build cache and forge cache'
 	@echo 'make remappings: generate remappings links for dependencies'
 	@echo 'make deploy-factory rpc=[your_rpc_url] pk=[your_private_key]: deploy factory'
+	@echo 'make upgrade-factory rpc=[your_rpc_url] pk=[your_private_key]: upgrade factory'
 	@echo 'make deploy-oft-mainnet pk=[your_private_key]: deploy opLend OFT'
 	@echo 'make deploy-oft-testnet pk=[your_private_key]: deploy opLend OFT on sepolia testnet'
 	@echo 'make deploy-rewards-mainnet pk=[your_private_key]: deploy rewards contract'
@@ -45,7 +46,10 @@ remappings:
 	forge remappings > remappings.txt
 
 deploy-factory:
-	forge script script/testnet/DeployFactory.s.sol:DeployFactoryTestnet -vvvv --slow --broadcast --private-key $(pk) --rpc-url $(rpc) --verify
+	forge script script/DeployFactory.s.sol:DeployFactory -vvvv --slow --broadcast --private-key $(pk) --rpc-url $(rpc) --verify
+
+upgrade-factory:
+	forge script script/UpgradeFactory.s.sol:UpgradeFactory -vvvv --slow --broadcast --private-key $(pk) --rpc-url $(rpc) --verify
 
 deploy-oft-mainnet:
 	forge script script/mainnet/DeployOFT.s.sol:DeployOFT --slow --broadcast --private-key $(pk) --verify
