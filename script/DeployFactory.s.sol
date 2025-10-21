@@ -2,22 +2,21 @@
 pragma solidity ^0.8.27;
 
 import {Script} from "forge-std/Script.sol";
-import {Constants} from "../common/Constants.s.sol";
-import {FactoryDiamondCuts} from "../common/FactoryDiamondCuts.s.sol";
-import {Diamond} from "../../src/DiamondProxy.sol";
-import {IDiamondCut} from "../../src/interfaces/IDiamondCut.sol";
+import {Constants} from "./common/Constants.s.sol";
+import {FactoryDiamondCuts} from "./common/FactoryDiamondCuts.s.sol";
+import {Diamond} from "../src/DiamondProxy.sol";
+import {IDiamondCut} from "../src/interfaces/IDiamondCut.sol";
 
-import {Admin} from "../../src/facets/Admin.sol";
-import {Getters} from "../../src/facets/Getters.sol";
-import {Invest} from "../../src/facets/Invest.sol";
-import {Operations} from "../../src/facets/Operations.sol";
-import {Ownership} from "../../src/facets/Ownership.sol";
+import {Admin} from "../src/facets/Admin.sol";
+import {Getters} from "../src/facets/Getters.sol";
+import {Invest} from "../src/facets/Invest.sol";
+import {Operations} from "../src/facets/Operations.sol";
+import {Ownership} from "../src/facets/Ownership.sol";
 
 contract DeployFactory is Script, Constants, FactoryDiamondCuts {
     function setUp() public {}
 
     function run() public {
-        vm.createSelectFork("mainnet");
         vm.startBroadcast();
 
         Admin adminFacet = new Admin();
@@ -27,7 +26,7 @@ contract DeployFactory is Script, Constants, FactoryDiamondCuts {
         Ownership ownershipFacet = new Ownership();
 
         Diamond diamond = new Diamond(
-            mnFactArgs.admin, mnFactArgs.usdc, mnFactArgs.eurUsdOracle, mnFactArgs.lzEndpoint, mnFactArgs.backendSigner
+            tnFactArgs.admin, tnFactArgs.usdc, tnFactArgs.eurUsdOracle, tnFactArgs.lzEndpoint, tnFactArgs.backendSigner
         );
 
         IDiamondCut.FacetCut[] memory cut = getFacets(

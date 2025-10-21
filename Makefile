@@ -10,8 +10,7 @@ help:
 	@echo 'make build: compile contracts'
 	@echo 'make clean: clean build cache and forge cache'
 	@echo 'make remappings: generate remappings links for dependencies'
-	@echo 'make deploy-factory-mainnet pk=[your_private_key]: deploy factory on mainnet'
-	@echo 'make deploy-factory-testnet pk=[your_private_key]: deploy factory on sepolia testnet'
+	@echo 'make deploy-factory rpc=[your_rpc_url] pk=[your_private_key]: deploy factory'
 	@echo 'make deploy-oft-mainnet pk=[your_private_key]: deploy opLend OFT'
 	@echo 'make deploy-oft-testnet pk=[your_private_key]: deploy opLend OFT on sepolia testnet'
 	@echo 'make deploy-rewards-mainnet pk=[your_private_key]: deploy rewards contract'
@@ -45,11 +44,8 @@ clean:
 remappings:
 	forge remappings > remappings.txt
 
-deploy-factory-mainnet:
-	forge script script/mainnet/DeployFactory.s.sol:DeployFactory --slow --broadcast --private-key $(pk) --verify
-
-deploy-diamond-testnet:
-	forge script script/testnet/DeployFactory.s.sol:DeployFactoryTestnet --slow --broadcast --private-key $(pk) --verify
+deploy-factory:
+	forge script script/testnet/DeployFactory.s.sol:DeployFactoryTestnet -vvvv --slow --broadcast --private-key $(pk) --rpc-url $(rpc) --verify
 
 deploy-oft-mainnet:
 	forge script script/mainnet/DeployOFT.s.sol:DeployOFT --slow --broadcast --private-key $(pk) --verify
