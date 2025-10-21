@@ -35,6 +35,7 @@ contract TestBase is Test, DeployDiamondTest {
 
     function mintUsdc() public {
         vm.startPrank(admin);
+        usdc.mint(address(admin), initialUsdcBalance);
         usdc.mint(address(user), initialUsdcBalance);
         usdc.mint(address(user2), initialUsdcBalance);
         vm.stopPrank();

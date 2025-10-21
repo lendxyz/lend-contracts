@@ -19,6 +19,8 @@ struct AppStorage {
     uint256 reentrancyStatus;
     mapping(uint256 => Operation) operations;
     mapping(uint256 => uint256) fundingProgress;
+    mapping(uint256 => mapping(address => uint256)) predeposits;
+    mapping(uint256 => mapping(address => uint256)) gifted;
     mapping(uint256 => uint256) usdcRaised;
     mapping(uint256 => bool) operationCanceled;
     mapping(uint256 => mapping(address => uint256)) usdcRaisedPerClient;

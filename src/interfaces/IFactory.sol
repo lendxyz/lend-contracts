@@ -80,6 +80,12 @@ interface ILendFactory {
 
     function invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature) external;
 
+    function predeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature) external;
+
+    function giftOpTokens(uint256 id, uint256 sharesAmount, address user) external;
+
+    function claimOpTokens(uint256 id, address user) external;
+
     function investAndBridge(
         uint256 id,
         uint256 sharesAmount,
@@ -107,4 +113,8 @@ interface ILendFactory {
     function operationCanceled(uint256 id) external view returns (bool);
 
     function usdcRaisedPerClient(uint256 id, address user) external view returns (uint256);
+
+    function predeposits(uint256 id, address user) external view returns (uint256);
+
+    function gifted(uint256 id, address user) external view returns (uint256);
 }

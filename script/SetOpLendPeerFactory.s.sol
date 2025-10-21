@@ -34,9 +34,7 @@ contract SetOpLendPeerFactory is Script {
         (bytes32 peerPoly, uint32 lzEidPoly, uint32 chainIdPoly) =
             (bytes32(uint256(uint160(peerPolyAddr))), 40267, 80002);
 
-        (bytes32 peerBsc, uint32 lzEidBsc, uint32 chainIdBsc) =
-            (bytes32(uint256(uint160(peerBscAddr))), 40102, 97);
-
+        (bytes32 peerBsc, uint32 lzEidBsc, uint32 chainIdBsc) = (bytes32(uint256(uint160(peerBscAddr))), 40102, 97);
 
         factory.setOpLendPeer(factoryOpId, chainIdArbi, lzEidArbi, peerArbi);
         factory.setOpLendPeer(factoryOpId, chainIdBase, lzEidBase, peerBase);
