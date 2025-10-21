@@ -1240,6 +1240,19 @@
   },
   {
     "type": "function",
+    "name": "updateBackendSigner",
+    "inputs": [
+      {
+        "name": "newSigner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "whitelistUser",
     "inputs": [
       {
