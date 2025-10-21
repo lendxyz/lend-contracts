@@ -10,7 +10,7 @@ contract LendOperation is Ownable, ERC20, OFTCore {
     uint8 private immutable DECIMALS = 6;
     address internal backendSigner;
 
-    mapping(string => bool) usedNonces;
+    mapping(string => bool) private usedNonces;
     mapping(address => bool) public whitelisted;
 
     error InvalidSignature();
@@ -43,7 +43,10 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         _burn(user, value);
     }
 
-    // TODO: testing
+    function updateBackendSigner(address newSigner) public onlyOwner {
+        backendSigner = newSigner;
+    }
+
     function whitelistUser(address user, string calldata nonce, bytes memory signature) public {
         bool isSignatureValid = verifySignature(user, nonce, signature);
         if (!isSignatureValid) revert InvalidSignature();
