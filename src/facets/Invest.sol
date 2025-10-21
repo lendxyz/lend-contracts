@@ -151,7 +151,6 @@ contract Invest {
         }
     }
 
-
     function predeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature)
         external
         nonReentrant

@@ -10,12 +10,12 @@ help:
 	@echo 'make build: compile contracts'
 	@echo 'make clean: clean build cache and forge cache'
 	@echo 'make remappings: generate remappings links for dependencies'
-	@echo 'make deploy-factory-mainnet rpc=[your_rpc_url] pk=[your_private_key]: deploy factory on mainnet'
-	@echo 'make deploy-factory-testnet rpc=[your_rpc_url] pk=[your_private_key]: deploy factory on sepolia testnet'
-	@echo 'make deploy-oft-mainnet rpc=[your_rpc_url] pk=[your_private_key]: deploy opLend OFT'
-	@echo 'make deploy-oft-testnet rpc=[your_rpc_url] pk=[your_private_key]: deploy opLend OFT on sepolia testnet'
-	@echo 'make deploy-rewards-mainnet rpc=[your_rpc_url] pk=[your_private_key]: deploy rewards contract'
-	@echo 'make deploy-rewards-testnet rpc=[your_rpc_url] pk=[your_private_key]: deploy rewards contract on sepolia testnet'
+	@echo 'make deploy-factory-mainnet pk=[your_private_key]: deploy factory on mainnet'
+	@echo 'make deploy-factory-testnet pk=[your_private_key]: deploy factory on sepolia testnet'
+	@echo 'make deploy-oft-mainnet pk=[your_private_key]: deploy opLend OFT'
+	@echo 'make deploy-oft-testnet pk=[your_private_key]: deploy opLend OFT on sepolia testnet'
+	@echo 'make deploy-rewards-mainnet pk=[your_private_key]: deploy rewards contract'
+	@echo 'make deploy-rewards-testnet pk=[your_private_key]: deploy rewards contract on sepolia testnet'
 	@echo 'make abi: generate contract abis in the `abis` folder'
 
 install:
