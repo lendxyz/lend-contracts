@@ -9,9 +9,9 @@ import {LendOperation} from "../opLend.sol";
 
 contract Admin {
     function refundUser(uint256 id, address user) external {
-        AppStorage storage s = LibAppStorage.appStorage();
-
         LibDiamond.enforceIsContractOwner();
+
+        AppStorage storage s = LibAppStorage.appStorage();
 
         LendOperation opToken = LendOperation(s.operations[id].opToken);
         uint256 userInvestAmount = s.usdcRaisedPerClient[id][user];
@@ -85,10 +85,11 @@ contract Admin {
         LibDiamond.enforceIsContractOwner();
         AppStorage storage s = LibAppStorage.appStorage();
 
+        if (id > s.operationCount) revert Events.OpNotExist();
+
         bool isOpFinished = s.operationStarted[id] && s.fundingProgress[id] >= s.operations[id].totalShares;
 
         if (!isOpFinished) revert Events.OpNotFinished();
-        if (id > s.operationCount) revert Events.OpNotExist();
         if (s.usdcWithdrawn[id]) revert Events.AlreadyWithdrawn();
 
         s.usdcWithdrawn[id] = true;

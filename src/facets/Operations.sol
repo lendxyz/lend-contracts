@@ -12,9 +12,9 @@ contract Operations {
         external
         returns (address)
     {
-        AppStorage storage s = LibAppStorage.appStorage();
-
         LibDiamond.enforceIsContractOwner();
+
+        AppStorage storage s = LibAppStorage.appStorage();
 
         unchecked {
             s.operationCount++;
@@ -42,13 +42,16 @@ contract Operations {
 
     function isOperationFinished(uint256 id) external view returns (bool) {
         AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
         return s.operationStarted[id] && s.fundingProgress[id] >= s.operations[id].totalShares;
     }
 
     function cancelOperation(uint256 id) external {
+        LibDiamond.enforceIsContractOwner();
+
         AppStorage storage s = LibAppStorage.appStorage();
 
-        LibDiamond.enforceIsContractOwner();
         if (id > s.operationCount) revert Events.OpNotExist();
         s.operationCanceled[id] = true;
 
@@ -56,19 +59,24 @@ contract Operations {
     }
 
     function startOperation(uint256 id) external {
+        LibDiamond.enforceIsContractOwner();
+
         AppStorage storage s = LibAppStorage.appStorage();
 
-        LibDiamond.enforceIsContractOwner();
+        if (id > s.operationCount) revert Events.OpNotExist();
         s.operationStarted[id] = true;
 
         emit Events.OperationStarted(id);
     }
 
     function pauseFunding(uint256 id, bool state) external {
+        LibDiamond.enforceIsContractOwner();
+
         AppStorage storage s = LibAppStorage.appStorage();
 
-        LibDiamond.enforceIsContractOwner();
+        if (id > s.operationCount) revert Events.OpNotExist();
         s.fundingPaused[id] = state;
+
         if (state) {
             emit Events.OperationPaused(id);
         } else {

@@ -20,56 +20,78 @@ contract Getters {
 
     function operations(uint256 id) external view returns (Operation memory) {
         AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
         return s.operations[id];
     }
 
     function fundingProgress(uint256 id) external view returns (uint256) {
         AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
         return s.fundingProgress[id];
     }
 
     function usdcRaised(uint256 id) external view returns (uint256) {
         AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
         return s.usdcRaised[id];
     }
 
     function fundingPaused(uint256 id) external view returns (bool) {
         AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
         return s.fundingPaused[id];
     }
 
     function operationStarted(uint256 id) external view returns (bool) {
         AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
         return s.operationStarted[id];
     }
 
     function usdcWithdrawn(uint256 id) external view returns (bool) {
         AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
         return s.usdcWithdrawn[id];
     }
 
     function operationCanceled(uint256 id) external view returns (bool) {
         AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
         return s.operationCanceled[id];
     }
 
     function usdcRaisedPerClient(uint256 id, address user) external view returns (uint256) {
         AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
         return s.usdcRaisedPerClient[id][user];
     }
 
     function predeposits(uint256 id, address user) external view returns (uint256) {
         AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
         return s.predeposits[id][user];
     }
 
     function gifted(uint256 id, address user) external view returns (uint256) {
         AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
         return s.gifted[id][user];
     }
 
     function claimableTotal(uint256 id, address user) external view returns (uint256) {
         AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
         return s.gifted[id][user] + s.predeposits[id][user];
     }
 }

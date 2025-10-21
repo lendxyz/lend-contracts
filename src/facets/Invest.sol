@@ -118,8 +118,9 @@ contract Invest {
     }
 
     function giftOpTokens(uint256 id, uint256 sharesAmount, address user) external {
-        AppStorage storage s = LibAppStorage.appStorage();
         LibDiamond.enforceIsContractOwner();
+
+        AppStorage storage s = LibAppStorage.appStorage();
 
         bool isOpFinished = s.operationStarted[id] && s.fundingProgress[id] >= s.operations[id].totalShares;
 
@@ -220,12 +221,18 @@ contract Invest {
     function getAmountIn(uint256 id, uint256 sharesAmount) external view returns (uint256 usdcCost) {
         AppStorage storage s = LibAppStorage.appStorage();
 
+        if (id > s.operationCount) revert Events.OpNotExist();
+        if (sharesAmount <= 0) revert Events.InputCannotBeZero();
+
         uint256 sharesPriceEur = (s.operations[id].eurPerShares * sharesAmount) / 10 ** 6;
         usdcCost = sharesPriceEur * Utils.getEurUsdOraclePrice(s.eurUsdOracle) / 10 ** 6;
     }
 
     function getAmountOut(uint256 id, uint256 usdcAmount) external view returns (uint256 sharesAmount) {
         AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
+        if (usdcAmount <= 0) revert Events.InputCannotBeZero();
 
         uint256 eurPerShares = s.operations[id].eurPerShares;
         uint256 oraclePrice = Utils.getEurUsdOraclePrice(s.eurUsdOracle);
