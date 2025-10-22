@@ -29,6 +29,7 @@ struct AppStorage {
     mapping(uint256 => bool) operationStarted;
     mapping(uint256 => mapping(address => uint256)) mintAllowance;
     mapping(string => bool) usedNonces;
+    mapping(uint256 => bool) predepositsOpen;
 }
 
 library LibAppStorage {
