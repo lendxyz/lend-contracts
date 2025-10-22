@@ -83,4 +83,19 @@ contract Operations {
             emit Events.OperationResumed(id);
         }
     }
+
+    function setPredeposits(uint256 id, bool state) external {
+        LibDiamond.enforceIsContractOwner();
+
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
+        s.predepositsOpen[id] = state;
+
+        if (state) {
+            emit Events.PredepositsOpen(id);
+        } else {
+            emit Events.PredepositsClosed(id);
+        }
+    }
 }

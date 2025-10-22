@@ -46,7 +46,7 @@ contract DeployDiamondTest is Test {
         });
 
         // GettersFacet selectors
-        bytes4[] memory gettersSelectors = new bytes4[](13);
+        bytes4[] memory gettersSelectors = new bytes4[](14);
 
         gettersSelectors[0] = Getters.usdc.selector;
         gettersSelectors[1] = Getters.operationCount.selector;
@@ -61,6 +61,7 @@ contract DeployDiamondTest is Test {
         gettersSelectors[10] = Getters.predeposits.selector;
         gettersSelectors[11] = Getters.gifted.selector;
         gettersSelectors[12] = Getters.claimableTotal.selector;
+        gettersSelectors[13] = Getters.predepositsOpen.selector;
 
         cut[1] = IDiamondCut.FacetCut({
             facetAddress: address(gettersFacet),
@@ -86,7 +87,7 @@ contract DeployDiamondTest is Test {
         });
 
         // OperationsFacet selectors
-        bytes4[] memory operationsSelectors = new bytes4[](6);
+        bytes4[] memory operationsSelectors = new bytes4[](7);
 
         operationsSelectors[0] = Operations.createOperation.selector;
         operationsSelectors[1] = Operations.getOperation.selector;
@@ -94,6 +95,7 @@ contract DeployDiamondTest is Test {
         operationsSelectors[3] = Operations.cancelOperation.selector;
         operationsSelectors[4] = Operations.startOperation.selector;
         operationsSelectors[5] = Operations.pauseFunding.selector;
+        operationsSelectors[6] = Operations.setPredeposits.selector;
 
         cut[3] = IDiamondCut.FacetCut({
             facetAddress: address(operationsFacet),

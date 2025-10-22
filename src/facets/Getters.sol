@@ -94,4 +94,10 @@ contract Getters {
         if (id > s.operationCount) revert Events.OpNotExist();
         return s.gifted[id][user] + s.predeposits[id][user];
     }
+
+    function predepositsOpen(uint256 id) external view returns (bool) {
+        AppStorage storage s = LibAppStorage.appStorage();
+        if (id > s.operationCount) revert Events.OpNotExist();
+        return s.predepositsOpen[id];
+    }
 }

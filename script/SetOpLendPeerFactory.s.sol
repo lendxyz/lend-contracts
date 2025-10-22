@@ -12,7 +12,7 @@ contract SetOpLendPeerFactory is Script {
         vm.createSelectFork("sepolia");
         vm.startBroadcast();
 
-        ILendFactory factory = ILendFactory(payable(0x440C9415071A97be0fE2cE84522C3916907b638b));
+        ILendFactory factory = ILendFactory(payable(0x2d5B2288b0Ec1A817ACb9DEe318A9089aAF26511));
 
         // ====================================================
         // Example data - replace addresses with actual targets

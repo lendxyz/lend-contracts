@@ -54,8 +54,10 @@ contract FactoryTest is Test, TestBase {
     function test_Predeposit() public {
         bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
 
-        vm.prank(admin);
+        vm.startPrank(admin);
         factory.createOperation("Test operation", totalSharesAmount, sharePriceEur);
+        factory.setPredeposits(1, true);
+        vm.stopPrank();
 
         vm.startPrank(user);
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
@@ -74,8 +76,10 @@ contract FactoryTest is Test, TestBase {
     function test_ClaimPredeposit() public {
         bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
 
-        vm.prank(admin);
+        vm.startPrank(admin);
         factory.createOperation("Test operation", totalSharesAmount, sharePriceEur);
+        factory.setPredeposits(1, true);
+        vm.stopPrank();
 
         vm.startPrank(user);
         uint256 cost = factory.getAmountIn(1, sharesToBuy);

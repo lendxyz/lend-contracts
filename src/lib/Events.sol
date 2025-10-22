@@ -24,6 +24,8 @@ library Events {
     event Predeposit(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
     );
+    event PredepositsOpen(uint256 indexed operationId);
+    event PredepositsClosed(uint256 indexed operationId);
 
     error OpNotExist();
     error OpNotStarted();
@@ -42,4 +44,5 @@ library Events {
     error NoOpLendBalance();
     error AlreadyWithdrawn();
     error InvalidSignatureLength();
+    error PredepositsNotOpen();
 }

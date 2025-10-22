@@ -19,36 +19,20 @@ contract UpgradeFactory is Script, Constants, FactoryDiamondCuts {
     function run() public {
         vm.startBroadcast();
 
-        // Deploy new facet
-        Getters gettersFacet = new Getters();
-
-        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
-
-        // Spec selectors
-        bytes4[] memory gettersSelectors = new bytes4[](13);
-
-        gettersSelectors[0] = Getters.usdc.selector;
-        gettersSelectors[1] = Getters.operationCount.selector;
-        gettersSelectors[2] = Getters.operations.selector;
-        gettersSelectors[3] = Getters.fundingProgress.selector;
-        gettersSelectors[4] = Getters.usdcRaised.selector;
-        gettersSelectors[5] = Getters.fundingPaused.selector;
-        gettersSelectors[6] = Getters.operationStarted.selector;
-        gettersSelectors[7] = Getters.usdcWithdrawn.selector;
-        gettersSelectors[8] = Getters.operationCanceled.selector;
-        gettersSelectors[9] = Getters.usdcRaisedPerClient.selector;
-        gettersSelectors[10] = Getters.predeposits.selector;
-        gettersSelectors[11] = Getters.gifted.selector;
-        gettersSelectors[12] = Getters.claimableTotal.selector;
-
-        cut[0] = IDiamondCut.FacetCut({
-            facetAddress: address(gettersFacet),
-            action: IDiamondCut.FacetCutAction.Replace,
-            functionSelectors: gettersSelectors
-        });
-
         // Connect diamond proxy
         Diamond diamond = Diamond(payable(0x2d5B2288b0Ec1A817ACb9DEe318A9089aAF26511));
+
+        // Deploy new facets
+        Getters gettersFacet = new Getters();
+        Invest investFacet = new Invest();
+        Operations operationsFacet = new Operations();
+
+        // get cuts
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](3);
+
+        cut[0] = getGettersFacets(address(gettersFacet), IDiamondCut.FacetCutAction.Replace);
+        cut[1] = getInvestFacets(address(investFacet), IDiamondCut.FacetCutAction.Replace);
+        cut[2] = getOperationsFacets(address(operationsFacet), IDiamondCut.FacetCutAction.Replace);
 
         // Perform cut
         diamond.diamondCut(cut, address(0), "");

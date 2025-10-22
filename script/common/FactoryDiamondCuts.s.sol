@@ -10,16 +10,11 @@ import {Operations} from "../../src/facets/Operations.sol";
 import {Ownership} from "../../src/facets/Ownership.sol";
 
 contract FactoryDiamondCuts {
-    function getFacets(
-        address adminFacet,
-        address gettersFacet,
-        address investFacet,
-        address operationsFacet,
-        address ownershipFacet
-    ) public pure returns (IDiamondCut.FacetCut[] memory) {
-        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](5);
-
-        // AdminFacet selectors
+    function getAdminFacets(address facet, IDiamondCut.FacetCutAction action)
+        public
+        pure
+        returns (IDiamondCut.FacetCut memory)
+    {
         bytes4[] memory adminSelectors = new bytes4[](7);
 
         adminSelectors[0] = Admin.refundUser.selector;
@@ -30,14 +25,15 @@ contract FactoryDiamondCuts {
         adminSelectors[5] = Admin.batchSetOpLendPeers.selector;
         adminSelectors[6] = Admin.withdrawUsdc.selector;
 
-        cut[0] = IDiamondCut.FacetCut({
-            facetAddress: adminFacet,
-            action: IDiamondCut.FacetCutAction.Add,
-            functionSelectors: adminSelectors
-        });
+        return IDiamondCut.FacetCut({facetAddress: facet, action: action, functionSelectors: adminSelectors});
+    }
 
-        // GettersFacet selectors
-        bytes4[] memory gettersSelectors = new bytes4[](13);
+    function getGettersFacets(address facet, IDiamondCut.FacetCutAction action)
+        public
+        pure
+        returns (IDiamondCut.FacetCut memory)
+    {
+        bytes4[] memory gettersSelectors = new bytes4[](14);
 
         gettersSelectors[0] = Getters.usdc.selector;
         gettersSelectors[1] = Getters.operationCount.selector;
@@ -52,14 +48,16 @@ contract FactoryDiamondCuts {
         gettersSelectors[10] = Getters.predeposits.selector;
         gettersSelectors[11] = Getters.gifted.selector;
         gettersSelectors[12] = Getters.claimableTotal.selector;
+        gettersSelectors[13] = Getters.predepositsOpen.selector;
 
-        cut[1] = IDiamondCut.FacetCut({
-            facetAddress: gettersFacet,
-            action: IDiamondCut.FacetCutAction.Add,
-            functionSelectors: gettersSelectors
-        });
+        return IDiamondCut.FacetCut({facetAddress: facet, action: action, functionSelectors: gettersSelectors});
+    }
 
-        // InvestFacet selectors
+    function getInvestFacets(address facet, IDiamondCut.FacetCutAction action)
+        public
+        pure
+        returns (IDiamondCut.FacetCut memory)
+    {
         bytes4[] memory investSelectors = new bytes4[](7);
 
         investSelectors[0] = Invest.invest.selector;
@@ -70,14 +68,15 @@ contract FactoryDiamondCuts {
         investSelectors[5] = Invest.getAmountOut.selector;
         investSelectors[6] = Invest.giftOpTokens.selector;
 
-        cut[2] = IDiamondCut.FacetCut({
-            facetAddress: investFacet,
-            action: IDiamondCut.FacetCutAction.Add,
-            functionSelectors: investSelectors
-        });
+        return IDiamondCut.FacetCut({facetAddress: facet, action: action, functionSelectors: investSelectors});
+    }
 
-        // OperationsFacet selectors
-        bytes4[] memory operationsSelectors = new bytes4[](6);
+    function getOperationsFacets(address facet, IDiamondCut.FacetCutAction action)
+        public
+        pure
+        returns (IDiamondCut.FacetCut memory)
+    {
+        bytes4[] memory operationsSelectors = new bytes4[](7);
 
         operationsSelectors[0] = Operations.createOperation.selector;
         operationsSelectors[1] = Operations.getOperation.selector;
@@ -85,24 +84,38 @@ contract FactoryDiamondCuts {
         operationsSelectors[3] = Operations.cancelOperation.selector;
         operationsSelectors[4] = Operations.startOperation.selector;
         operationsSelectors[5] = Operations.pauseFunding.selector;
+        operationsSelectors[6] = Operations.setPredeposits.selector;
 
-        cut[3] = IDiamondCut.FacetCut({
-            facetAddress: address(operationsFacet),
-            action: IDiamondCut.FacetCutAction.Add,
-            functionSelectors: operationsSelectors
-        });
+        return IDiamondCut.FacetCut({facetAddress: facet, action: action, functionSelectors: operationsSelectors});
+    }
 
-        // OwnershipFacet selectors
+    function getOwnershipFacets(address facet, IDiamondCut.FacetCutAction action)
+        public
+        pure
+        returns (IDiamondCut.FacetCut memory)
+    {
         bytes4[] memory ownershipSelectors = new bytes4[](2);
 
         ownershipSelectors[0] = Ownership.transferOwnership.selector;
         ownershipSelectors[1] = Ownership.owner.selector;
 
-        cut[4] = IDiamondCut.FacetCut({
-            facetAddress: ownershipFacet,
-            action: IDiamondCut.FacetCutAction.Add,
-            functionSelectors: ownershipSelectors
-        });
+        return IDiamondCut.FacetCut({facetAddress: facet, action: action, functionSelectors: ownershipSelectors});
+    }
+
+    function getAllFacets(
+        address adminFacet,
+        address gettersFacet,
+        address investFacet,
+        address operationsFacet,
+        address ownershipFacet
+    ) public pure returns (IDiamondCut.FacetCut[] memory) {
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](5);
+
+        cut[0] = getAdminFacets(adminFacet, IDiamondCut.FacetCutAction.Add);
+        cut[1] = getGettersFacets(gettersFacet, IDiamondCut.FacetCutAction.Add);
+        cut[2] = getInvestFacets(investFacet, IDiamondCut.FacetCutAction.Add);
+        cut[3] = getOperationsFacets(operationsFacet, IDiamondCut.FacetCutAction.Add);
+        cut[4] = getOwnershipFacets(ownershipFacet, IDiamondCut.FacetCutAction.Add);
 
         return cut;
     }

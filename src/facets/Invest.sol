@@ -162,6 +162,7 @@ contract Invest {
         if (isOpFinished) revert Events.OpFinished();
         if (id > s.operationCount) revert Events.OpNotExist();
         if (s.operationStarted[id]) revert Events.OpAlreadyStarted();
+        if (!s.predepositsOpen[id]) revert Events.PredepositsNotOpen();
         if (s.fundingProgress[id] + sharesAmount > s.operations[id].totalShares) revert Events.TooManyShares();
         if (s.operationCanceled[id]) revert Events.OpCanceled();
         if (s.fundingPaused[id]) revert Events.OpPaused();

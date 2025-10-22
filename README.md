@@ -67,11 +67,11 @@ Chain id: 11155111
 
 LayerZero endpoint: 40161
 
-[Factory](https://sepolia.etherscan.io/address/0x440C9415071A97be0fE2cE84522C3916907b638b)
+[Factory](https://sepolia.etherscan.io/address/0x2d5B2288b0Ec1A817ACb9DEe318A9089aAF26511)
 
-- Contract Address: `0x440C9415071A97be0fE2cE84522C3916907b638b`
+- Contract Address: `0x2d5B2288b0Ec1A817ACb9DEe318A9089aAF26511`
 
-- Deploy block: `8748350`
+- Deploy block: `9459207`
 
 [Rewards](https://sepolia.etherscan.io/address/0xca4f269541da4bd06f7a3e2a285942b4260db755)
 

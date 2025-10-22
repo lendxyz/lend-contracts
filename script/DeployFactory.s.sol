@@ -29,7 +29,7 @@ contract DeployFactory is Script, Constants, FactoryDiamondCuts {
             tnFactArgs.admin, tnFactArgs.usdc, tnFactArgs.eurUsdOracle, tnFactArgs.lzEndpoint, tnFactArgs.backendSigner
         );
 
-        IDiamondCut.FacetCut[] memory cut = getFacets(
+        IDiamondCut.FacetCut[] memory cut = getAllFacets(
             address(adminFacet),
             address(gettersFacet),
             address(investFacet),
