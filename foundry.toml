@@ -46,6 +46,7 @@ arbitrum-sepolia = "https://arbitrum-sepolia-rpc.publicnode.com"
 monad-testnet = "https://testnet-rpc.monad.xyz"
 bsc-testnet = "https://bsc-testnet-dataseed.bnbchain.org"
 polygon-testnet = "https://polygon-amoy-bor-rpc.publicnode.com"
+pwr-testnet = "https://pwr-evm.l1chain.io"
 
 [etherscan]
 mainnet = { key = "${ETHERSCAN_API_KEY}" }

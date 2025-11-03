@@ -78,6 +78,9 @@ deploy-usdc:
 deploy-adapter-testnet:
 	forge script script/testnet/Deploy1InchAdapter.s.sol:Deploy1InchAdapter --slow --broadcast --private-key $(pk) --verify
 
+deploy-custom-oplend:
+	forge script script/DeployOpLend.s.sol:DeployCustomOpLend --rpc-url $(rpc) --broadcast --private-key $(pk) -vvvv
+
 abi:
 	mkdir -p abis
 	forge inspect ILendFactory abi --json > ./abis/IFactory.json
