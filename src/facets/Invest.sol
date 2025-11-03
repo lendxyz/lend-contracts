@@ -90,18 +90,8 @@ contract Invest {
         return isValid;
     }
 
-    function investAndBridge(
-        uint256 id,
-        uint256 sharesAmount,
-        string calldata nonce,
-        bytes memory signature,
-        uint32 lzEndpointId
-    ) external payable nonReentrant {
-        require(msg.value > 0, "Must include LZ fees in ethers");
-        _invest(id, sharesAmount, nonce, signature);
+    function _bridge(uint256 id, uint256 sharesAmount, uint32 lzEndpointId) internal {
         AppStorage storage s = LibAppStorage.appStorage();
-
-        LendOperation(s.operations[id].opToken).mint(address(this), sharesAmount);
 
         MessagingFee memory fee = MessagingFee(msg.value, 0);
         SendParam memory sendParam = SendParam(
@@ -115,6 +105,22 @@ contract Invest {
         );
 
         LendOperation(s.operations[id].opToken).send{value: msg.value}(sendParam, fee, msg.sender);
+    }
+
+    function investAndBridge(
+        uint256 id,
+        uint256 sharesAmount,
+        string calldata nonce,
+        bytes memory signature,
+        uint32 lzEndpointId
+    ) external payable nonReentrant {
+        require(msg.value > 0, "Must include LZ fees in ethers");
+        _invest(id, sharesAmount, nonce, signature);
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        LendOperation(s.operations[id].opToken).mint(address(this), sharesAmount);
+
+        _bridge(id, sharesAmount, lzEndpointId);
     }
 
     function giftOpTokens(uint256 id, uint256 sharesAmount, address user) external {
@@ -190,11 +196,8 @@ contract Invest {
         }
     }
 
-    function claimOpTokens(uint256 id, address user) external {
+    function _claimToken(uint256 id, address user, address dest) internal {
         AppStorage storage s = LibAppStorage.appStorage();
-
-        if (id > s.operationCount) revert Events.OpNotExist();
-        if (!s.operationStarted[id]) revert Events.OpNotStarted();
 
         uint256 amount = s.gifted[id][user] + s.predeposits[id][user];
 
@@ -207,8 +210,28 @@ contract Invest {
         }
 
         if (amount > 0) {
-            LendOperation(s.operations[id].opToken).mint(user, amount);
+            LendOperation(s.operations[id].opToken).mint(dest, amount);
             emit Events.ClaimedOpToken(user, id, amount);
+        }
+    }
+
+    function claimOpTokens(uint256 id, address user) external {
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
+        if (!s.operationStarted[id]) revert Events.OpNotStarted();
+
+        _claimToken(id, user, user);
+    }
+
+    function claimOpTokensAndBridge(uint256 id, uint32 lzEndpointId) external payable nonReentrant {
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        uint256 amount = s.gifted[id][msg.sender] + s.predeposits[id][msg.sender];
+
+        if (amount > 0) {
+            _claimToken(id, msg.sender, address(this));
+            _bridge(id, amount, lzEndpointId);
         }
     }
 

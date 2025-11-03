@@ -83,6 +83,24 @@
   },
   {
     "type": "function",
+    "name": "claimOpTokensAndBridge",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "lzEndpointId",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
     "name": "createOperation",
     "inputs": [
       {

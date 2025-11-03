@@ -11,7 +11,11 @@ import {TestBase} from "./TestBase.t.sol";
 contract FactoryTest is Test, TestBase {
     function beforeTestSetup(bytes4 testSelector) public pure returns (bytes[] memory beforeTestCalldata) {
         if (testSelector != this.test_CreateOperation.selector) {
-            if (testSelector != this.test_ClaimPredeposit.selector && testSelector != this.test_Predeposit.selector) {
+            if (
+                testSelector != this.test_ClaimPredeposit.selector
+                    && testSelector != this.test_ClaimPredepositAndBridge.selector
+                    && testSelector != this.test_Predeposit.selector
+            ) {
                 beforeTestCalldata = new bytes[](2);
                 beforeTestCalldata[0] = abi.encodePacked(this.mintUsdc.selector);
                 beforeTestCalldata[1] = abi.encodePacked(this.createOperation.selector);
@@ -101,6 +105,53 @@ contract FactoryTest is Test, TestBase {
         assertEq(opLend.balanceOf(address(user)), sharesToBuy);
         assertEq(factory.operationStarted(1), true);
         assertEq(factory.predeposits(1, address(user)), 0);
+    }
+
+    function test_ClaimPredepositAndBridge() public {
+        vm.deal(user, 10 ether);
+        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
+
+        vm.startPrank(admin);
+        factory.createOperation("Test operation", totalSharesAmount, sharePriceEur);
+        factory.setPredeposits(1, true);
+        vm.stopPrank();
+
+        uint256 cost = factory.getAmountIn(1, sharesToBuy);
+
+        vm.startPrank(user);
+        usdc.approve(address(factory), cost);
+        factory.predeposit(1, sharesToBuy, testNonce, signature);
+        vm.stopPrank();
+
+        assertEq(factory.operationStarted(1), false);
+        assertEq(factory.predeposits(1, address(user)), sharesToBuy);
+
+        LendOperation opToken = LendOperation(factory.getOperation(1).opToken);
+
+        vm.startPrank(admin);
+        factory.startOperation(1);
+        factory.setOpLendPeer(1, 42161, 30110, bytes32(uint256(uint160(address(opToken)))));
+        vm.stopPrank();
+
+        SendParam memory sendParam = SendParam(
+            30110,
+            bytes32(uint256(uint160(msg.sender))),
+            sharesToBuy,
+            sharesToBuy,
+            hex"0003010011010000000000000000000000000000ea60",
+            new bytes(0),
+            new bytes(0)
+        );
+
+        MessagingFee memory fees = opToken.quoteSend(sendParam, false);
+
+        vm.prank(user);
+        factory.claimOpTokensAndBridge{value: fees.nativeFee}(1, 30110);
+
+        assertEq(usdc.balanceOf(address(user)), initialUsdcBalance - cost);
+        assertEq(usdc.balanceOf(address(factory)), cost);
+        assertEq(factory.fundingProgress(1), sharesToBuy);
+        assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
     }
 
     function test_GiftAdmin() public {

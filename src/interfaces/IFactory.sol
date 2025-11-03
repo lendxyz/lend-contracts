@@ -101,6 +101,8 @@ interface ILendFactory {
 
     function claimOpTokens(uint256 id, address user) external;
 
+    function claimOpTokensAndBridge(uint256 id, uint32 lzEndpointId) external payable;
+
     function investAndBridge(
         uint256 id,
         uint256 sharesAmount,
