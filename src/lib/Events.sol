@@ -27,6 +27,7 @@ library Events {
     event PredepositsOpen(uint256 indexed operationId);
     event PredepositsClosed(uint256 indexed operationId);
 
+    error UserBlacklisted();
     error OpNotExist();
     error OpNotStarted();
     error OpAlreadyStarted();

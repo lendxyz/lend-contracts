@@ -100,4 +100,9 @@ contract Getters {
         if (id > s.operationCount) revert Events.OpNotExist();
         return s.predepositsOpen[id];
     }
+
+    function blacklisted(address user) external view returns (bool) {
+        AppStorage storage s = LibAppStorage.appStorage();
+        return s.blacklisted[user];
+    }
 }

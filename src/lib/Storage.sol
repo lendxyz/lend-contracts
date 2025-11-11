@@ -30,6 +30,7 @@ struct AppStorage {
     mapping(uint256 => mapping(address => uint256)) mintAllowance;
     mapping(string => bool) usedNonces;
     mapping(uint256 => bool) predepositsOpen;
+    mapping(address=>bool) blacklisted;
 }
 
 library LibAppStorage {

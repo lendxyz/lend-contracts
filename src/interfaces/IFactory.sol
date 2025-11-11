@@ -28,6 +28,7 @@ interface ILendFactory {
     event PredepositsOpen(uint256 indexed operationId);
     event PredepositsClosed(uint256 indexed operationId);
 
+    error UserBlacklisted();
     error OpNotExist();
     error OpNotStarted();
     error OpAlreadyStarted();
@@ -82,6 +83,8 @@ interface ILendFactory {
 
     function updateBackendSigner(address newBackendSigner) external;
 
+    function blacklist(address user, bool state) external;
+
     function batchSetOpLendPeers(
         uint256[] calldata ids,
         uint32[] calldata chainIds,
@@ -132,6 +135,8 @@ interface ILendFactory {
     function usdcRaisedPerClient(uint256 id, address user) external view returns (uint256);
 
     function predeposits(uint256 id, address user) external view returns (uint256);
+
+    function blacklisted(address user) external view returns (bool);
 
     function gifted(uint256 id, address user) external view returns (uint256);
 }

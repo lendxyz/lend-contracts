@@ -95,4 +95,14 @@ contract Admin {
         s.usdcWithdrawn[id] = true;
         require(s.usdc.transfer(destination, s.usdcRaised[id]), Events.TransferFailed());
     }
+
+    function blacklist(address user, bool state) external {
+        LibDiamond.enforceIsContractOwner();
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        require(user != address(0), "Cannot blacklist address 0");
+        require(user != address(this), "Cannot blacklist factory");
+
+        s.blacklisted[user] = state;
+    }
 }

@@ -60,6 +60,8 @@ contract Invest {
     {
         AppStorage storage s = LibAppStorage.appStorage();
 
+        if (s.blacklisted[msg.sender]) revert Events.UserBlacklisted();
+
         _invest(id, sharesAmount, nonce, signature);
         LendOperation(s.operations[id].opToken).mint(msg.sender, sharesAmount);
     }
@@ -118,6 +120,8 @@ contract Invest {
         _invest(id, sharesAmount, nonce, signature);
         AppStorage storage s = LibAppStorage.appStorage();
 
+        if (s.blacklisted[msg.sender]) revert Events.UserBlacklisted();
+
         LendOperation(s.operations[id].opToken).mint(address(this), sharesAmount);
 
         _bridge(id, sharesAmount, lzEndpointId);
@@ -130,6 +134,7 @@ contract Invest {
 
         bool isOpFinished = s.operationStarted[id] && s.fundingProgress[id] >= s.operations[id].totalShares;
 
+        if (s.blacklisted[user]) revert Events.UserBlacklisted();
         if (isOpFinished) revert Events.OpFinished();
         if (id > s.operationCount) revert Events.OpNotExist();
         if (s.fundingProgress[id] + sharesAmount > s.operations[id].totalShares) revert Events.TooManyShares();
@@ -166,6 +171,7 @@ contract Invest {
         bool isOpFinished = s.operationStarted[id] && s.fundingProgress[id] >= s.operations[id].totalShares;
 
         if (isOpFinished) revert Events.OpFinished();
+        if (s.blacklisted[msg.sender]) revert Events.UserBlacklisted();
         if (id > s.operationCount) revert Events.OpNotExist();
         if (s.operationStarted[id]) revert Events.OpAlreadyStarted();
         if (!s.predepositsOpen[id]) revert Events.PredepositsNotOpen();
@@ -198,6 +204,8 @@ contract Invest {
 
     function _claimToken(uint256 id, address user, address dest) internal {
         AppStorage storage s = LibAppStorage.appStorage();
+
+        if (s.blacklisted[user]) revert Events.UserBlacklisted();
 
         uint256 amount = s.gifted[id][user] + s.predeposits[id][user];
 

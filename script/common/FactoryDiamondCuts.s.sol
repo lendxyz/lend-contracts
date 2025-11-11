@@ -15,7 +15,7 @@ contract FactoryDiamondCuts {
         pure
         returns (IDiamondCut.FacetCut memory)
     {
-        bytes4[] memory adminSelectors = new bytes4[](7);
+        bytes4[] memory adminSelectors = new bytes4[](8);
 
         adminSelectors[0] = Admin.refundUser.selector;
         adminSelectors[1] = Admin.batchRefundUsers.selector;
@@ -24,6 +24,7 @@ contract FactoryDiamondCuts {
         adminSelectors[4] = Admin.setOpLendPeer.selector;
         adminSelectors[5] = Admin.batchSetOpLendPeers.selector;
         adminSelectors[6] = Admin.withdrawUsdc.selector;
+        adminSelectors[7] = Admin.blacklist.selector;
 
         return IDiamondCut.FacetCut({facetAddress: facet, action: action, functionSelectors: adminSelectors});
     }
@@ -33,7 +34,7 @@ contract FactoryDiamondCuts {
         pure
         returns (IDiamondCut.FacetCut memory)
     {
-        bytes4[] memory gettersSelectors = new bytes4[](14);
+        bytes4[] memory gettersSelectors = new bytes4[](15);
 
         gettersSelectors[0] = Getters.usdc.selector;
         gettersSelectors[1] = Getters.operationCount.selector;
@@ -49,6 +50,7 @@ contract FactoryDiamondCuts {
         gettersSelectors[11] = Getters.gifted.selector;
         gettersSelectors[12] = Getters.claimableTotal.selector;
         gettersSelectors[13] = Getters.predepositsOpen.selector;
+        gettersSelectors[14] = Getters.blacklisted.selector;
 
         return IDiamondCut.FacetCut({facetAddress: facet, action: action, functionSelectors: gettersSelectors});
     }
