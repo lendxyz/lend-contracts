@@ -257,6 +257,10 @@ contract Invest {
 
         uint256 sharesPriceEur = (s.operations[id].eurPerShares * sharesAmount) / 10 ** 6;
         usdcCost = sharesPriceEur * Utils.getEurUsdOraclePrice(s.eurUsdOracle) / 10 ** 6;
+
+        if (usdcCost <= 0) {
+            usdcCost = 1;
+        }
     }
 
     function getAmountOut(uint256 id, uint256 usdcAmount) external view returns (uint256 sharesAmount) {
@@ -269,5 +273,9 @@ contract Invest {
         uint256 oraclePrice = Utils.getEurUsdOraclePrice(s.eurUsdOracle);
 
         sharesAmount = (usdcAmount * 10 ** 12) / (eurPerShares * oraclePrice);
+
+        if (sharesAmount <= 0) {
+            sharesAmount = 1;
+        }
     }
 }
