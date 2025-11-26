@@ -10,33 +10,37 @@ contract SetOpLendPeerOft is Script {
     function run() public {
         // vm.createSelectFork("base-sepolia");
         // vm.createSelectFork("bsc-testnet");
-        // vm.createSelectFork("polygon-testnet");
-        vm.createSelectFork("arbitrum-sepolia");
+        vm.createSelectFork("polygon-testnet");
+        // vm.createSelectFork("arbitrum-sepolia");
         vm.startBroadcast();
 
         // ====================================================
         // Example data - replace addresses with actual targets
         // ====================================================
 
-        address peerEthAddr = address(0x5b9B80ABF001a2b1c6c7C9BB6e25a310a9C92B67);
-        address peerArbiAddr = address(0xD4Eca0237FB1d84AA4073bED4061037970933555);
-        address peerBaseAddr = address(0x1f33E221abff9d98316F10D0B4b6E30275F620fB);
-        address peerBscAddr = address(0x490a75f4758a7d93f66e46779733d9Ec6517a2E7);
+        address peerEthAddr = address(0x6f26a0160705D19C90280818b2532526Fc6838E3);
+        address peerArbiAddr = address(0x26b03b189E4cb20D19391cC2c25521E72A6839A5);
+        address peerBaseAddr = address(0x39DC4b033d6a373b0E4194B3B6bC463DC92c41A5);
+        address peerBscAddr = address(0x7394Ad24BDD2B7d2051FDf5efFbD09601d2C0651);
+        address peerPolyAddr = address(0x483FD90F0c34d268752FA98eaFEC336d71a1A727);
 
         (bytes32 peerEth, uint32 lzEidEth) = (bytes32(uint256(uint160(peerEthAddr))), 40161);
 
-        // (bytes32 peerArbi, uint32 lzEidArbi) = (bytes32(uint256(uint160(peerArbiAddr))), 40231);
+        (bytes32 peerArbi, uint32 lzEidArbi) = (bytes32(uint256(uint160(peerArbiAddr))), 40231);
 
         (bytes32 peerBase, uint32 lzEidBase) = (bytes32(uint256(uint160(peerBaseAddr))), 40245);
 
         (bytes32 peerBsc, uint32 lzEidBsc) = (bytes32(uint256(uint160(peerBscAddr))), 40102);
 
-        LendOperation opLend = LendOperation(peerArbiAddr);
+        // (bytes32 peerPoly, uint32 lzEidPoly) = (bytes32(uint256(uint160(peerPolyAddr))), 40267);
+
+        LendOperation opLend = LendOperation(peerPolyAddr);
 
         opLend.setPeer(lzEidEth, peerEth);
         opLend.setPeer(lzEidBase, peerBase);
-        // opLend.setPeer(lzEidArbi, peerArbi);
+        opLend.setPeer(lzEidArbi, peerArbi);
         opLend.setPeer(lzEidBsc, peerBsc);
+        // opLend.setPeer(lzEidPoly, peerPoly);
 
         vm.stopBroadcast();
     }
