@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.27;
 
-import {Script} from "forge-std/Script.sol";
+import {Script,console} from "forge-std/Script.sol";
 import {Constants} from "./common/Constants.s.sol";
 import {FactoryDiamondCuts} from "./common/FactoryDiamondCuts.s.sol";
 import {Diamond} from "../src/DiamondProxy.sol";
 import {IDiamondCut} from "../src/interfaces/IDiamondCut.sol";
 
+import {ILendFactory} from "../src/interfaces/IFactory.sol";
 import {Admin} from "../src/facets/Admin.sol";
 import {Getters} from "../src/facets/Getters.sol";
 import {Invest} from "../src/facets/Invest.sol";
@@ -19,6 +20,13 @@ contract DeployFactory is Script, Constants, FactoryDiamondCuts {
     function run() public {
         vm.startBroadcast();
 
+        // tnFactArgs => testnet
+        // FactoryConstructorArgs memory factoryArgs = tnFactArgs;
+        // mnFactArgs => mainnet
+        FactoryConstructorArgs memory factoryArgs = mnFactArgs;
+
+        console.log(msg.sender);
+
         Admin adminFacet = new Admin();
         Getters gettersFacet = new Getters();
         Invest investFacet = new Invest();
@@ -26,7 +34,11 @@ contract DeployFactory is Script, Constants, FactoryDiamondCuts {
         Ownership ownershipFacet = new Ownership();
 
         Diamond diamond = new Diamond(
-            tnFactArgs.admin, tnFactArgs.usdc, tnFactArgs.eurUsdOracle, tnFactArgs.lzEndpoint, tnFactArgs.backendSigner
+            factoryArgs.admin,
+            factoryArgs.usdc,
+            factoryArgs.eurUsdOracle,
+            factoryArgs.lzEndpoint,
+            factoryArgs.backendSigner
         );
 
         IDiamondCut.FacetCut[] memory cut = getAllFacets(
@@ -38,6 +50,9 @@ contract DeployFactory is Script, Constants, FactoryDiamondCuts {
         );
 
         diamond.diamondCut(cut, address(0), ""); // Perform cut
+
+        ILendFactory factory = ILendFactory(address(diamond));
+        factory.transferOwnership(multisigAddress);
 
         vm.stopBroadcast();
     }

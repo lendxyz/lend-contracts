@@ -45,8 +45,11 @@ clean:
 remappings:
 	forge remappings > remappings.txt
 
-deploy-factory:
-	forge script script/DeployFactory.s.sol:DeployFactory -vvvv --slow --broadcast --private-key $(pk) --rpc-url $(rpc) --verify
+deploy-factory-mainnet:
+	forge script script/DeployFactory.s.sol:DeployFactory -vvvv --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+
+deploy-factory-testnet:
+	forge script script/DeployFactory.s.sol:DeployFactory -vvvv --slow --broadcast --private-key $(pk) --rpc-url https://ethereum-sepolia-rpc.publicnode.com --verify
 
 upgrade-factory:
 	forge script script/UpgradeFactory.s.sol:UpgradeFactory -vvvv --slow --broadcast --private-key $(pk) --rpc-url $(rpc) --verify
@@ -58,7 +61,7 @@ deploy-oft-testnet:
 	forge script script/testnet/DeployOFT.s.sol:DeployOFTTestnet --slow --broadcast --private-key $(pk) --verify
 
 deploy-rewards-mainnet:
-	forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --private-key $(pk) --verify
+	forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
 
 deploy-rewards-testnet:
 	forge script script/testnet/DeployRewards.s.sol:DeployRewardsTestnet --slow --broadcast --private-key $(pk) --verify
@@ -74,6 +77,9 @@ deploy-faucet:
 
 deploy-usdc:
 	forge script script/testnet/DeployDummyUSDC.s.sol:DeployDummyUSDC --slow --broadcast --private-key $(pk) --verify
+
+deploy-adapter-mainnet:
+	forge script script/mainnet/Deploy1InchAdapter.s.sol:Deploy1InchAdapter --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
 
 deploy-adapter-testnet:
 	forge script script/testnet/Deploy1InchAdapter.s.sol:Deploy1InchAdapter --slow --broadcast --private-key $(pk) --verify
