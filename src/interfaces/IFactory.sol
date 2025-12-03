@@ -139,4 +139,8 @@ interface ILendFactory {
     function blacklisted(address user) external view returns (bool);
 
     function gifted(uint256 id, address user) external view returns (uint256);
+
+    function transferOwnership(address _newOwner) external;
+
+    function owner() external view returns (address);
 }
