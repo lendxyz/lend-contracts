@@ -23,16 +23,14 @@ contract UpgradeFactory is Script, Constants, FactoryDiamondCuts {
         Diamond diamond = Diamond(payable(0x2d5B2288b0Ec1A817ACb9DEe318A9089aAF26511));
 
         // Deploy new facets
-        Getters gettersFacet = new Getters();
+        // Getters gettersFacet = new Getters();
         Invest investFacet = new Invest();
-        Operations operationsFacet = new Operations();
+        // Operations operationsFacet = new Operations();
 
         // get cuts
-        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](3);
+        IDiamondCut.FacetCut[] memory cut = new IDiamondCut.FacetCut[](1);
 
-        cut[0] = getGettersFacets(address(gettersFacet), IDiamondCut.FacetCutAction.Replace);
-        cut[1] = getInvestFacets(address(investFacet), IDiamondCut.FacetCutAction.Replace);
-        cut[2] = getOperationsFacets(address(operationsFacet), IDiamondCut.FacetCutAction.Replace);
+        cut[0] = getInvestFacets(address(investFacet), IDiamondCut.FacetCutAction.Replace);
 
         // Perform cut
         diamond.diamondCut(cut, address(0), "");

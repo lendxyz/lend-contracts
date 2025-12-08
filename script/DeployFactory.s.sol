@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.27;
 
-import {Script,console} from "forge-std/Script.sol";
+import {Script} from "forge-std/Script.sol";
 import {Constants} from "./common/Constants.s.sol";
 import {FactoryDiamondCuts} from "./common/FactoryDiamondCuts.s.sol";
 import {Diamond} from "../src/DiamondProxy.sol";
@@ -24,8 +24,6 @@ contract DeployFactory is Script, Constants, FactoryDiamondCuts {
         // FactoryConstructorArgs memory factoryArgs = tnFactArgs;
         // mnFactArgs => mainnet
         FactoryConstructorArgs memory factoryArgs = mnFactArgs;
-
-        console.log(msg.sender);
 
         Admin adminFacet = new Admin();
         Getters gettersFacet = new Getters();

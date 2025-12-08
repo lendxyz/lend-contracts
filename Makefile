@@ -55,13 +55,13 @@ upgrade-factory:
 	forge script script/UpgradeFactory.s.sol:UpgradeFactory -vvvv --slow --broadcast --private-key $(pk) --rpc-url $(rpc) --verify
 
 deploy-oft-mainnet:
-	forge script script/mainnet/DeployOFT.s.sol:DeployOFT --slow --broadcast --private-key $(pk) --verify
+	forge script script/mainnet/DeployOFT.s.sol:DeployOFT --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://base-rpc.publicnode.com --verify
 
 deploy-oft-testnet:
 	forge script script/testnet/DeployOFT.s.sol:DeployOFTTestnet --slow --broadcast --private-key $(pk) --verify
 
 deploy-rewards-mainnet:
-	forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://base-rpc.publicnode.com --verify
 
 deploy-rewards-testnet:
 	forge script script/testnet/DeployRewards.s.sol:DeployRewardsTestnet --slow --broadcast --private-key $(pk) --verify
@@ -83,6 +83,9 @@ deploy-adapter-mainnet:
 
 deploy-adapter-testnet:
 	forge script script/testnet/Deploy1InchAdapter.s.sol:Deploy1InchAdapter --slow --broadcast --private-key $(pk) --verify
+
+playground:
+	forge script script/pg.s.sol:Playground
 
 abi:
 	mkdir -p abis
