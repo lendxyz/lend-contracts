@@ -97,13 +97,13 @@ contract Invest {
 
         MessagingFee memory fee = MessagingFee(msg.value, 0);
         SendParam memory sendParam = SendParam(
-            lzEndpointId,
-            bytes32(uint256(uint160(msg.sender))),
-            sharesAmount,
-            sharesAmount,
-            hex"0003010011010000000000000000000000000000ea60",
-            new bytes(0),
-            new bytes(0)
+            lzEndpointId, // Dest eID
+            bytes32(uint256(uint160(msg.sender))), // receiver
+            sharesAmount, // amountLD
+            sharesAmount, // minAmountLD
+            hex"0003010011010000000000000000000000000000c350", // 80k gas for lzReceive
+            new bytes(0), // composeMsg
+            new bytes(0) // oftCmd
         );
 
         LendOperation(s.operations[id].opToken).send{value: msg.value}(sendParam, fee, msg.sender);
