@@ -3,11 +3,18 @@ pragma solidity ^0.8.27;
 
 import {Test, console} from "forge-std/Test.sol";
 import {ILendFactory} from "../src/interfaces/IFactory.sol";
+import {ISignatureTransfer} from "../src/interfaces/ISignatureTransfer.sol";
 import {USDC} from "../src/testnet/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
 import {DeployDiamondTest} from "./DeployDiamond.t.sol";
 
 contract TestBase is Test, DeployDiamondTest {
+    address constant PERMIT2 = address(0x000000000022D473030F116dDEE9F6B43aC78BA3);
+    bytes32 constant TOKEN_PERMISSIONS_TYPEHASH = keccak256("TokenPermissions(address token,uint256 amount)");
+    bytes32 constant PERMIT_TRANSFER_FROM_TYPEHASH = keccak256(
+        "PermitTransferFrom(TokenPermissions permitted,address spender,uint256 nonce,uint256 deadline)TokenPermissions(address token,uint256 amount)"
+    );
+
     uint256 initialUsdcBalance = 1_000_000_000 * 10 ** 6;
     uint8 sharesDecimal = 6;
     uint256 totalSharesAmount = 1_000_000 * 10 ** sharesDecimal;
@@ -27,7 +34,7 @@ contract TestBase is Test, DeployDiamondTest {
     address backendSigner;
     uint256 backendSignerPk;
 
-    address admin = makeAddr("admin");
+    address admin = makeAddr("lend-admin");
     address user = makeAddr("user");
     address user2 = makeAddr("user2");
 
@@ -39,6 +46,36 @@ contract TestBase is Test, DeployDiamondTest {
         usdc.mint(address(user), initialUsdcBalance);
         usdc.mint(address(user2), initialUsdcBalance);
         vm.stopPrank();
+    }
+
+    function getPermit2Signature(string memory _user, uint256 _amount)
+        public
+        returns (bytes memory, uint256, uint256)
+    {
+        (, uint256 signerPk) = makeAddrAndKey(_user);
+
+        uint256 deadline = block.timestamp + 1 hours;
+        uint256 nonce = 23984692398;
+
+        // Build permit struct
+        ISignatureTransfer.TokenPermissions memory permitted =
+            ISignatureTransfer.TokenPermissions({token: address(usdc), amount: _amount});
+
+        ISignatureTransfer.PermitTransferFrom memory permit =
+            ISignatureTransfer.PermitTransferFrom({permitted: permitted, nonce: nonce, deadline: deadline});
+
+        // Compute EIP-712 hash
+        bytes32 domainSeparator = ISignatureTransfer(PERMIT2).DOMAIN_SEPARATOR();
+        bytes32 tokenHash = keccak256(abi.encode(TOKEN_PERMISSIONS_TYPEHASH, permitted.token, permitted.amount));
+        bytes32 msgHash = keccak256(
+            abi.encode(PERMIT_TRANSFER_FROM_TYPEHASH, tokenHash, address(factory), permit.nonce, permit.deadline)
+        );
+
+        bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, msgHash));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
+        bytes memory signature = abi.encodePacked(r, s, v);
+
+        return (signature, permit.deadline, permit.nonce);
     }
 
     function getMintSignature(address _user, uint256 _opId, uint256 _amount, string memory _nonce)

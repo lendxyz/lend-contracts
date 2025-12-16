@@ -310,6 +310,21 @@
         "name": "user",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "permit2Nonce",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "permit2Deadline",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "permit2Signature",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -354,12 +369,27 @@
         "internalType": "uint256"
       },
       {
-        "name": "nonce",
+        "name": "lendNonce",
         "type": "string",
         "internalType": "string"
       },
       {
-        "name": "signature",
+        "name": "lendSignature",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      {
+        "name": "permit2Nonce",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "permit2Deadline",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "permit2Signature",
         "type": "bytes",
         "internalType": "bytes"
       }
@@ -382,12 +412,27 @@
         "internalType": "uint256"
       },
       {
-        "name": "nonce",
+        "name": "lendNonce",
         "type": "string",
         "internalType": "string"
       },
       {
-        "name": "signature",
+        "name": "lendSignature",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      {
+        "name": "permit2Nonce",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "permit2Deadline",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "permit2Signature",
         "type": "bytes",
         "internalType": "bytes"
       },
@@ -557,12 +602,27 @@
         "internalType": "uint256"
       },
       {
-        "name": "nonce",
+        "name": "lendNonce",
         "type": "string",
         "internalType": "string"
       },
       {
-        "name": "signature",
+        "name": "lendSignature",
+        "type": "bytes",
+        "internalType": "bytes"
+      },
+      {
+        "name": "permit2Nonce",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "permit2Deadline",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "permit2Signature",
         "type": "bytes",
         "internalType": "bytes"
       }
@@ -1113,11 +1173,6 @@
   {
     "type": "error",
     "name": "InputCannotBeZero",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "InsufficientAllowance",
     "inputs": []
   },
   {

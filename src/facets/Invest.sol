@@ -2,6 +2,7 @@
 pragma solidity ^0.8.27;
 
 import {SendParam, MessagingFee} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
+import {ISignatureTransfer} from "../interfaces/ISignatureTransfer.sol";
 import {LibDiamond} from "../lib/LibDiamond.sol";
 import {Operation, AppStorage, LibAppStorage} from "../lib/Storage.sol";
 import {Utils} from "../lib/Utils.sol";
@@ -9,6 +10,7 @@ import {Events} from "../lib/Utils.sol";
 import {LendOperation} from "../opLend.sol";
 
 contract Invest {
+    address constant PERMIT2 = address(0x000000000022D473030F116dDEE9F6B43aC78BA3);
     uint256 private reentrancyStatus;
 
     modifier nonReentrant() {
@@ -18,10 +20,34 @@ contract Invest {
         reentrancyStatus = 0;
     }
 
-    function _invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature)
+    function _getPermit2Args(uint256 nonce, uint256 deadline, uint256 amount)
         internal
-        returns (uint256)
+        view
+        returns (
+            ISignatureTransfer.PermitTransferFrom memory permit,
+            ISignatureTransfer.SignatureTransferDetails memory transferDetails
+        )
     {
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        permit = ISignatureTransfer.PermitTransferFrom({
+            permitted: ISignatureTransfer.TokenPermissions({token: address(s.usdc), amount: amount}),
+            nonce: nonce,
+            deadline: deadline
+        });
+
+        transferDetails = ISignatureTransfer.SignatureTransferDetails({to: address(this), requestedAmount: amount});
+    }
+
+    function _invest(
+        uint256 id,
+        uint256 sharesAmount,
+        string calldata lendNonce,
+        bytes calldata lendSignature,
+        uint256 permit2Nonce,
+        uint256 permit2Deadline,
+        bytes calldata permit2Signature
+    ) internal returns (uint256) {
         AppStorage storage s = LibAppStorage.appStorage();
 
         bool isOpFinished = s.operationStarted[id] && s.fundingProgress[id] >= s.operations[id].totalShares;
@@ -36,15 +62,20 @@ contract Invest {
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
-        bool isSignatureValid = _verifySignature(msg.sender, sharesAmount, id, nonce, signature);
+        bool isSignatureValid = _verifySignature(msg.sender, sharesAmount, id, lendNonce, lendSignature);
         if (!isSignatureValid) revert Events.InvalidSignature();
-        if (s.usdc.allowance(msg.sender, address(this)) < cost) revert Events.InsufficientAllowance();
+
+        (
+            ISignatureTransfer.PermitTransferFrom memory permit,
+            ISignatureTransfer.SignatureTransferDetails memory transferDetails
+        ) = _getPermit2Args(permit2Nonce, permit2Deadline, cost);
+
+        ISignatureTransfer(PERMIT2).permitTransferFrom(permit, transferDetails, msg.sender, permit2Signature);
 
         s.fundingProgress[id] += sharesAmount;
         s.usdcRaised[id] += cost;
         s.usdcRaisedPerClient[id][msg.sender] += cost;
 
-        require(s.usdc.transferFrom(msg.sender, address(this), cost), Events.TransferFailed());
         emit Events.Invested(msg.sender, id, cost, sharesAmount);
 
         if (s.fundingProgress[id] >= s.operations[id].totalShares) {
@@ -54,15 +85,20 @@ contract Invest {
         return cost;
     }
 
-    function invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature)
-        external
-        nonReentrant
-    {
+    function invest(
+        uint256 id,
+        uint256 sharesAmount,
+        string calldata lendNonce,
+        bytes calldata lendSignature,
+        uint256 permit2Nonce,
+        uint256 permit2Deadline,
+        bytes calldata permit2Signature
+    ) external nonReentrant {
         AppStorage storage s = LibAppStorage.appStorage();
 
         if (s.blacklisted[msg.sender]) revert Events.UserBlacklisted();
 
-        _invest(id, sharesAmount, nonce, signature);
+        _invest(id, sharesAmount, lendNonce, lendSignature, permit2Nonce, permit2Deadline, permit2Signature);
         LendOperation(s.operations[id].opToken).mint(msg.sender, sharesAmount);
     }
 
@@ -101,7 +137,7 @@ contract Invest {
             bytes32(uint256(uint160(msg.sender))), // receiver
             sharesAmount, // amountLD
             sharesAmount, // minAmountLD
-            hex"0003010011010000000000000000000000000000c350", // 80k gas for lzReceive
+            hex"00030100110100000000000000000000000000013880", // 80k gas for lzReceive
             new bytes(0), // composeMsg
             new bytes(0) // oftCmd
         );
@@ -112,12 +148,15 @@ contract Invest {
     function investAndBridge(
         uint256 id,
         uint256 sharesAmount,
-        string calldata nonce,
-        bytes memory signature,
+        string calldata lendNonce,
+        bytes calldata lendSignature,
+        uint256 permit2Nonce,
+        uint256 permit2Deadline,
+        bytes calldata permit2Signature,
         uint32 lzEndpointId
     ) external payable nonReentrant {
         require(msg.value > 0, "Must include LZ fees in ethers");
-        _invest(id, sharesAmount, nonce, signature);
+        _invest(id, sharesAmount, lendNonce, lendSignature, permit2Nonce, permit2Deadline, permit2Signature);
         AppStorage storage s = LibAppStorage.appStorage();
 
         if (s.blacklisted[msg.sender]) revert Events.UserBlacklisted();
@@ -127,7 +166,14 @@ contract Invest {
         _bridge(id, sharesAmount, lzEndpointId);
     }
 
-    function giftOpTokens(uint256 id, uint256 sharesAmount, address user) external {
+    function giftOpTokens(
+        uint256 id,
+        uint256 sharesAmount,
+        address user,
+        uint256 permit2Nonce,
+        uint256 permit2Deadline,
+        bytes calldata permit2Signature
+    ) external {
         LibDiamond.enforceIsContractOwner();
 
         AppStorage storage s = LibAppStorage.appStorage();
@@ -144,14 +190,17 @@ contract Invest {
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
-        if (s.usdc.allowance(msg.sender, address(this)) < cost) revert Events.InsufficientAllowance();
+        (
+            ISignatureTransfer.PermitTransferFrom memory permit,
+            ISignatureTransfer.SignatureTransferDetails memory transferDetails
+        ) = _getPermit2Args(permit2Nonce, permit2Deadline, cost);
+
+        ISignatureTransfer(PERMIT2).permitTransferFrom(permit, transferDetails, msg.sender, permit2Signature);
 
         s.fundingProgress[id] += sharesAmount;
         s.usdcRaised[id] += cost;
         s.usdcRaisedPerClient[id][user] += cost;
         s.gifted[id][user] += sharesAmount;
-
-        require(s.usdc.transferFrom(msg.sender, address(this), cost), Events.TransferFailed());
 
         emit Events.Invested(user, id, cost, sharesAmount);
         emit Events.Gifted(user, id, cost, sharesAmount);
@@ -162,10 +211,15 @@ contract Invest {
         }
     }
 
-    function predeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature)
-        external
-        nonReentrant
-    {
+    function predeposit(
+        uint256 id,
+        uint256 sharesAmount,
+        string calldata lendNonce,
+        bytes calldata lendSignature,
+        uint256 permit2Nonce,
+        uint256 permit2Deadline,
+        bytes calldata permit2Signature
+    ) external nonReentrant {
         AppStorage storage s = LibAppStorage.appStorage();
 
         bool isOpFinished = s.operationStarted[id] && s.fundingProgress[id] >= s.operations[id].totalShares;
@@ -182,16 +236,20 @@ contract Invest {
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
-        bool isSignatureValid = _verifySignature(msg.sender, sharesAmount, id, nonce, signature);
+        bool isSignatureValid = _verifySignature(msg.sender, sharesAmount, id, lendNonce, lendSignature);
         if (!isSignatureValid) revert Events.InvalidSignature();
-        if (s.usdc.allowance(msg.sender, address(this)) < cost) revert Events.InsufficientAllowance();
+
+        (
+            ISignatureTransfer.PermitTransferFrom memory permit,
+            ISignatureTransfer.SignatureTransferDetails memory transferDetails
+        ) = _getPermit2Args(permit2Nonce, permit2Deadline, cost);
+
+        ISignatureTransfer(PERMIT2).permitTransferFrom(permit, transferDetails, msg.sender, permit2Signature);
 
         s.fundingProgress[id] += sharesAmount;
         s.usdcRaised[id] += cost;
         s.usdcRaisedPerClient[id][msg.sender] += cost;
         s.predeposits[id][msg.sender] += sharesAmount;
-
-        require(s.usdc.transferFrom(msg.sender, address(this), cost), Events.TransferFailed());
 
         emit Events.Invested(msg.sender, id, cost, sharesAmount);
         emit Events.Predeposit(msg.sender, id, cost, sharesAmount);

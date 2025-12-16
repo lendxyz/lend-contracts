@@ -65,8 +65,12 @@ contract FactoryTest is Test, TestBase {
 
         vm.startPrank(user);
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
-        usdc.approve(address(factory), cost);
-        factory.predeposit(1, sharesToBuy, testNonce, signature);
+
+        usdc.approve(PERMIT2, type(uint256).max);
+        (bytes memory permit2Signature, uint256 permit2Deadline, uint256 permit2Nonce) =
+            getPermit2Signature("user", cost);
+
+        factory.predeposit(1, sharesToBuy, testNonce, signature, permit2Nonce, permit2Deadline, permit2Signature);
         vm.stopPrank();
 
         assertEq(usdc.balanceOf(address(user)), initialUsdcBalance - cost);
@@ -87,8 +91,12 @@ contract FactoryTest is Test, TestBase {
 
         vm.startPrank(user);
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
-        usdc.approve(address(factory), cost);
-        factory.predeposit(1, sharesToBuy, testNonce, signature);
+
+        usdc.approve(PERMIT2, type(uint256).max);
+        (bytes memory permit2Signature, uint256 permit2Deadline, uint256 permit2Nonce) =
+            getPermit2Signature("user", cost);
+
+        factory.predeposit(1, sharesToBuy, testNonce, signature, permit2Nonce, permit2Deadline, permit2Signature);
         vm.stopPrank();
 
         assertEq(factory.operationStarted(1), false);
@@ -119,8 +127,11 @@ contract FactoryTest is Test, TestBase {
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
 
         vm.startPrank(user);
-        usdc.approve(address(factory), cost);
-        factory.predeposit(1, sharesToBuy, testNonce, signature);
+        usdc.approve(PERMIT2, type(uint256).max);
+        (bytes memory permit2Signature, uint256 permit2Deadline, uint256 permit2Nonce) =
+            getPermit2Signature("user", cost);
+
+        factory.predeposit(1, sharesToBuy, testNonce, signature, permit2Nonce, permit2Deadline, permit2Signature);
         vm.stopPrank();
 
         assertEq(factory.operationStarted(1), false);
@@ -138,7 +149,7 @@ contract FactoryTest is Test, TestBase {
             bytes32(uint256(uint160(msg.sender))),
             sharesToBuy,
             sharesToBuy,
-            hex"0003010011010000000000000000000000000000ea60",
+            hex"00030100110100000000000000000000000000013880",
             new bytes(0),
             new bytes(0)
         );
@@ -157,8 +168,12 @@ contract FactoryTest is Test, TestBase {
     function test_GiftAdmin() public {
         vm.startPrank(admin);
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
-        usdc.approve(address(factory), cost);
-        factory.giftOpTokens(1, sharesToBuy, address(user));
+
+        usdc.approve(PERMIT2, type(uint256).max);
+        (bytes memory permit2Signature, uint256 permit2Deadline, uint256 permit2Nonce) =
+            getPermit2Signature("lend-admin", cost);
+
+        factory.giftOpTokens(1, sharesToBuy, address(user), permit2Nonce, permit2Deadline, permit2Signature);
         vm.stopPrank();
 
         assertEq(usdc.balanceOf(address(admin)), initialUsdcBalance - cost);
@@ -171,8 +186,12 @@ contract FactoryTest is Test, TestBase {
     function test_ClaimGift() public {
         vm.startPrank(admin);
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
-        usdc.approve(address(factory), cost);
-        factory.giftOpTokens(1, sharesToBuy, address(user));
+
+        usdc.approve(PERMIT2, type(uint256).max);
+        (bytes memory permit2Signature, uint256 permit2Deadline, uint256 permit2Nonce) =
+            getPermit2Signature("lend-admin", cost);
+
+        factory.giftOpTokens(1, sharesToBuy, address(user), permit2Nonce, permit2Deadline, permit2Signature);
         vm.stopPrank();
 
         assertEq(factory.gifted(1, address(user)), sharesToBuy);
@@ -194,8 +213,12 @@ contract FactoryTest is Test, TestBase {
         vm.startPrank(user);
 
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
-        usdc.approve(address(factory), cost);
-        factory.invest(1, sharesToBuy, testNonce, signature);
+
+        usdc.approve(PERMIT2, type(uint256).max);
+        (bytes memory permit2Signature, uint256 permit2Deadline, uint256 permit2Nonce) =
+            getPermit2Signature("user", cost);
+
+        factory.invest(1, sharesToBuy, testNonce, signature, permit2Nonce, permit2Deadline, permit2Signature);
 
         vm.stopPrank();
 
@@ -218,21 +241,26 @@ contract FactoryTest is Test, TestBase {
         vm.startPrank(user);
 
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
-        usdc.approve(address(factory), cost);
+
+        usdc.approve(PERMIT2, type(uint256).max);
+        (bytes memory permit2Signature, uint256 permit2Deadline, uint256 permit2Nonce) =
+            getPermit2Signature("user", cost);
 
         SendParam memory sendParam = SendParam(
             30110,
             bytes32(uint256(uint160(msg.sender))),
             sharesToBuy,
             sharesToBuy,
-            hex"0003010011010000000000000000000000000000ea60",
+            hex"00030100110100000000000000000000000000013880",
             new bytes(0),
             new bytes(0)
         );
 
         MessagingFee memory fees = opToken.quoteSend(sendParam, false);
 
-        factory.investAndBridge{value: fees.nativeFee}(1, sharesToBuy, testNonce, signature, 30110);
+        factory.investAndBridge{value: fees.nativeFee}(
+            1, sharesToBuy, testNonce, signature, permit2Nonce, permit2Deadline, permit2Signature, 30110
+        );
 
         vm.stopPrank();
 
@@ -247,10 +275,14 @@ contract FactoryTest is Test, TestBase {
 
         vm.startPrank(user);
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
-        usdc.approve(address(factory), cost);
-        factory.invest(1, sharesToBuy, testNonce, signature);
+
+        usdc.approve(PERMIT2, type(uint256).max);
+        (bytes memory permit2Signature, uint256 permit2Deadline, uint256 permit2Nonce) =
+            getPermit2Signature("user", cost);
+
+        factory.invest(1, sharesToBuy, testNonce, signature, permit2Nonce, permit2Deadline, permit2Signature);
         vm.expectRevert();
-        factory.invest(1, sharesToBuy, testNonce, signature);
+        factory.invest(1, sharesToBuy, testNonce, signature, permit2Nonce, permit2Deadline, permit2Signature);
         vm.stopPrank();
     }
 
@@ -261,8 +293,12 @@ contract FactoryTest is Test, TestBase {
         vm.startPrank(user);
 
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
-        usdc.approve(address(factory), cost);
-        factory.invest(1, sharesToBuy, testNonce, signature);
+
+        usdc.approve(PERMIT2, type(uint256).max);
+        (bytes memory permit2Signature, uint256 permit2Deadline, uint256 permit2Nonce) =
+            getPermit2Signature("user", cost);
+
+        factory.invest(1, sharesToBuy, testNonce, signature, permit2Nonce, permit2Deadline, permit2Signature);
 
         vm.stopPrank();
 
@@ -289,8 +325,13 @@ contract FactoryTest is Test, TestBase {
 
         vm.startPrank(user);
 
-        usdc.approve(address(factory), UINT256_MAX);
-        factory.invest(1, totalSharesAmount, testNonce, signature);
+        uint256 cost = factory.getAmountIn(1, totalSharesAmount);
+
+        usdc.approve(PERMIT2, type(uint256).max);
+        (bytes memory permit2Signature, uint256 permit2Deadline, uint256 permit2Nonce) =
+            getPermit2Signature("user", cost);
+
+        factory.invest(1, totalSharesAmount, testNonce, signature, permit2Nonce, permit2Deadline, permit2Signature);
 
         vm.stopPrank();
 

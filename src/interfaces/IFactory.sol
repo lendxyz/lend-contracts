@@ -39,7 +39,6 @@ interface ILendFactory {
     error TooManyShares();
     error ZeroShares();
     error InputCannotBeZero();
-    error InsufficientAllowance();
     error InvalidSignature();
     error TransferFailed();
     error UserNotParticipated();
@@ -96,23 +95,49 @@ interface ILendFactory {
 
     function withdrawUsdc(uint256 id, address destination) external;
 
-    function invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature) external;
+    function invest(
+        uint256 id,
+        uint256 sharesAmount,
+        string calldata lendNonce,
+        bytes calldata lendSignature,
+        uint256 permit2Nonce,
+        uint256 permit2Deadline,
+        bytes calldata permit2Signature
+    ) external;
 
-    function predeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes memory signature) external;
+    function predeposit(
+        uint256 id,
+        uint256 sharesAmount,
+        string calldata lendNonce,
+        bytes calldata lendSignature,
+        uint256 permit2Nonce,
+        uint256 permit2Deadline,
+        bytes calldata permit2Signature
+    ) external;
 
-    function giftOpTokens(uint256 id, uint256 sharesAmount, address user) external;
-
-    function claimOpTokens(uint256 id, address user) external;
-
-    function claimOpTokensAndBridge(uint256 id, uint32 lzEndpointId) external payable;
+    function giftOpTokens(
+        uint256 id,
+        uint256 sharesAmount,
+        address user,
+        uint256 permit2Nonce,
+        uint256 permit2Deadline,
+        bytes calldata permit2Signature
+    ) external;
 
     function investAndBridge(
         uint256 id,
         uint256 sharesAmount,
-        string calldata nonce,
-        bytes memory signature,
+        string calldata lendNonce,
+        bytes calldata lendSignature,
+        uint256 permit2Nonce,
+        uint256 permit2Deadline,
+        bytes calldata permit2Signature,
         uint32 lzEndpointId
     ) external payable;
+
+    function claimOpTokens(uint256 id, address user) external;
+
+    function claimOpTokensAndBridge(uint256 id, uint32 lzEndpointId) external payable;
 
     function usdc() external view returns (address);
 
