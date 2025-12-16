@@ -1,10 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.27;
 
-import {Test, console} from "forge-std/Test.sol";
-import {LendFactory} from "../src/legacy/Factory.sol";
-import {USDC} from "../src/testnet/DummyUSDC.sol";
-import {LendOperation} from "../src/opLend.sol";
+import {Test} from "forge-std/Test.sol";
 import {Diamond} from "../src/DiamondProxy.sol";
 import {IDiamondCut} from "../src/interfaces/IDiamondCut.sol";
 import {Admin} from "../src/facets/Admin.sol";
