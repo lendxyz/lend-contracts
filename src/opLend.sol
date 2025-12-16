@@ -65,7 +65,7 @@ contract LendOperation is Ownable, ERC20, OFTCore {
             return false;
         }
 
-        bytes32 messageHash = keccak256(abi.encodePacked(_user, _nonce));
+        bytes32 messageHash = keccak256(abi.encodePacked(block.chainid, _user, _nonce));
         bytes32 ethSignedMessageHash = computeEthSignedHash(messageHash);
         address recovered = recoverSigner(ethSignedMessageHash, _signature);
         bool isValid = recovered == backendSigner;

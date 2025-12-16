@@ -115,7 +115,7 @@ contract Invest {
             return false;
         }
 
-        bytes32 messageHash = keccak256(abi.encodePacked(_opId, _user, _amount, _nonce));
+        bytes32 messageHash = keccak256(abi.encodePacked(address(this), block.chainid, _opId, _user, _amount, _nonce));
         bytes32 ethSignedMessageHash = Utils.computeEthSignedHash(messageHash);
         address recovered = Utils.recoverSigner(ethSignedMessageHash, _signature);
         bool isValid = recovered == s.backendSigner;
