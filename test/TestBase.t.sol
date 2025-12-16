@@ -57,25 +57,17 @@ contract TestBase is Test, DeployDiamondTest {
         uint256 deadline = block.timestamp + 1 hours;
         uint256 nonce = 23984692398;
 
-        // Build permit struct
-        ISignatureTransfer.TokenPermissions memory permitted =
-            ISignatureTransfer.TokenPermissions({token: address(usdc), amount: _amount});
-
-        ISignatureTransfer.PermitTransferFrom memory permit =
-            ISignatureTransfer.PermitTransferFrom({permitted: permitted, nonce: nonce, deadline: deadline});
-
         // Compute EIP-712 hash
         bytes32 domainSeparator = ISignatureTransfer(PERMIT2).DOMAIN_SEPARATOR();
-        bytes32 tokenHash = keccak256(abi.encode(TOKEN_PERMISSIONS_TYPEHASH, permitted.token, permitted.amount));
-        bytes32 msgHash = keccak256(
-            abi.encode(PERMIT_TRANSFER_FROM_TYPEHASH, tokenHash, address(factory), permit.nonce, permit.deadline)
-        );
+        bytes32 tokenHash = keccak256(abi.encode(TOKEN_PERMISSIONS_TYPEHASH, address(usdc), _amount));
+        bytes32 msgHash =
+            keccak256(abi.encode(PERMIT_TRANSFER_FROM_TYPEHASH, tokenHash, address(factory), nonce, deadline));
 
         bytes32 digest = keccak256(abi.encodePacked("\x19\x01", domainSeparator, msgHash));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPk, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
 
-        return (signature, permit.deadline, permit.nonce);
+        return (signature, deadline, nonce);
     }
 
     function getMintSignature(address _user, uint256 _opId, uint256 _amount, string memory _nonce)
@@ -84,7 +76,7 @@ contract TestBase is Test, DeployDiamondTest {
     {
         vm.startPrank(backendSigner);
 
-        bytes32 digest = keccak256(abi.encodePacked(_opId, _user, _amount, _nonce));
+        bytes32 digest = keccak256(abi.encodePacked(address(factory), block.chainid, _opId, _user, _amount, _nonce));
         bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", digest));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(backendSignerPk, hash);
         bytes memory signature = abi.encodePacked(r, s, v);
