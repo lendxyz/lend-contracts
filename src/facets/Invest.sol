@@ -142,7 +142,10 @@ contract Invest {
             new bytes(0) // oftCmd
         );
 
-        LendOperation(s.operations[id].opToken).send{value: msg.value}(sendParam, fee, msg.sender);
+        LendOperation opLend = LendOperation(s.operations[id].opToken);
+
+        opLend.whitelistUserAdmin(msg.sender, true);
+        opLend.send{value: msg.value}(sendParam, fee, msg.sender);
     }
 
     function investAndBridge(
