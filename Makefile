@@ -55,7 +55,7 @@ deploy-facet-upgrade-mainnet:
 	forge script script/mainnet/DeployFacetUpgrade.s.sol:DeployFacetUpgrade -vvvv --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify --ffi
 
 upgrade-factory-testnet:
-	forge script script/testnet/UpgradeFactory.s.sol:UpgradeFactoryTestnet -vvvv --slow --broadcast --private-key $(pk) --rpc-url $(rpc) --verify
+	forge script script/testnet/UpgradeFactory.s.sol:UpgradeFactoryTestnet -vvvv --slow --broadcast --private-key $(pk) --rpc-url https://ethereum-sepolia-rpc.publicnode.com --verify
 
 deploy-oft-mainnet:
 	forge script script/mainnet/DeployOFT.s.sol:DeployOFT --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://base-rpc.publicnode.com --verify
