@@ -15,7 +15,7 @@ contract DeployFaucet is Script, Constants {
         vm.createSelectFork("sepolia");
         vm.startBroadcast();
 
-        LendFaucet faucet = new LendFaucet(testnetOwner, dummyUsdc);
+        LendFaucet faucet = new LendFaucet(tnOwner, dummyUsdc);
         usdc.mint(address(faucet), 100_000_000_000 * 10 ** 6);
 
         faucet.transferOwnership(address(0xE162c57907B2718F99af9b7bc7677a0b3285A7b1));

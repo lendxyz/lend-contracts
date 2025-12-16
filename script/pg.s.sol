@@ -19,7 +19,7 @@ contract Playground is Script {
     }
 
     function logLzOptions() public pure {
-        bytes memory extraOptions = OptionsBuilder.newOptions().addExecutorLzReceiveOption(50000, 0);
+        bytes memory extraOptions = OptionsBuilder.newOptions().addExecutorLzReceiveOption(80000, 0);
 
         console.logBytes(extraOptions);
     }
