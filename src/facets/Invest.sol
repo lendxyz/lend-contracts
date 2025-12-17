@@ -54,12 +54,10 @@ contract Invest {
         return cost;
     }
 
-    function invest(
-        uint256 id,
-        uint256 sharesAmount,
-        string calldata nonce,
-        bytes calldata signature
-    ) external nonReentrant {
+    function invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes calldata signature)
+        external
+        nonReentrant
+    {
         AppStorage storage s = LibAppStorage.appStorage();
 
         if (s.blacklisted[msg.sender]) revert Events.UserBlacklisted();
@@ -132,11 +130,7 @@ contract Invest {
         _bridge(id, sharesAmount, lzEndpointId);
     }
 
-    function giftOpTokens(
-        uint256 id,
-        uint256 sharesAmount,
-        address user
-    ) external {
+    function giftOpTokens(uint256 id, uint256 sharesAmount, address user) external {
         LibDiamond.enforceIsContractOwner();
 
         AppStorage storage s = LibAppStorage.appStorage();
@@ -171,12 +165,10 @@ contract Invest {
         }
     }
 
-    function predeposit(
-        uint256 id,
-        uint256 sharesAmount,
-        string calldata nonce,
-        bytes calldata signature
-    ) external nonReentrant {
+    function predeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes calldata signature)
+        external
+        nonReentrant
+    {
         AppStorage storage s = LibAppStorage.appStorage();
 
         bool isOpFinished = s.operationStarted[id] && s.fundingProgress[id] >= s.operations[id].totalShares;

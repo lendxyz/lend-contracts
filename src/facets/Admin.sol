@@ -34,6 +34,8 @@ contract Admin {
     function batchRefundUsers(uint256 id, address[] calldata users, uint256 len) external {
         LibDiamond.enforceIsContractOwner();
 
+        require(len > 0 && len <= users.length, "Invalid len");
+
         for (uint256 i = 0; i < len; i++) {
             this.refundUser(id, users[i]);
         }
@@ -41,15 +43,19 @@ contract Admin {
 
     function updateOracleAddress(address newOracleAddress) external {
         LibDiamond.enforceIsContractOwner();
-        AppStorage storage s = LibAppStorage.appStorage();
 
+        require(newOracleAddress != address(0), "Cannot be address 0");
+
+        AppStorage storage s = LibAppStorage.appStorage();
         s.eurUsdOracle = newOracleAddress;
     }
 
     function updateBackendSigner(address newBackendSigner) external {
         LibDiamond.enforceIsContractOwner();
-        AppStorage storage s = LibAppStorage.appStorage();
 
+        require(newBackendSigner != address(0), "Cannot be address 0");
+
+        AppStorage storage s = LibAppStorage.appStorage();
         s.backendSigner = newBackendSigner;
     }
 
