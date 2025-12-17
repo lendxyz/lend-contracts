@@ -18,10 +18,10 @@ contract SetOpLendPeerFactory is Script {
         // Example data - replace addresses with actual targets
         // ====================================================
 
-        uint256 factoryOpId = 11;
+        uint256 factoryOpId = 14;
 
         address peerArbiAddr = address(0xD4Eca0237FB1d84AA4073bED4061037970933555);
-        address peerBaseAddr = address(0x1f33E221abff9d98316F10D0B4b6E30275F620fB);
+        address peerBaseAddr = address(0x2D908148c134E17556fCb1Af7b70ecA2f96f0942);
         address peerBscAddr = address(0x490a75f4758a7d93f66e46779733d9Ec6517a2E7);
         address peerPolyAddr = address(0xC95455f8a38a1660e700a5dDDfDe3D096c06fa92);
 

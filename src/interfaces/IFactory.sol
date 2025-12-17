@@ -39,6 +39,7 @@ interface ILendFactory {
     error TooManyShares();
     error ZeroShares();
     error InputCannotBeZero();
+    error InsufficientAllowance();
     error InvalidSignature();
     error TransferFailed();
     error UserNotParticipated();
@@ -95,43 +96,17 @@ interface ILendFactory {
 
     function withdrawUsdc(uint256 id, address destination) external;
 
-    function invest(
-        uint256 id,
-        uint256 sharesAmount,
-        string calldata lendNonce,
-        bytes calldata lendSignature,
-        uint256 permit2Nonce,
-        uint256 permit2Deadline,
-        bytes calldata permit2Signature
-    ) external;
+    function invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes calldata signature) external;
 
-    function predeposit(
-        uint256 id,
-        uint256 sharesAmount,
-        string calldata lendNonce,
-        bytes calldata lendSignature,
-        uint256 permit2Nonce,
-        uint256 permit2Deadline,
-        bytes calldata permit2Signature
-    ) external;
+    function predeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes calldata signature) external;
 
-    function giftOpTokens(
-        uint256 id,
-        uint256 sharesAmount,
-        address user,
-        uint256 permit2Nonce,
-        uint256 permit2Deadline,
-        bytes calldata permit2Signature
-    ) external;
+    function giftOpTokens(uint256 id, uint256 sharesAmount, address user) external;
 
     function investAndBridge(
         uint256 id,
         uint256 sharesAmount,
-        string calldata lendNonce,
-        bytes calldata lendSignature,
-        uint256 permit2Nonce,
-        uint256 permit2Deadline,
-        bytes calldata permit2Signature,
+        string calldata nonce,
+        bytes calldata signature,
         uint32 lzEndpointId
     ) external payable;
 

@@ -4,7 +4,7 @@ pragma solidity ^0.8.27;
 import {Script} from "forge-std/Script.sol";
 import {Constants} from "./common/Constants.s.sol";
 import {FactoryDiamondCuts} from "./common/FactoryDiamondCuts.s.sol";
-import {Diamond} from "../src/DiamondProxy.sol";
+import {LendFactory} from "../src/DiamondProxy.sol";
 import {IDiamondCut} from "../src/interfaces/IDiamondCut.sol";
 
 import {ILendFactory} from "../src/interfaces/IFactory.sol";
@@ -31,7 +31,7 @@ contract DeployFactory is Script, Constants, FactoryDiamondCuts {
         Operations operationsFacet = new Operations();
         Ownership ownershipFacet = new Ownership();
 
-        Diamond diamond = new Diamond(
+        LendFactory diamond = new LendFactory(
             factoryArgs.admin,
             factoryArgs.usdc,
             factoryArgs.eurUsdOracle,

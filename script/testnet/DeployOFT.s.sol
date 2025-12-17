@@ -8,8 +8,8 @@ import {Constants} from "../common/Constants.s.sol";
 contract DeployOFTTestnet is Script, Constants {
     LendOperation public oft;
 
-    string name = "Lend Operation - Apartment Colisee";
-    string symbol = "opLEND-12";
+    string name = "Lend Operation - Condamine Commercial Unit";
+    string symbol = "opLEND-14";
     uint256 maxSupply = 1_000_000_000_000; // use supply from source chain
 
     function setUp() public {}

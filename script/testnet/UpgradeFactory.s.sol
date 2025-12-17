@@ -4,7 +4,7 @@ pragma solidity ^0.8.27;
 import {Script} from "forge-std/Script.sol";
 import {Constants} from "../common/Constants.s.sol";
 import {FactoryDiamondCuts} from "../common/FactoryDiamondCuts.s.sol";
-import {Diamond} from "../../src/DiamondProxy.sol";
+import {LendFactory} from "../../src/DiamondProxy.sol";
 import {IDiamondCut} from "../../src/interfaces/IDiamondCut.sol";
 
 import {Admin} from "../../src/facets/Admin.sol";
@@ -20,7 +20,7 @@ contract UpgradeFactoryTestnet is Script, Constants, FactoryDiamondCuts {
         vm.startBroadcast();
 
         // Connect diamond proxy
-        Diamond diamond = Diamond(payable(0x2d5B2288b0Ec1A817ACb9DEe318A9089aAF26511));
+        LendFactory diamond = LendFactory(payable(0x2d5B2288b0Ec1A817ACb9DEe318A9089aAF26511));
 
         // Deploy new facets
         // Getters gettersFacet = new Getters();

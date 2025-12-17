@@ -2,7 +2,7 @@
 pragma solidity ^0.8.27;
 
 import {Test} from "forge-std/Test.sol";
-import {Diamond} from "../src/DiamondProxy.sol";
+import {LendFactory} from "../src/DiamondProxy.sol";
 import {IDiamondCut} from "../src/interfaces/IDiamondCut.sol";
 import {Admin} from "../src/facets/Admin.sol";
 import {Getters} from "../src/facets/Getters.sol";
@@ -22,7 +22,7 @@ contract DeployDiamondTest is Test, FactoryDiamondCuts {
         Operations operationsFacet = new Operations();
         Ownership ownershipFacet = new Ownership();
 
-        Diamond diamond = new Diamond(admin, usdc, eurUsdOracle, lzEndpoint, backendSigner);
+        LendFactory diamond = new LendFactory(admin, usdc, eurUsdOracle, lzEndpoint, backendSigner);
 
         IDiamondCut.FacetCut[] memory cut = getAllFacets(
             address(adminFacet),

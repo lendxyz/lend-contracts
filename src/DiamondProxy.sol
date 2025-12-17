@@ -27,7 +27,7 @@ import {IDiamondLoupe} from "./interfaces/IDiamondLoupe.sol";
 import {LibDiamond} from "./lib/LibDiamond.sol";
 import {AppStorage, LibAppStorage} from "./lib/Storage.sol";
 
-contract Diamond is IDiamondCut, IDiamondLoupe, IERC165 {
+contract LendFactory is IDiamondCut, IDiamondLoupe, IERC165 {
     error UnsupportedOperation();
 
     constructor(

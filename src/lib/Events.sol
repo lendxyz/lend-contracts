@@ -38,6 +38,7 @@ library Events {
     error TooManyShares();
     error ZeroShares();
     error InputCannotBeZero();
+    error InsufficientAllowance();
     error InvalidSignature();
     error TransferFailed();
     error UserNotParticipated();
