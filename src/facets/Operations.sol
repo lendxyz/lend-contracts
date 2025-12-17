@@ -90,12 +90,15 @@ contract Operations {
         AppStorage storage s = LibAppStorage.appStorage();
 
         if (id > s.operationCount) revert Events.OpNotExist();
-        s.predepositsOpen[id] = state;
 
-        if (state) {
-            emit Events.PredepositsOpen(id);
-        } else {
-            emit Events.PredepositsClosed(id);
+        if (s.predepositsOpen[id] != state) {
+            s.predepositsOpen[id] = state;
+
+            if (state) {
+                emit Events.PredepositsOpen(id);
+            } else {
+                emit Events.PredepositsClosed(id);
+            }
         }
     }
 }
