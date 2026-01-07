@@ -94,5 +94,6 @@ abi:
 	mkdir -p abis
 	forge inspect ILendFactory abi --json > ./abis/IFactory.json
 	forge inspect LendOperation abi --json > ./abis/opLend.json
+	forge inspect LendOperation bytecode --json > ./abis/opLend-bytecode.json
 	forge inspect LendRewards abi --json > ./abis/Rewards.json
 	forge inspect LendFaucet abi --json > ./abis/Faucet.json
