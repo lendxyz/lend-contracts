@@ -30,6 +30,8 @@ exclude_lints = ["asm-keccak256"]
 
 remappings = [
     'forge-std/=lib/forge-std/src/',
+    '@openzeppelin/contracts/=lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/',
+    '@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/',
     '@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/',
     '@chainlink/contracts/=lib/chainlink-brownie-contracts/contracts/',
     '@layerzerolabs/oft-evm/=lib/devtools/packages/oft-evm/',
