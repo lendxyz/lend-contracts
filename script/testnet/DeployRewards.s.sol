@@ -2,6 +2,7 @@
 pragma solidity ^0.8.27;
 
 import {Script} from "forge-std/Script.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {LendRewards} from "../../src/Rewards.sol";
 import {USDC} from "../../src/testnet/DummyUSDC.sol";
 
@@ -26,15 +27,31 @@ contract DeployRewardsTestnet is Script {
         // change here
         address usdcAddress = bscUsdcAddr;
 
-        LendRewards rewards = new LendRewards(admin, usdcAddress);
+        // Deploy the implementation contract
+        LendRewards implementation = new LendRewards();
+
+        // Prepare initializer data
+        bytes memory initData = abi.encodeCall(LendRewards.initialize, (admin, usdcAddress));
+
+        // Deploy the proxy and initialize
+        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), initData);
+        LendRewards rewards = LendRewards(payable(address(proxy)));
+
         USDC usdc = USDC(usdcAddress);
         usdc.approve(address(rewards), type(uint256).max);
 
         // DEMO DISTRIBUTION:
-        // ethUsdc.mint(admin, 112348592048);
+        // Mint mock usdc:
+        // usdc.mint(admin, 112348592048);
+        //
+        // For operation:
         // Args: opId - epoch - merkle root - USDC amount
-        // ethRewards.distributeRewards(1, 1, 0xa5a4433d1314c07de66b42825c90dfc7d26a8f8f3838ec0f3e63f7f811aecea9, 108232394698);
-        // ethRewards.distributeRewards(2, 1, 0xc4a180aaa6528530a058f69760453d23df65cf383674ab7e28db7ef681db7c51, 4116197349);
+        // rewards.distributeOpRewards(1, 1, 0xa5a4433d1314c07de66b42825c90dfc7d26a8f8f3838ec0f3e63f7f811aecea9, 108232394698);
+        // rewards.distributeOpRewards(2, 1, 0xc4a180aaa6528530a058f69760453d23df65cf383674ab7e28db7ef681db7c51, 4116197349);
+        //
+        // For referral rewards:
+        // Args: epoch - merkle root - USDC amount
+        // rewards.distributeRefRewards(1, 0xa5a4433d1314c07de66b42825c90dfc7d26a8f8f3838ec0f3e63f7f811aecea9, 108232394698);
 
         vm.stopBroadcast();
     }

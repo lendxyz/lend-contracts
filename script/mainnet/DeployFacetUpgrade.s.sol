@@ -31,7 +31,6 @@ contract DeployFacetUpgrade is Script, FactoryDiamondCuts {
         console.log("Encoded call data:");
         console.logBytes(data);
 
-
         vm.stopBroadcast();
     }
 }

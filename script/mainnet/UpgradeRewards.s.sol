@@ -6,20 +6,15 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {Constants} from "../common/Constants.s.sol";
 import {LendRewards} from "../../src/Rewards.sol";
 
-contract DeployRewards is Script, Constants {
+contract UpgradeRewards is Script, Constants {
     function run() external {
         vm.startBroadcast();
 
         // Deploy the implementation contract
         LendRewards implementation = new LendRewards();
+        LendRewards proxy = LendRewards(payable(address(0))); // replace with deployed proxy address
 
-        address usdcAddress = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48); // ETH mainnet - replace for other networks
-
-        // Prepare initializer data
-        bytes memory initData = abi.encodeCall(LendRewards.initialize, (multisigAddress, usdcAddress));
-
-        // Deploy the proxy and initialize
-        new ERC1967Proxy(address(implementation), initData);
+        proxy.upgradeToAndCall(address(implementation), "");
 
         vm.stopBroadcast();
     }

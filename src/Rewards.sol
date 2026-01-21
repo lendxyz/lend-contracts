@@ -2,10 +2,12 @@
 pragma solidity ^0.8.27;
 
 import "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract LendRewards is Ownable {
+contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     //********** Init **********
 
     IERC20 public rewardToken;
@@ -39,9 +41,19 @@ contract LendRewards is Ownable {
     // epoch => user => claimed
     mapping(uint256 => mapping(address => bool)) public refClaimed;
 
-    constructor(address _admin, address _token) Ownable(_admin) {
-        rewardToken = IERC20(_token);
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
     }
+
+    function initialize(address admin, address rewardTokenAddress) public initializer {
+        __Ownable_init(admin);
+        __UUPSUpgradeable_init();
+
+        rewardToken = IERC20(rewardTokenAddress);
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyOwner {}
 
     fallback() external payable {}
     receive() external payable {}
