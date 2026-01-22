@@ -65,6 +65,8 @@ deploy-oft-testnet:
 
 deploy-rewards-mainnet:
 	forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://base-rpc.publicnode.com --verify
+    # If deploying on plume/blockscout setup
+	# forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://rpc.plume.org --verify --verifier blockscout --verifier-url https://explorer.plume.org/api
 
 deploy-rewards-testnet:
 	forge script script/testnet/DeployRewards.s.sol:DeployRewardsTestnet --slow --broadcast --private-key $(pk) --verify

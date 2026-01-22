@@ -3,45 +3,38 @@ pragma solidity ^0.8.27;
 
 import {Script} from "forge-std/Script.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {Constants} from "../common/Constants.s.sol";
 import {LendRewards} from "../../src/Rewards.sol";
 import {USDC} from "../../src/testnet/DummyUSDC.sol";
 
-contract DeployRewardsTestnet is Script {
-    address ethUsdcAddr = address(0x73DC60bb3f14852fF727C6C67B187e61A7BB26E8); // mock USDC on ETH sepolia
-    address baseUsdcAddr = address(0x8cE18070660B07e5392E6072463710BFEd16f92f); // mock USDC on Base sepolia
-    address arbiUsdcAddr = address(0xd960fbD1217EF083bf1F56719515d5eDC89832E6); // mock USDC on Arbitrum sepolia
-    address polygonUsdcAddr = address(0x3eC9eAE6c5965c814f47B562Ac10b64cf428d71A); // mock USDC on Polygon Testnet
-    address bscUsdcAddr = address(0x7101aE81F8EBfa0ecAA806033aae64BdC0817c35); // mock USDC on BSC Testnet
-    address admin = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283); // Sepolia testnet deployer address
-
+contract DeployRewardsTestnet is Script, Constants {
     function setUp() public {}
 
     function run() public {
-        vm.createSelectFork("arbitrum-sepolia");
-        // vm.createSelectFork("polygon-testnet");
+        // vm.createSelectFork("arbitrum-sepolia");
+        vm.createSelectFork("polygon-testnet");
         // vm.createSelectFork("sepolia");
         // vm.createSelectFork("base-sepolia");
         // vm.createSelectFork("bsc-testnet");
         vm.startBroadcast();
 
-        // change here
-        address usdcAddress = bscUsdcAddr;
+        address usdcAddress = getTestnetUsdcAddress();
 
         // Deploy the implementation contract
         LendRewards implementation = new LendRewards();
 
         // Prepare initializer data
-        bytes memory initData = abi.encodeCall(LendRewards.initialize, (admin, usdcAddress));
+        bytes memory initData = abi.encodeCall(LendRewards.initialize, (tnOwner, usdcAddress));
 
         // Deploy the proxy and initialize
         ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), initData);
-        LendRewards rewards = LendRewards(payable(address(proxy)));
 
         USDC usdc = USDC(usdcAddress);
-        usdc.approve(address(rewards), type(uint256).max);
+        usdc.approve(address(proxy), type(uint256).max);
 
         // DEMO DISTRIBUTION:
         // Mint mock usdc:
+        // LendRewards rewards = LendRewards(payable(address(proxy)));
         // usdc.mint(admin, 112348592048);
         //
         // For operation:

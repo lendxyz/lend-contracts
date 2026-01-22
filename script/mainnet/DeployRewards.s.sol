@@ -13,10 +13,12 @@ contract DeployRewards is Script, Constants {
         // Deploy the implementation contract
         LendRewards implementation = new LendRewards();
 
-        address usdcAddress = address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48); // ETH mainnet - replace for other networks
+        address usdcAddress = getMainnetUsdcAddress();
+
+        require(usdcAddress != address(0));
 
         // Prepare initializer data
-        bytes memory initData = abi.encodeCall(LendRewards.initialize, (multisigAddress, usdcAddress));
+        bytes memory initData = abi.encodeCall(LendRewards.initialize, (aymAddress, usdcAddress));
 
         // Deploy the proxy and initialize
         new ERC1967Proxy(address(implementation), initData);
