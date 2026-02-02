@@ -30,6 +30,20 @@ contract Constants {
         tnOwner // admin - Sepolia testnet deployer address
     );
 
+    function getLzEndpointMainnet() public view returns (address) {
+        // Sonic
+        if (block.chainid == 146) {
+            return address(0x6F475642a6e85809B1c36Fa62763669b1b48DD5B);
+        }
+
+        // Plume
+        if (block.chainid == 98866) {
+            return address(0xC1b15d3B262bEeC0e3565C11C9e0F6134BdaCB36);
+        }
+
+        return address(0x1a44076050125825900e736c501f859c50fE728c);
+    }
+
     function getMainnetUsdcAddress() public view returns (address) {
         // Ethereum
         if (block.chainid == 1) {

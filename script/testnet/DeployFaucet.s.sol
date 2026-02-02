@@ -7,7 +7,6 @@ import {LendFaucet} from "../../src/testnet/Faucet.sol";
 import {USDC} from "../../src/testnet/DummyUSDC.sol";
 
 contract DeployFaucet is Script, Constants {
-
     function setUp() public {}
 
     function run() public {
