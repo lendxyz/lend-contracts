@@ -5,7 +5,7 @@ import {Script} from "forge-std/Script.sol";
 import {Constants} from "../common/Constants.s.sol";
 import {USDC} from "../../src/testnet/DummyUSDC.sol";
 
-contract DeployDummyUSDC is Script {
+contract DeployDummyUSDC is Script, Constants {
     function setUp() public {}
 
     function run() public {
