@@ -2,7 +2,10 @@
 pragma solidity ^0.8.27;
 
 import {
-    SendParam, MessagingFee, MessagingReceipt, OFTReceipt
+    SendParam,
+    MessagingFee,
+    MessagingReceipt,
+    OFTReceipt
 } from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {OFTCoreUpgradeable} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTCoreUpgradeable.sol";
@@ -190,12 +193,8 @@ contract LendOperationUpgradeable is
         address to = address(uint160(uint256(_sendParam.to)));
         require(whitelisted[to], "Destination user is not whitelisted");
 
-        (uint256 amountSentLd, uint256 amountReceivedLd) = _debit(
-            _msgSender(),
-            _sendParam.amountLD,
-            _sendParam.minAmountLD,
-            _sendParam.dstEid
-        );
+        (uint256 amountSentLd, uint256 amountReceivedLd) =
+            _debit(_msgSender(), _sendParam.amountLD, _sendParam.minAmountLD, _sendParam.dstEid);
 
         (bytes memory message, bytes memory options) = _buildMsgAndOptions(_sendParam, amountReceivedLd);
 
@@ -235,7 +234,11 @@ contract LendOperationUpgradeable is
      * @dev _srcEid The source chain ID.
      * @return amountReceivedLd The amount of tokens ACTUALLY received in local decimals.
      */
-    function _credit(address _to, uint256 _amountLd, uint32 /*_srcEid*/ )
+    function _credit(
+        address _to,
+        uint256 _amountLd,
+        uint32 /*_srcEid*/
+    )
         internal
         virtual
         override

@@ -50,5 +50,14 @@ contract OpLendOftTest is TestHelperOz5, TestBase {
     }
 
     // TODO: test multichain transfer here
-    function test_TransferOFT() public {}
+    function test_TransferOFT() public {
+        LendOperation opLend = new LendOperation(
+            address(admin), "LendOpTest", "opLend-0", 1_000_000, lzEndpoint, address(admin), backendSigner
+        );
+        bytes memory signature = getTransferSignature(address(user), testNonce);
+
+        vm.startPrank(user);
+        opLend.whitelistUser(address(user), testNonce, signature);
+        vm.stopPrank();
+    }
 }
