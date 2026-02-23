@@ -2,10 +2,7 @@
 pragma solidity ^0.8.27;
 
 import {
-    SendParam,
-    MessagingFee,
-    MessagingReceipt,
-    OFTReceipt
+    SendParam, MessagingFee, MessagingReceipt, OFTReceipt
 } from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {OFTCoreUpgradeable} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTCoreUpgradeable.sol";
@@ -64,7 +61,6 @@ contract LendOperationUpgradeable is
     /**
      * Core functions ***
      */
-
     function mint(address to, uint256 amount) public onlyOwner {
         require(totalSupply() + amount <= MAX_SUPPLY, "Total supply cap exceeded");
         whitelisted[to] = true;
@@ -234,11 +230,7 @@ contract LendOperationUpgradeable is
      * @dev _srcEid The source chain ID.
      * @return amountReceivedLd The amount of tokens ACTUALLY received in local decimals.
      */
-    function _credit(
-        address _to,
-        uint256 _amountLd,
-        uint32 /*_srcEid*/
-    )
+    function _credit(address _to, uint256 _amountLd, uint32 /*_srcEid*/ )
         internal
         virtual
         override
