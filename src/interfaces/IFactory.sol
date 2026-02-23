@@ -27,6 +27,8 @@ interface ILendFactory {
     );
     event PredepositsOpen(uint256 indexed operationId);
     event PredepositsClosed(uint256 indexed operationId);
+    event RestitutionDistributed(uint256 indexed operationId, uint256 indexed amount);
+    event ClaimedRestitution(address indexed investor, uint256 indexed operationId, uint256 indexed amount);
 
     error UserBlacklisted();
     error OpNotExist();
@@ -47,6 +49,7 @@ interface ILendFactory {
     error AlreadyWithdrawn();
     error InvalidSignatureLength();
     error PredepositsNotOpen();
+    error RestitutionNotOpened();
 
     struct Operation {
         address opToken;
@@ -143,4 +146,12 @@ interface ILendFactory {
     function transferOwnership(address _newOwner) external;
 
     function owner() external view returns (address);
+
+    function restitutionOpen(uint256 id) external view returns (bool);
+
+    function restituableFunds(uint256 id, address user) external view returns (uint256);
+
+    function claimRestituedFunds(uint256 id) external;
+
+    function restituteFunds(uint256 id) external;
 }

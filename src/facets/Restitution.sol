@@ -18,6 +18,8 @@ contract Restitution {
         require(s.usdc.transferFrom(msg.sender, address(this), s.usdcRaised[id]), Events.TransferFailed());
 
         s.fundsRestitued[id] = true;
+
+        emit Events.RestitutionDistributed(id, s.usdcRaised[id]);
     }
 
     function claimRestituedFunds(uint256 id) external {

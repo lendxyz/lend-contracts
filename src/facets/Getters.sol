@@ -105,4 +105,25 @@ contract Getters {
         AppStorage storage s = LibAppStorage.appStorage();
         return s.blacklisted[user];
     }
+
+    function restitutionOpen(uint256 id) external view returns (bool) {
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) return false;
+        return s.fundsRestitued[id];
+    }
+
+    function restituableFunds(uint256 id, address user) external view returns (uint256) {
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) return 0;
+        if (!s.fundsRestitued[id]) return 0;
+
+        LendOperation opLend = LendOperation(s.operations[id].opToken);
+
+        uint256 userBalance = opLend.balanceOf(user);
+        if (userBalance == 0) return 0;
+
+        return (userBalance * s.usdcRaised[id]) / opLend.MAX_SUPPLY();
+    }
 }

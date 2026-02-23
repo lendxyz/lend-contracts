@@ -26,6 +26,7 @@ library Events {
     );
     event PredepositsOpen(uint256 indexed operationId);
     event PredepositsClosed(uint256 indexed operationId);
+    event RestitutionDistributed(uint256 indexed operationId, uint256 indexed amount);
     event ClaimedRestitution(address indexed investor, uint256 indexed operationId, uint256 indexed amount);
 
     error UserBlacklisted();
