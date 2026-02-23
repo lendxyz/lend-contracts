@@ -26,6 +26,7 @@ library Events {
     );
     event PredepositsOpen(uint256 indexed operationId);
     event PredepositsClosed(uint256 indexed operationId);
+    event ClaimedRestitution(address indexed investor, uint256 indexed operationId, uint256 indexed amount);
 
     error UserBlacklisted();
     error OpNotExist();
@@ -46,4 +47,5 @@ library Events {
     error AlreadyWithdrawn();
     error InvalidSignatureLength();
     error PredepositsNotOpen();
+    error RestitutionNotOpened();
 }
