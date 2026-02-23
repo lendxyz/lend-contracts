@@ -27,8 +27,6 @@ interface ILendFactory {
     );
     event PredepositsOpen(uint256 indexed operationId);
     event PredepositsClosed(uint256 indexed operationId);
-    event RestitutionDistributed(uint256 indexed operationId, uint256 indexed amount);
-    event ClaimedRestitution(address indexed investor, uint256 indexed operationId, uint256 indexed amount);
 
     error UserBlacklisted();
     error OpNotExist();
@@ -49,7 +47,6 @@ interface ILendFactory {
     error AlreadyWithdrawn();
     error InvalidSignatureLength();
     error PredepositsNotOpen();
-    error RestitutionNotOpened();
 
     struct Operation {
         address opToken;
@@ -58,36 +55,15 @@ interface ILendFactory {
         string opName;
     }
 
-    function getOperation(uint256 id) external view returns (Operation memory);
-
-    function getAmountIn(uint256 id, uint256 sharesAmount) external view returns (uint256 usdcCost);
-
-    function getAmountOut(uint256 id, uint256 usdcAmount) external view returns (uint256 sharesAmount);
-
-    function isOperationFinished(uint256 id) external view returns (bool);
-
-    function createOperation(string calldata opName, uint256 totalShares, uint256 eurPerShares)
-        external
-        returns (address);
-
-    function setPredeposits(uint256 id, bool state) external;
+    // Admin facet
 
     function refundUser(uint256 id, address user) external;
-
     function batchRefundUsers(uint256 id, address[] calldata users, uint256 len) external;
-
-    function cancelOperation(uint256 id) external;
-
-    function startOperation(uint256 id) external;
-
-    function pauseFunding(uint256 id, bool state) external;
-
     function updateOracleAddress(address newOracleAddress) external;
-
     function updateBackendSigner(address newBackendSigner) external;
-
+    function setOpLendPeer(uint256 id, uint32 chainId, uint32 lzEndpointId, bytes32 peerAddress) external;
     function blacklist(address user, bool state) external;
-
+    function withdrawUsdc(uint256 id, address destination) external;
     function batchSetOpLendPeers(
         uint256[] calldata ids,
         uint32[] calldata chainIds,
@@ -95,16 +71,29 @@ interface ILendFactory {
         bytes32[] calldata peers
     ) external;
 
-    function setOpLendPeer(uint256 id, uint32 chainId, uint32 lzEndpointId, bytes32 peerAddress) external;
+    // Getters facet
 
-    function withdrawUsdc(uint256 id, address destination) external;
+    function usdc() external view returns (address);
+    function operationCount() external view returns (uint256);
+    function operations(uint256 id) external view returns (Operation memory);
+    function fundingProgress(uint256 id) external view returns (uint256);
+    function usdcRaised(uint256 id) external view returns (uint256);
+    function fundingPaused(uint256 id) external view returns (bool);
+    function operationStarted(uint256 id) external view returns (bool);
+    function usdcWithdrawn(uint256 id) external view returns (bool);
+    function operationCanceled(uint256 id) external view returns (bool);
+    function usdcRaisedPerClient(uint256 id, address user) external view returns (uint256);
+    function predeposits(uint256 id, address user) external view returns (uint256);
+    function gifted(uint256 id, address user) external view returns (uint256);
+    function claimableTotal(uint256 id, address user) external view returns (uint256);
+    function predepositsOpen(uint256 id) external view returns (bool);
+    function blacklisted(address user) external view returns (bool);
+    function restitutionOpen(uint256 id) external view returns (bool);
+    function restituableFunds(uint256 id, address user) external view returns (uint256);
+
+    // Invest facet
 
     function invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes calldata signature) external;
-
-    function predeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes calldata signature) external;
-
-    function giftOpTokens(uint256 id, uint256 sharesAmount, address user) external;
-
     function investAndBridge(
         uint256 id,
         uint256 sharesAmount,
@@ -112,46 +101,33 @@ interface ILendFactory {
         bytes calldata signature,
         uint32 lzEndpointId
     ) external payable;
-
+    function giftOpTokens(uint256 id, uint256 sharesAmount, address user) external;
+    function predeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes calldata signature) external;
     function claimOpTokens(uint256 id, address user) external;
-
     function claimOpTokensAndBridge(uint256 id, uint32 lzEndpointId) external payable;
+    function claimOpTokensBatch(uint256 id, address[] memory users) external;
+    function getAmountIn(uint256 id, uint256 sharesAmount) external view returns (uint256 usdcCost);
+    function getAmountOut(uint256 id, uint256 usdcAmount) external view returns (uint256 sharesAmount);
 
-    function usdc() external view returns (address);
+    // Operations facet
 
-    function operationCount() external view returns (uint256);
+    function createOperation(string calldata opName, uint256 totalShares, uint256 eurPerShares)
+        external
+        returns (address);
+    function isOperationFinished(uint256 id) external view returns (bool);
+    function getOperation(uint256 id) external view returns (Operation memory);
+    function cancelOperation(uint256 id) external;
+    function startOperation(uint256 id) external;
+    function pauseFunding(uint256 id, bool state) external;
+    function setPredeposits(uint256 id, bool state) external;
 
-    function operations(uint256 id) external view returns (Operation memory);
-
-    function fundingProgress(uint256 id) external view returns (uint256);
-
-    function usdcRaised(uint256 id) external view returns (uint256);
-
-    function fundingPaused(uint256 id) external view returns (bool);
-
-    function operationStarted(uint256 id) external view returns (bool);
-
-    function usdcWithdrawn(uint256 id) external view returns (bool);
-
-    function operationCanceled(uint256 id) external view returns (bool);
-
-    function usdcRaisedPerClient(uint256 id, address user) external view returns (uint256);
-
-    function predeposits(uint256 id, address user) external view returns (uint256);
-
-    function blacklisted(address user) external view returns (bool);
-
-    function gifted(uint256 id, address user) external view returns (uint256);
+    // Ownership facet
 
     function transferOwnership(address _newOwner) external;
-
     function owner() external view returns (address);
 
-    function restitutionOpen(uint256 id) external view returns (bool);
-
-    function restituableFunds(uint256 id, address user) external view returns (uint256);
+    // Restitution facet
 
     function claimRestituedFunds(uint256 id) external;
-
     function restituteFunds(uint256 id) external;
 }

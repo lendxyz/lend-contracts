@@ -138,6 +138,24 @@
   },
   {
     "type": "function",
+    "name": "claimOpTokensBatch",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "users",
+        "type": "address[]",
+        "internalType": "address[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "claimRestituedFunds",
     "inputs": [
       {
@@ -148,6 +166,30 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "claimableTotal",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -609,6 +651,25 @@
   },
   {
     "type": "function",
+    "name": "predepositsOpen",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "refundUser",
     "inputs": [
       {
@@ -875,31 +936,6 @@
   {
     "type": "event",
     "name": "ClaimedOpToken",
-    "inputs": [
-      {
-        "name": "investor",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "operationId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "ClaimedRestitution",
     "inputs": [
       {
         "name": "investor",
@@ -1200,25 +1236,6 @@
     "anonymous": false
   },
   {
-    "type": "event",
-    "name": "RestitutionDistributed",
-    "inputs": [
-      {
-        "name": "operationId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
     "type": "error",
     "name": "AlreadyWithdrawn",
     "inputs": []
@@ -1286,11 +1303,6 @@
   {
     "type": "error",
     "name": "PredepositsNotOpen",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "RestitutionNotOpened",
     "inputs": []
   },
   {
