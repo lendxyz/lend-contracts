@@ -32,6 +32,7 @@ struct AppStorage {
     mapping(uint256 => bool) predepositsOpen;
     mapping(address => bool) blacklisted;
     mapping(uint256 => bool) fundsRestitued;
+    mapping(uint256 => uint256) restituedAmount;
 }
 
 library LibAppStorage {

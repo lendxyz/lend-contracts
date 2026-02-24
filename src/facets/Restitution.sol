@@ -7,33 +7,33 @@ import {Operation, AppStorage, LibAppStorage} from "../lib/Storage.sol";
 import {LendOperation} from "../opLend.sol";
 
 contract Restitution {
-    function restituteFunds(uint256 id) external {
+    function restituteFunds(uint256 id, uint256 amount) external {
         LibDiamond.enforceIsContractOwner();
 
         AppStorage storage s = LibAppStorage.appStorage();
 
         if (id > s.operationCount) revert Events.OpNotExist();
-        if (s.usdc.allowance(msg.sender, address(this)) < s.usdcRaised[id]) revert Events.InsufficientAllowance();
+        if (s.usdc.allowance(msg.sender, address(this)) < amount) revert Events.InsufficientAllowance();
 
-        require(s.usdc.transferFrom(msg.sender, address(this), s.usdcRaised[id]), Events.TransferFailed());
+        require(s.usdc.transferFrom(msg.sender, address(this), amount), Events.TransferFailed());
 
-        s.fundsRestitued[id] = true;
+        s.restituedAmount[id] = amount;
 
-        emit Events.RestitutionDistributed(id, s.usdcRaised[id]);
+        emit Events.RestitutionDistributed(id, amount);
     }
 
     function claimRestituedFunds(uint256 id) external {
         AppStorage storage s = LibAppStorage.appStorage();
 
         if (id > s.operationCount) revert Events.OpNotExist();
-        if (!s.fundsRestitued[id]) revert Events.RestitutionNotOpened();
+        if (s.restituedAmount[id] == 0) revert Events.RestitutionNotOpened();
 
         LendOperation opLend = LendOperation(s.operations[id].opToken);
 
         uint256 userBalance = opLend.balanceOf(msg.sender);
         require(userBalance > 0, "User has no opLend");
 
-        uint256 usdcAmount = (userBalance * s.usdcRaised[id]) / opLend.MAX_SUPPLY();
+        uint256 usdcAmount = (userBalance * s.restituedAmount[id]) / opLend.MAX_SUPPLY();
 
         require(s.usdc.transfer(msg.sender, usdcAmount), Events.TransferFailed());
         opLend.adminBurn(msg.sender, userBalance);

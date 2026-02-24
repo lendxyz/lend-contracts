@@ -129,5 +129,5 @@ interface ILendFactory {
     // Restitution facet
 
     function claimRestituedFunds(uint256 id) external;
-    function restituteFunds(uint256 id) external;
+    function restituteFunds(uint256 id, uint256 amount) external;
 }

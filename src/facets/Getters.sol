@@ -110,7 +110,7 @@ contract Getters {
         AppStorage storage s = LibAppStorage.appStorage();
 
         if (id > s.operationCount) return false;
-        return s.fundsRestitued[id];
+        return s.restituedAmount[id] > 0;
     }
 
     function restituableFunds(uint256 id, address user) external view returns (uint256) {
@@ -124,6 +124,6 @@ contract Getters {
         uint256 userBalance = opLend.balanceOf(user);
         if (userBalance == 0) return 0;
 
-        return (userBalance * s.usdcRaised[id]) / opLend.MAX_SUPPLY();
+        return (userBalance * s.restituedAmount[id]) / opLend.MAX_SUPPLY();
     }
 }
