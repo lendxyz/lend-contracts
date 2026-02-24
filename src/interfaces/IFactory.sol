@@ -88,6 +88,8 @@ interface ILendFactory {
     function claimableTotal(uint256 id, address user) external view returns (uint256);
     function predepositsOpen(uint256 id) external view returns (bool);
     function blacklisted(address user) external view returns (bool);
+    function restitutionOpen(uint256 id) external view returns (bool);
+    function restituableFunds(uint256 id, address user) external view returns (uint256);
 
     // Invest facet
 
@@ -123,4 +125,9 @@ interface ILendFactory {
 
     function transferOwnership(address _newOwner) external;
     function owner() external view returns (address);
+
+    // Restitution facet
+
+    function claimRestituedFunds(uint256 id) external;
+    function restituteFunds(uint256 id, uint256 amount) external;
 }
