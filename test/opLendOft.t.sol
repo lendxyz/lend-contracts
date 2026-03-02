@@ -28,8 +28,8 @@ contract OpLendOftTest is TestHelperOz5, TestBase {
 
     function beforeTestSetup() public pure returns (bytes[] memory beforeTestCalldata) {
         beforeTestCalldata = new bytes[](4);
-        beforeTestCalldata[0] = abi.encodePacked(this.mintUsdc.selector);
-        beforeTestCalldata[1] = abi.encodePacked(this.setupContracts.selector);
+        beforeTestCalldata[0] = abi.encodePacked(this.setupContracts.selector);
+        beforeTestCalldata[1] = abi.encodePacked(this.mintUsdc.selector);
         beforeTestCalldata[2] = abi.encodePacked(this.createOperation.selector);
         beforeTestCalldata[3] = abi.encodePacked(this.setupLzEndpoints.selector);
     }
@@ -52,7 +52,7 @@ contract OpLendOftTest is TestHelperOz5, TestBase {
     // TODO: test multichain transfer here
     function test_TransferOFT() public {
         LendOperation opLend = new LendOperation(
-            address(admin), "LendOpTest", "opLend-0", 1_000_000, lzEndpoint, address(admin), backendSigner
+            address(admin), "LendOpTest", "opLend-0", 1_000_000, mnFactArgs.lzEndpoint, address(admin), backendSigner
         );
         bytes memory signature = getTransferSignature(address(user), testNonce);
 

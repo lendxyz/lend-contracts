@@ -1,13 +1,29 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.27;
 
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Test, console} from "forge-std/Test.sol";
-import {ILendFactory} from "../src/interfaces/IFactory.sol";
+
+// Helpers
+import {Constants} from "../script/common/Constants.s.sol";
+import {FactoryDiamondCuts} from "../script/common/FactoryDiamondCuts.s.sol";
+
+// Misc contracts
 import {USDC} from "../src/testnet/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
-import {DeployDiamondTest} from "./DeployDiamond.t.sol";
+import {LendRewards} from "../src/Rewards.sol";
 
-contract TestBase is Test, DeployDiamondTest {
+// Factory contracts
+import {ILendFactory} from "../src/interfaces/IFactory.sol";
+import {IDiamondCut} from "../src/interfaces/IDiamondCut.sol";
+import {LendFactory} from "../src/DiamondProxy.sol";
+import {Admin} from "../src/facets/Admin.sol";
+import {Getters} from "../src/facets/Getters.sol";
+import {Invest} from "../src/facets/Invest.sol";
+import {Operations} from "../src/facets/Operations.sol";
+import {Ownership} from "../src/facets/Ownership.sol";
+
+contract TestBase is Test, FactoryDiamondCuts, Constants {
     uint256 initialUsdcBalance = 1_000_000_000 * 10 ** 6;
     uint8 sharesDecimal = 6;
     uint256 totalSharesAmount = 1_000_000 * 10 ** sharesDecimal;
@@ -20,9 +36,7 @@ contract TestBase is Test, DeployDiamondTest {
 
     USDC public usdc;
     ILendFactory public factory;
-
-    address eurUsdOracle = address(0xb49f677943BC038e9857d61E7d053CaA2C1734C1); // ETH mainnet address
-    address lzEndpoint = address(0x1a44076050125825900e736c501f859c50fE728c); // ETH mainnet endpoint
+    LendRewards public rewards;
 
     address backendSigner;
     uint256 backendSignerPk;
@@ -35,9 +49,11 @@ contract TestBase is Test, DeployDiamondTest {
 
     function mintUsdc() public {
         vm.startPrank(admin);
-        usdc.mint(address(admin), initialUsdcBalance);
-        usdc.mint(address(user), initialUsdcBalance);
-        usdc.mint(address(user2), initialUsdcBalance);
+
+        deal(address(usdc), address(admin), initialUsdcBalance);
+        deal(address(usdc), address(user), initialUsdcBalance);
+        deal(address(usdc), address(user2), initialUsdcBalance);
+
         vm.stopPrank();
     }
 
@@ -81,7 +97,43 @@ contract TestBase is Test, DeployDiamondTest {
         return op;
     }
 
-    function setupContracts() public {
+    function deployRewards() public {
+        LendRewards implementation = new LendRewards();
+
+        // Prepare initializer data
+        bytes memory initData = abi.encodeCall(LendRewards.initialize, (address(admin), address(usdc)));
+
+        // Deploy the proxy and initialize
+        ERC1967Proxy rewardsProxy = new ERC1967Proxy(address(implementation), initData);
+
+        rewards = LendRewards(payable(rewardsProxy));
+    }
+
+    function deployDiamond() public {
+        Admin adminFacet = new Admin();
+        Getters gettersFacet = new Getters();
+        Invest investFacet = new Invest();
+        Operations operationsFacet = new Operations();
+        Ownership ownershipFacet = new Ownership();
+
+        LendFactory diamond = new LendFactory(
+            address(admin), address(usdc), mnFactArgs.eurUsdOracle, mnFactArgs.lzEndpoint, address(backendSigner)
+        );
+
+        IDiamondCut.FacetCut[] memory cut = getAllFacets(
+            address(adminFacet),
+            address(gettersFacet),
+            address(investFacet),
+            address(operationsFacet),
+            address(ownershipFacet)
+        );
+
+        diamond.diamondCut(cut, address(0), ""); // Perform cut
+
+        factory = ILendFactory(address(diamond));
+    }
+
+    function setupContracts() public virtual {
         vm.deal(admin, 10 ether);
         vm.deal(user, 10 ether);
         vm.deal(user2, 10 ether);
@@ -91,14 +143,10 @@ contract TestBase is Test, DeployDiamondTest {
 
         backendSigner = _backendSigner;
         backendSignerPk = _backendSignerPk;
+        usdc = USDC(getMainnetUsdcAddress());
 
-        usdc = new USDC();
-
-        address diamondAddress = setupDiamond(
-            address(admin), address(usdc), address(eurUsdOracle), address(lzEndpoint), address(backendSigner)
-        );
-
-        factory = ILendFactory(diamondAddress);
+        deployDiamond();
+        deployRewards();
 
         vm.stopPrank();
     }
