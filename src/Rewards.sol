@@ -6,11 +6,14 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {IPoolAddressesProvider, IPool} from "./interfaces/IPool.sol";
 
 contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     //********** Init **********
 
     IERC20 public rewardToken;
+    IPoolAddressesProvider public aaveAddressProvider =
+        IPoolAddressesProvider(0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e);
 
     struct ClaimData {
         uint256 epoch;
@@ -192,6 +195,29 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         opClaimed[_opId][_epoch][_user] = true;
         transferRewards(_opId, _user, _claimedBalance, true);
+    }
+
+    function claimOpEpochAndRepay(
+        uint256 _opId,
+        address _user,
+        uint256 _epoch,
+        uint256 _claimedBalance,
+        bytes32[] memory _merkleProof,
+        uint256 _interestRateMode
+    ) public {
+        require(_claimedBalance > 0, "claim balance must be more than 0");
+        require(!opClaimed[_opId][_epoch][_user], "epoch already claimed for this user");
+        require(verifyOpClaim(_opId, _user, _epoch, _claimedBalance, _merkleProof), "Incorrect merkle proof");
+        require(_interestRateMode == 1 || _interestRateMode == 2, "_interestRateMode should be set to either 1 or 2");
+
+        opClaimed[_opId][_epoch][_user] = true;
+
+        address aavePool = aaveAddressProvider.getPool();
+
+        require(rewardToken.approve(aavePool, _claimedBalance), "AAVE <> USDC approval failed");
+
+        // InterestRateMode: 2 is for Variable rate (most common), 1 is for Stable
+        IPool(aavePool).repay(address(rewardToken), _claimedBalance, _interestRateMode, _user);
     }
 
     function claimOpEpochs(uint256 _opId, address _user, ClaimData[] memory claims) public {

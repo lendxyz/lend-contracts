@@ -10,7 +10,7 @@ import {LendRewards} from "../src/Rewards.sol";
 contract RewardsTest is Test, TestBase, MerkleHelper {
     function setUp() public override(TestBase) {
         super.setUp();
-        deal(address(usdc), address(admin), initialUsdcBalance);
+        deal(address(usdc), address(admin), 600e6);
     }
 
     function test_DistributeAndClaimOpRewards() public {
@@ -41,7 +41,7 @@ contract RewardsTest is Test, TestBase, MerkleHelper {
         rewards.claimOpEpoch(opId, ru, epoch, ra, proof);
         vm.stopPrank();
 
-        assertEq(rewards.opClaimed(opId, epoch,ru), true);
+        assertEq(rewards.opClaimed(opId, epoch, ru), true);
         assertEq(usdc.balanceOf(ru), ra);
     }
 
@@ -72,7 +72,7 @@ contract RewardsTest is Test, TestBase, MerkleHelper {
         rewards.claimRefEpoch(ru, epoch, ra, proof);
         vm.stopPrank();
 
-        assertEq(rewards.refClaimed(epoch,ru), true);
+        assertEq(rewards.refClaimed(epoch, ru), true);
         assertEq(usdc.balanceOf(ru), ra);
     }
 }
