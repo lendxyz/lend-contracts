@@ -24,7 +24,7 @@ import {Operations} from "../src/facets/Operations.sol";
 import {Ownership} from "../src/facets/Ownership.sol";
 
 contract TestBase is Test, FactoryDiamondCuts, Constants {
-    uint256 initialUsdcBalance = 1_000_000_000 * 10 ** 6;
+    uint256 initialUsdcBalance = 1_000_000_000e6;
     uint8 sharesDecimal = 6;
     uint256 totalSharesAmount = 1_000_000 * 10 ** sharesDecimal;
     uint256 eurAmountPerShare = 2;
@@ -44,6 +44,10 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
     address admin = makeAddr("lend-admin");
     address user = makeAddr("user");
     address user2 = makeAddr("user2");
+    address user3 = makeAddr("user3");
+
+    address[] rewardUsers;
+    uint256[] rewardAmounts;
 
     string testNonce = "QSfd8gQE4WYzO29";
 
@@ -99,14 +103,13 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
 
     function deployRewards() public {
         LendRewards implementation = new LendRewards();
-
-        // Prepare initializer data
-        bytes memory initData = abi.encodeCall(LendRewards.initialize, (address(admin), address(usdc)));
-
-        // Deploy the proxy and initialize
-        ERC1967Proxy rewardsProxy = new ERC1967Proxy(address(implementation), initData);
+        ERC1967Proxy rewardsProxy = new ERC1967Proxy(
+            address(implementation), abi.encodeCall(LendRewards.initialize, (address(admin), address(usdc)))
+        );
 
         rewards = LendRewards(payable(rewardsProxy));
+        rewardUsers = [address(user), address(user2), address(user3)];
+        rewardAmounts = [100e6, 200e6, 300e6];
     }
 
     function deployDiamond() public {

@@ -27,11 +27,10 @@ contract OpLendOftTest is TestHelperOz5, TestBase {
     LendOperation opLendB; // OApp B
 
     function beforeTestSetup() public pure returns (bytes[] memory beforeTestCalldata) {
-        beforeTestCalldata = new bytes[](4);
-        beforeTestCalldata[0] = abi.encodePacked(this.setupContracts.selector);
+        beforeTestCalldata = new bytes[](3);
+        beforeTestCalldata[1] = abi.encodePacked(this.setupContracts.selector);
         beforeTestCalldata[1] = abi.encodePacked(this.mintUsdc.selector);
-        beforeTestCalldata[2] = abi.encodePacked(this.createOperation.selector);
-        beforeTestCalldata[3] = abi.encodePacked(this.setupLzEndpoints.selector);
+        beforeTestCalldata[2] = abi.encodePacked(this.setupLzEndpoints.selector);
     }
 
     /// @notice Calls setUp from TestHelper and initializes contract instances for testing.
