@@ -10,6 +10,26 @@ import {Options, Upgrades} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
 import {LendRewards} from "../src/Rewards.sol";
 
 contract RewardsTest is Test, TestBase, MerkleHelper {
+    function createOpDistribution() public {
+        bytes32 root = getRoot(rewardUsers, rewardAmounts);
+        uint256 totalAllocation = 600e6;
+
+        vm.startPrank(admin);
+        usdc.approve(address(rewards), totalAllocation);
+        rewards.distributeOpRewards(2, 1, root, totalAllocation);
+        vm.stopPrank();
+    }
+
+    function createRefDistribution() public {
+        bytes32 root = getRoot(rewardUsers, rewardAmounts);
+        uint256 totalAllocation = 600e6;
+
+        vm.startPrank(admin);
+        usdc.approve(address(rewards), totalAllocation);
+        rewards.distributeRefRewards(1, root, totalAllocation);
+        vm.stopPrank();
+    }
+
     function setUp() public override(TestBase) {
         super.setUp();
         deal(address(usdc), address(admin), 600e6);
@@ -81,5 +101,92 @@ contract RewardsTest is Test, TestBase, MerkleHelper {
 
         assertEq(rewards.refClaimed(epoch, ru), true);
         assertEq(usdc.balanceOf(ru), ra);
+    }
+
+    function test_CannotClaimMoreOpRewards() public {
+        createOpDistribution();
+        
+        address ru = rewardUsers[2];
+        uint256 ra = rewardAmounts[2];
+
+        bytes32[] memory proof = getProof(rewardUsers, rewardAmounts, 2);
+
+        vm.startPrank(ru);
+        vm.expectRevert(bytes("Incorrect merkle proof"));
+        rewards.claimOpEpoch(2, ru, 1, ra + 1, proof);
+        vm.stopPrank();
+    }
+
+    function test_CannotClaimLessOpRewards() public {
+        createOpDistribution();
+        
+        address ru = rewardUsers[2];
+        uint256 ra = rewardAmounts[2];
+
+        bytes32[] memory proof = getProof(rewardUsers, rewardAmounts, 2);
+
+        vm.startPrank(ru);
+        vm.expectRevert(bytes("Incorrect merkle proof"));
+        rewards.claimOpEpoch(2, ru, 1, ra - 1, proof);
+        vm.stopPrank();
+    }
+
+    function test_CannotClaimOpRewardsTwice() public {
+        createOpDistribution();
+        
+        address ru = rewardUsers[2];
+        uint256 ra = rewardAmounts[2];
+
+        bytes32[] memory proof = getProof(rewardUsers, rewardAmounts, 2);
+
+        vm.startPrank(ru);
+        rewards.claimOpEpoch(2, ru, 1, ra, proof);
+        vm.expectRevert(bytes("epoch already claimed for this user"));
+        rewards.claimOpEpoch(2, ru, 1, ra, proof);
+        vm.stopPrank();
+    }
+
+
+    function test_CannotClaimMoreRefRewards() public {
+        createRefDistribution();
+        
+        address ru = rewardUsers[2];
+        uint256 ra = rewardAmounts[2];
+
+        bytes32[] memory proof = getProof(rewardUsers, rewardAmounts, 2);
+
+        vm.startPrank(ru);
+        vm.expectRevert(bytes("Incorrect merkle proof"));
+        rewards.claimRefEpoch(ru, 1, ra + 1, proof);
+        vm.stopPrank();
+    }
+
+    function test_CannotClaimLessRefRewards() public {
+        createRefDistribution();
+        
+        address ru = rewardUsers[2];
+        uint256 ra = rewardAmounts[2];
+
+        bytes32[] memory proof = getProof(rewardUsers, rewardAmounts, 2);
+
+        vm.startPrank(ru);
+        vm.expectRevert(bytes("Incorrect merkle proof"));
+        rewards.claimRefEpoch(ru, 1, ra - 1, proof);
+        vm.stopPrank();
+    }
+
+    function test_CannotClaimRefRewardsTwice() public {
+        createRefDistribution();
+        
+        address ru = rewardUsers[2];
+        uint256 ra = rewardAmounts[2];
+
+        bytes32[] memory proof = getProof(rewardUsers, rewardAmounts, 2);
+
+        vm.startPrank(ru);
+        rewards.claimRefEpoch(ru, 1, ra, proof);
+        vm.expectRevert(bytes("epoch already claimed for this user"));
+        rewards.claimRefEpoch(ru, 1, ra, proof);
+        vm.stopPrank();
     }
 }

@@ -22,6 +22,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "@layerzerolabs/lz-evm-v1-0.7": "^2.0.6"
+    "@layerzerolabs/lz-evm-v1-0.7": "^2.0.6",
+    "@openzeppelin/upgrades-core": "^1.44.2"
   }
 }
