@@ -105,7 +105,7 @@ contract RewardsTest is Test, TestBase, MerkleHelper {
 
     function test_CannotClaimMoreOpRewards() public {
         createOpDistribution();
-        
+
         address ru = rewardUsers[2];
         uint256 ra = rewardAmounts[2];
 
@@ -119,7 +119,7 @@ contract RewardsTest is Test, TestBase, MerkleHelper {
 
     function test_CannotClaimLessOpRewards() public {
         createOpDistribution();
-        
+
         address ru = rewardUsers[2];
         uint256 ra = rewardAmounts[2];
 
@@ -133,7 +133,7 @@ contract RewardsTest is Test, TestBase, MerkleHelper {
 
     function test_CannotClaimOpRewardsTwice() public {
         createOpDistribution();
-        
+
         address ru = rewardUsers[2];
         uint256 ra = rewardAmounts[2];
 
@@ -146,10 +146,9 @@ contract RewardsTest is Test, TestBase, MerkleHelper {
         vm.stopPrank();
     }
 
-
     function test_CannotClaimMoreRefRewards() public {
         createRefDistribution();
-        
+
         address ru = rewardUsers[2];
         uint256 ra = rewardAmounts[2];
 
@@ -163,7 +162,7 @@ contract RewardsTest is Test, TestBase, MerkleHelper {
 
     function test_CannotClaimLessRefRewards() public {
         createRefDistribution();
-        
+
         address ru = rewardUsers[2];
         uint256 ra = rewardAmounts[2];
 
@@ -177,7 +176,7 @@ contract RewardsTest is Test, TestBase, MerkleHelper {
 
     function test_CannotClaimRefRewardsTwice() public {
         createRefDistribution();
-        
+
         address ru = rewardUsers[2];
         uint256 ra = rewardAmounts[2];
 
