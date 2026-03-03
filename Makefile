@@ -28,7 +28,7 @@ fmt:
 	forge fmt
 
 tests:
-	forge test -vvv --fork-url https://ethereum-rpc.publicnode.com
+	make clean && forge test -vvv --fork-url https://ethereum-rpc.publicnode.com
 
 gas-report:
 	forge test --fork-url https://ethereum-rpc.publicnode.com --gas-report
@@ -37,7 +37,7 @@ coverage:
 	forge coverage -vvv --fork-url https://ethereum-rpc.publicnode.com
 
 build:
-	forge compile
+	make clean && forge compile
 
 clean:
 	forge cache clean && forge clean
@@ -66,12 +66,12 @@ deploy-oft-testnet:
 	forge script script/testnet/DeployOFT.s.sol:DeployOFTTestnet --slow --broadcast --private-key $(pk) --verify
 
 deploy-rewards-mainnet:
-	forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://base-rpc.publicnode.com --verify
+	make clean && forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://base-rpc.publicnode.com --verify
     # If deploying on plume/blockscout setup
 	# forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://rpc.plume.org --verify --verifier blockscout --verifier-url https://explorer.plume.org/api
 
 deploy-rewards-testnet:
-	forge script script/testnet/DeployRewards.s.sol:DeployRewardsTestnet --slow --broadcast --private-key $(pk) --verify
+	make clean && forge script script/testnet/DeployRewards.s.sol:DeployRewardsTestnet --slow --broadcast --private-key $(pk) --verify
 
 set-peer-factory:
 	forge script script/SetOpLendPeerFactory.s.sol:SetOpLendPeerFactory --slow --broadcast --private-key $(pk)

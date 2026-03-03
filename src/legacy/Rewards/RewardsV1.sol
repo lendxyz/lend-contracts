@@ -6,9 +6,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {IPoolAddressesProvider, IPool} from "./interfaces/IPool.sol";
 
-/// @custom:oz-upgrades-from src/legacy/Rewards/RewardsV1.sol:LendRewards
 contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     //********** Init **********
 
@@ -42,8 +40,6 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     mapping(uint256 => bytes32) public refMerkleRoot;
     // epoch => user => claimed
     mapping(uint256 => mapping(address => bool)) public refClaimed;
-
-    IPoolAddressesProvider public aaveAddressProvider;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -158,10 +154,6 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         emit RewardTokenUpdated(_newTokenAddress);
     }
 
-    function setAaveAddressProvider(address _newAddress) public onlyOwner {
-        aaveAddressProvider = IPoolAddressesProvider(_newAddress);
-    }
-
     function emergencyWithdraw(address _token) public onlyOwner {
         require(_token != address(rewardToken), "Cannot emergency withdraw reward token");
 
@@ -200,30 +192,6 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         opClaimed[_opId][_epoch][_user] = true;
         transferRewards(_opId, _user, _claimedBalance, true);
-    }
-
-    function claimOpEpochAndRepay(
-        uint256 _opId,
-        address _user,
-        uint256 _epoch,
-        uint256 _claimedBalance,
-        bytes32[] memory _merkleProof,
-        uint256 _interestRateMode
-    ) public {
-        require(_claimedBalance > 0, "claim balance must be more than 0");
-        require(!opClaimed[_opId][_epoch][_user], "epoch already claimed for this user");
-        require(verifyOpClaim(_opId, _user, _epoch, _claimedBalance, _merkleProof), "Incorrect merkle proof");
-        require(address(aaveAddressProvider) != address(0), "AAVE module not initialized");
-        require(_interestRateMode == 1 || _interestRateMode == 2, "AAVE _interestRateMode should be set to either 1 or 2");
-
-        opClaimed[_opId][_epoch][_user] = true;
-
-        address aavePool = aaveAddressProvider.getPool();
-
-        require(rewardToken.approve(aavePool, _claimedBalance), "AAVE <> USDC approval failed");
-
-        // InterestRateMode: 2 is for Variable rate (most common), 1 is for Stable
-        IPool(aavePool).repay(address(rewardToken), _claimedBalance, _interestRateMode, _user);
     }
 
     function claimOpEpochs(uint256 _opId, address _user, ClaimData[] memory claims) public {

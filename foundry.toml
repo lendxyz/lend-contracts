@@ -5,8 +5,12 @@ src = "src"
 out = "out"
 libs = ["lib"]
 via-ir = true
+ffi = true
+ast = true
+build_info = true
 optimizer = true
 optimizer-runs = 10000
+extra_output = ["storageLayout"]
 gas_reports = [
     "Diamond",
     "LendOperation",
@@ -33,6 +37,7 @@ remappings = [
     'murky/=lib/murky/src/',
     '@openzeppelin/contracts/=lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/',
     '@openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/',
+    '@openzeppelin/foundry-upgrades/=lib/openzeppelin-foundry-upgrades/src/',
     '@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/',
     '@chainlink/contracts/=lib/chainlink-brownie-contracts/contracts/',
     '@layerzerolabs/oft-evm/=lib/devtools/packages/oft-evm/',

@@ -5,12 +5,20 @@ pragma solidity ^0.8.27;
 import {Test, console} from "forge-std/Test.sol";
 import {TestBase} from "./TestBase.t.sol";
 import {MerkleHelper} from "./MerkleHelper.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {Options, Upgrades} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
+import {LendRewards as LendRewardsLegacy} from "../src/legacy/Rewards/RewardsV1.sol";
 import {LendRewards} from "../src/Rewards.sol";
 
 contract RewardsTest is Test, TestBase, MerkleHelper {
     function setUp() public override(TestBase) {
         super.setUp();
         deal(address(usdc), address(admin), 600e6);
+    }
+
+    function test_UpgradeProxy() public {
+        Options memory opts;
+        Upgrades.validateUpgrade("Rewards.sol:LendRewards", opts);
     }
 
     function test_DistributeAndClaimOpRewards() public {
