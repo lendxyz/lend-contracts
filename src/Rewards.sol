@@ -65,9 +65,11 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     //********** Read **********
 
     function getUSDCBalanceOwed(address user) public view returns (uint256, uint256) {
-        // The bytes32 ID for "DATA_PROVIDER" is 0x01... (standard across Aave V3)
+        require(address(aaveAddressProvider) != address(0), "AAVE module not initialized");
+
+        bytes32 dataProviderId = 'DATA_PROVIDER';
         address dataProviderAddress =
-            aaveAddressProvider.getAddress(0x0100000000000000000000000000000000000000000000000000000000000000);
+            aaveAddressProvider.getAddress(dataProviderId);
 
         (
             , // currentATokenBalance
@@ -228,10 +230,10 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         uint256 _claimedBalance,
         bytes32[] memory _merkleProof
     ) public {
+        require(address(aaveAddressProvider) != address(0), "AAVE module not initialized");
         require(_claimedBalance > 0, "claim balance must be more than 0");
         require(!opClaimed[_opId][_epoch][_user], "epoch already claimed for this user");
         require(verifyOpClaim(_opId, _user, _epoch, _claimedBalance, _merkleProof), "Incorrect merkle proof");
-        require(address(aaveAddressProvider) != address(0), "AAVE module not initialized");
 
         opClaimed[_opId][_epoch][_user] = true;
 
