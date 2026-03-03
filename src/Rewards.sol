@@ -67,9 +67,8 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     function getUSDCBalanceOwed(address user) public view returns (uint256, uint256) {
         require(address(aaveAddressProvider) != address(0), "AAVE module not initialized");
 
-        bytes32 dataProviderId = 'DATA_PROVIDER';
-        address dataProviderAddress =
-            aaveAddressProvider.getAddress(dataProviderId);
+        bytes32 dataProviderId = "DATA_PROVIDER";
+        address dataProviderAddress = aaveAddressProvider.getAddress(dataProviderId);
 
         (
             , // currentATokenBalance
@@ -270,10 +269,10 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         // Send leftover rewards if debt was fully repayed
         if (remainingToUser > 0) {
-            transferRewards(_opId, _user, remainingToUser, true);
-        } else {
-            emit Claimed(_opId, _user, _claimedBalance);
+            require(rewardToken.transfer(_user, remainingToUser), "ERR_TRANSFER_FAILED");
         }
+
+        emit Claimed(_opId, _user, _claimedBalance);
     }
 
     function claimOpEpochs(uint256 _opId, address _user, ClaimData[] memory claims) public {
