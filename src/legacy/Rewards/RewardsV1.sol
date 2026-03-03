@@ -7,7 +7,7 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 
-contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+contract LendRewardsV1 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     //********** Init **********
 
     IERC20 public rewardToken;

@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-// AAVE pool interface
 interface IPool {
     struct ReserveData {
         // stores the reserve configuration
@@ -46,4 +45,22 @@ interface IPool {
 
 interface IPoolAddressesProvider {
     function getPool() external view returns (address);
+    function getAddress(bytes32 id) external view returns (address);
+}
+
+interface IPoolDataProvider {
+    function getUserReserveData(address asset, address user)
+        external
+        view
+        returns (
+            uint256 currentATokenBalance,
+            uint256 currentStableDebt,
+            uint256 currentVariableDebt,
+            uint256 principalStableDebt,
+            uint256 scaledVariableDebt,
+            uint256 stableBorrowRate,
+            uint256 liquidityIndex,
+            uint256 variableBorrowIndex,
+            uint256 stableRateLastUpdated
+        );
 }

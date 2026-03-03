@@ -6,9 +6,9 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {IPoolAddressesProvider, IPool} from "./interfaces/IPool.sol";
+import {IPoolDataProvider, IPoolAddressesProvider, IPool} from "./interfaces/AaveInterfaces.sol";
 
-/// @custom:oz-upgrades-from src/legacy/Rewards/RewardsV1.sol:LendRewards
+/// @custom:oz-upgrades-from src/legacy/Rewards/RewardsV1.sol:LendRewardsV1
 contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     //********** Init **********
 
@@ -63,6 +63,25 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     receive() external payable {}
 
     //********** Read **********
+
+    function getUSDCBalanceOwed(address user) public view returns (uint256, uint256) {
+        // The bytes32 ID for "DATA_PROVIDER" is 0x01... (standard across Aave V3)
+        address dataProviderAddress =
+            aaveAddressProvider.getAddress(0x0100000000000000000000000000000000000000000000000000000000000000);
+
+        (
+            , // currentATokenBalance
+            uint256 currentStableDebt,
+            uint256 currentVariableDebt,
+            , // principalStableDebt
+            , // scaledVariableDebt
+            , // stableBorrowRate
+            , // liquidityIndex
+            , // variableBorrowIndex
+        ) = IPoolDataProvider(dataProviderAddress).getUserReserveData(address(rewardToken), user);
+
+        return (currentStableDebt, currentVariableDebt);
+    }
 
     function opClaimStatus(uint256 _opId, address _user, uint256 _begin, uint256 _end)
         external
@@ -207,23 +226,52 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         address _user,
         uint256 _epoch,
         uint256 _claimedBalance,
-        bytes32[] memory _merkleProof,
-        uint256 _interestRateMode
+        bytes32[] memory _merkleProof
     ) public {
         require(_claimedBalance > 0, "claim balance must be more than 0");
         require(!opClaimed[_opId][_epoch][_user], "epoch already claimed for this user");
         require(verifyOpClaim(_opId, _user, _epoch, _claimedBalance, _merkleProof), "Incorrect merkle proof");
         require(address(aaveAddressProvider) != address(0), "AAVE module not initialized");
-        require(_interestRateMode == 1 || _interestRateMode == 2, "AAVE _interestRateMode should be set to either 1 or 2");
 
         opClaimed[_opId][_epoch][_user] = true;
 
+        // --- Debt Calculation ---
+        (uint256 stableDebt, uint256 varDebt) = getUSDCBalanceOwed(_user);
+        uint256 totalDebt = stableDebt + varDebt;
+
+        // No debt case
+        if (totalDebt == 0) {
+            transferRewards(_opId, _user, _claimedBalance, true);
+            return;
+        }
+
+        uint256 amountToRepay = _claimedBalance > totalDebt ? totalDebt : _claimedBalance;
+        uint256 remainingToUser = _claimedBalance > amountToRepay ? _claimedBalance - amountToRepay : 0;
+
+        // --- Execution ---
         address aavePool = aaveAddressProvider.getPool();
+        require(rewardToken.approve(aavePool, amountToRepay), "AAVE <> USDC approval failed");
 
-        require(rewardToken.approve(aavePool, _claimedBalance), "AAVE <> USDC approval failed");
+        uint256 remainingRepayPower = amountToRepay;
 
-        // InterestRateMode: 2 is for Variable rate (most common), 1 is for Stable
-        IPool(aavePool).repay(address(rewardToken), _claimedBalance, _interestRateMode, _user);
+        // Repay Stable Debt
+        if (stableDebt > 0 && remainingRepayPower > 0) {
+            uint256 stableRepay = remainingRepayPower > stableDebt ? stableDebt : remainingRepayPower;
+            IPool(aavePool).repay(address(rewardToken), stableRepay, 1, _user);
+            remainingRepayPower -= stableRepay;
+        }
+
+        // Repay Variable Debt
+        if (varDebt > 0 && remainingRepayPower > 0) {
+            IPool(aavePool).repay(address(rewardToken), remainingRepayPower, 2, _user);
+        }
+
+        // Send leftover rewards if debt was fully repayed
+        if (remainingToUser > 0) {
+            transferRewards(_opId, _user, remainingToUser, true);
+        } else {
+            emit Claimed(_opId, _user, _claimedBalance);
+        }
     }
 
     function claimOpEpochs(uint256 _opId, address _user, ClaimData[] memory claims) public {

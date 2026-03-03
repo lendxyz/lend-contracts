@@ -7,7 +7,6 @@ import {TestBase} from "./TestBase.t.sol";
 import {MerkleHelper} from "./MerkleHelper.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Options, Upgrades} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
-import {LendRewards as LendRewardsLegacy} from "../src/legacy/Rewards/RewardsV1.sol";
 import {LendRewards} from "../src/Rewards.sol";
 
 contract RewardsTest is Test, TestBase, MerkleHelper {
