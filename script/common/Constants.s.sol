@@ -116,4 +116,77 @@ contract Constants {
 
         revert("Unknown chain id");
     }
+
+    function getMainnetRewardsAddress() public view returns (address) {
+        // Ethereum
+        if (block.chainid == 1) {
+            return address(0xEf4e73216356f10Ebf0E0061187e0fb8ADfAa3c6);
+        }
+
+        // Arbitrum
+        if (block.chainid == 42161) {
+            return address(0x31272a2028619A916BAfBB46028F0D51bb865973);
+        }
+
+        // Base
+        if (block.chainid == 8453) {
+            return address(0xAe55602E0bf8A7364baF518956069d8d3E4aA16B);
+        }
+
+        // BSC
+        if (block.chainid == 56) {
+            return address(0xa0Dc88318eCa43cc2a0c3c2f46a8FF7860fC8D4c);
+        }
+
+        // Polygon
+        if (block.chainid == 137) {
+            return address(0xDF4aACF64675298b3a4de0109b63A598a5Bb42F2);
+        }
+
+        // Sonic
+        if (block.chainid == 146) {
+            return address(0xAC3FC66A4BfA086B9f888cDb6e5f46bA7459E517);
+        }
+
+        // Plume
+        if (block.chainid == 98866) {
+            return address(0xDF4aACF64675298b3a4de0109b63A598a5Bb42F2);
+        }
+
+        // Linea
+        if (block.chainid == 59144) {
+            return address(0xAC3FC66A4BfA086B9f888cDb6e5f46bA7459E517);
+        }
+
+        revert("Unknown chain id");
+    }
+
+    function getTestnetRewardsAddress() public view returns (address) {
+        // Sepolia
+        if (block.chainid == 11155111) {
+            return address(0xaF01B9B350D3b27f70F383eBC7dA1b5F96cF57Aa);
+        }
+
+        // Arbitrum Sepolia
+        if (block.chainid == 421614) {
+            return address(0xA4ba6Ce1eBA10cE307D5695e671E2d4883429F6D);
+        }
+
+        // Base Sepolia
+        if (block.chainid == 84532) {
+            return address(0x1bEfF2A64780c0946B008436f68189707C51A9be);
+        }
+
+        // BSC Testnet
+        if (block.chainid == 97) {
+            return address(0x9291075065379d044A99306028Db70f0A24C9706);
+        }
+
+        // Amoy
+        if (block.chainid == 80002) {
+            return address(0x8cE18070660B07e5392E6072463710BFEd16f92f);
+        }
+
+        revert("Unknown chain id");
+    }
 }

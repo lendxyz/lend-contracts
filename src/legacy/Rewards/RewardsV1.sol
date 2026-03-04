@@ -6,10 +6,8 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {IPoolDataProvider, IPoolAddressesProvider, IPool} from "./interfaces/AaveInterfaces.sol";
 
-/// @custom:oz-upgrades-from src/legacy/Rewards/RewardsV1.sol:LendRewardsV1
-contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+contract LendRewardsV1 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     //********** Init **********
 
     IERC20 public rewardToken;
@@ -43,8 +41,6 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     // epoch => user => claimed
     mapping(uint256 => mapping(address => bool)) public refClaimed;
 
-    IPoolAddressesProvider public aaveAddressProvider;
-
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -63,26 +59,6 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     receive() external payable {}
 
     //********** Read **********
-
-    function getUSDCBalanceOwed(address user) public view returns (uint256, uint256) {
-        require(address(aaveAddressProvider) != address(0), "AAVE module not initialized");
-
-        bytes32 dataProviderId = "DATA_PROVIDER";
-        address dataProviderAddress = aaveAddressProvider.getAddress(dataProviderId);
-
-        (
-            , // currentATokenBalance
-            uint256 currentStableDebt,
-            uint256 currentVariableDebt,
-            , // principalStableDebt
-            , // scaledVariableDebt
-            , // stableBorrowRate
-            , // liquidityIndex
-            , // variableBorrowIndex
-        ) = IPoolDataProvider(dataProviderAddress).getUserReserveData(address(rewardToken), user);
-
-        return (currentStableDebt, currentVariableDebt);
-    }
 
     function opClaimStatus(uint256 _opId, address _user, uint256 _begin, uint256 _end)
         external
@@ -178,10 +154,6 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         emit RewardTokenUpdated(_newTokenAddress);
     }
 
-    function setAaveAddressProvider(address _newAddress) public onlyOwner {
-        aaveAddressProvider = IPoolAddressesProvider(_newAddress);
-    }
-
     function emergencyWithdraw(address _token) public onlyOwner {
         require(_token != address(rewardToken), "Cannot emergency withdraw reward token");
 
@@ -220,59 +192,6 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         opClaimed[_opId][_epoch][_user] = true;
         transferRewards(_opId, _user, _claimedBalance, true);
-    }
-
-    function claimOpEpochAndRepay(
-        uint256 _opId,
-        address _user,
-        uint256 _epoch,
-        uint256 _claimedBalance,
-        bytes32[] memory _merkleProof
-    ) public {
-        require(address(aaveAddressProvider) != address(0), "AAVE module not initialized");
-        require(_claimedBalance > 0, "claim balance must be more than 0");
-        require(!opClaimed[_opId][_epoch][_user], "epoch already claimed for this user");
-        require(verifyOpClaim(_opId, _user, _epoch, _claimedBalance, _merkleProof), "Incorrect merkle proof");
-
-        opClaimed[_opId][_epoch][_user] = true;
-
-        // --- Debt Calculation ---
-        (uint256 stableDebt, uint256 varDebt) = getUSDCBalanceOwed(_user);
-        uint256 totalDebt = stableDebt + varDebt;
-
-        // No debt case
-        if (totalDebt == 0) {
-            transferRewards(_opId, _user, _claimedBalance, true);
-            return;
-        }
-
-        uint256 amountToRepay = _claimedBalance > totalDebt ? totalDebt : _claimedBalance;
-        uint256 remainingToUser = _claimedBalance > amountToRepay ? _claimedBalance - amountToRepay : 0;
-
-        // --- Execution ---
-        address aavePool = aaveAddressProvider.getPool();
-        require(rewardToken.approve(aavePool, amountToRepay), "AAVE <> USDC approval failed");
-
-        uint256 remainingRepayPower = amountToRepay;
-
-        // Repay Stable Debt
-        if (stableDebt > 0 && remainingRepayPower > 0) {
-            uint256 stableRepay = remainingRepayPower > stableDebt ? stableDebt : remainingRepayPower;
-            IPool(aavePool).repay(address(rewardToken), stableRepay, 1, _user);
-            remainingRepayPower -= stableRepay;
-        }
-
-        // Repay Variable Debt
-        if (varDebt > 0 && remainingRepayPower > 0) {
-            IPool(aavePool).repay(address(rewardToken), remainingRepayPower, 2, _user);
-        }
-
-        // Send leftover rewards if debt was fully repayed
-        if (remainingToUser > 0) {
-            require(rewardToken.transfer(_user, remainingToUser), "ERR_TRANSFER_FAILED");
-        }
-
-        emit Claimed(_opId, _user, _claimedBalance);
     }
 
     function claimOpEpochs(uint256 _opId, address _user, ClaimData[] memory claims) public {

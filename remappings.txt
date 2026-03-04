@@ -2,6 +2,7 @@ forge-std/=lib/forge-std/src/
 murky/=lib/murky/src/
 @openzeppelin/contracts/=lib/openzeppelin-contracts-upgradeable/lib/openzeppelin-contracts/contracts/
 @openzeppelin/contracts-upgradeable/=lib/openzeppelin-contracts-upgradeable/contracts/
+@openzeppelin/foundry-upgrades/=lib/openzeppelin-foundry-upgrades/src/
 @chainlink/contracts/=lib/chainlink-brownie-contracts/contracts/
 @layerzerolabs/oft-evm/=lib/devtools/packages/oft-evm/
 @layerzerolabs/oft-evm-upgradeable/=lib/devtools/packages/oft-evm-upgradeable/
