@@ -146,6 +146,46 @@
   },
   {
     "type": "function",
+    "name": "claimOpEpochsAndRepay",
+    "inputs": [
+      {
+        "name": "_opId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_user",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "claims",
+        "type": "tuple[]",
+        "internalType": "struct LendRewards.ClaimData[]",
+        "components": [
+          {
+            "name": "epoch",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "balance",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "merkleProof",
+            "type": "bytes32[]",
+            "internalType": "bytes32[]"
+          }
+        ]
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "claimRefEpoch",
     "inputs": [
       {

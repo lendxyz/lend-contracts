@@ -222,57 +222,46 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         transferRewards(_opId, _user, _claimedBalance, true);
     }
 
-    function claimOpEpochAndRepay(
-        uint256 _opId,
-        address _user,
-        uint256 _epoch,
-        uint256 _claimedBalance,
-        bytes32[] memory _merkleProof
-    ) public {
-        require(address(aaveAddressProvider) != address(0), "AAVE module not initialized");
-        require(_claimedBalance > 0, "claim balance must be more than 0");
-        require(!opClaimed[_opId][_epoch][_user], "epoch already claimed for this user");
-        require(verifyOpClaim(_opId, _user, _epoch, _claimedBalance, _merkleProof), "Incorrect merkle proof");
+    function claimAndRepay(uint256 _opId, address _user, uint256 _totalBalance) private {
+        if (_totalBalance > 0) {
+            // --- Debt Calculation ---
+            (uint256 stableDebt, uint256 varDebt) = getUSDCBalanceOwed(_user);
+            uint256 totalDebt = stableDebt + varDebt;
 
-        opClaimed[_opId][_epoch][_user] = true;
+            // No debt case
+            if (totalDebt == 0) {
+                transferRewards(_opId, _user, _totalBalance, true);
+                return;
+            }
 
-        // --- Debt Calculation ---
-        (uint256 stableDebt, uint256 varDebt) = getUSDCBalanceOwed(_user);
-        uint256 totalDebt = stableDebt + varDebt;
+            uint256 amountToRepay = _totalBalance > totalDebt ? totalDebt : _totalBalance;
+            uint256 remainingToUser = _totalBalance > amountToRepay ? _totalBalance - amountToRepay : 0;
 
-        // No debt case
-        if (totalDebt == 0) {
-            transferRewards(_opId, _user, _claimedBalance, true);
-            return;
+            // --- Execution ---
+            address aavePool = aaveAddressProvider.getPool();
+            require(rewardToken.approve(aavePool, amountToRepay), "AAVE <> USDC approval failed");
+
+            uint256 remainingRepayPower = amountToRepay;
+
+            // Repay Stable Debt
+            if (stableDebt > 0 && remainingRepayPower > 0) {
+                uint256 stableRepay = remainingRepayPower > stableDebt ? stableDebt : remainingRepayPower;
+                IPool(aavePool).repay(address(rewardToken), stableRepay, 1, _user);
+                remainingRepayPower -= stableRepay;
+            }
+
+            // Repay Variable Debt
+            if (varDebt > 0 && remainingRepayPower > 0) {
+                IPool(aavePool).repay(address(rewardToken), remainingRepayPower, 2, _user);
+            }
+
+            // Send leftover rewards if debt was fully repayed
+            if (remainingToUser > 0) {
+                require(rewardToken.transfer(_user, remainingToUser), "ERR_TRANSFER_FAILED");
+            }
+
+            emit Claimed(_opId, _user, _totalBalance);
         }
-
-        uint256 amountToRepay = _claimedBalance > totalDebt ? totalDebt : _claimedBalance;
-        uint256 remainingToUser = _claimedBalance > amountToRepay ? _claimedBalance - amountToRepay : 0;
-
-        // --- Execution ---
-        address aavePool = aaveAddressProvider.getPool();
-        require(rewardToken.approve(aavePool, amountToRepay), "AAVE <> USDC approval failed");
-
-        uint256 remainingRepayPower = amountToRepay;
-
-        // Repay Stable Debt
-        if (stableDebt > 0 && remainingRepayPower > 0) {
-            uint256 stableRepay = remainingRepayPower > stableDebt ? stableDebt : remainingRepayPower;
-            IPool(aavePool).repay(address(rewardToken), stableRepay, 1, _user);
-            remainingRepayPower -= stableRepay;
-        }
-
-        // Repay Variable Debt
-        if (varDebt > 0 && remainingRepayPower > 0) {
-            IPool(aavePool).repay(address(rewardToken), remainingRepayPower, 2, _user);
-        }
-
-        // Send leftover rewards if debt was fully repayed
-        if (remainingToUser > 0) {
-            require(rewardToken.transfer(_user, remainingToUser), "ERR_TRANSFER_FAILED");
-        }
-
-        emit Claimed(_opId, _user, _claimedBalance);
     }
 
     function claimOpEpochs(uint256 _opId, address _user, ClaimData[] memory claims) public {
@@ -295,6 +284,44 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         if (totalBalance > 0) {
             transferRewards(_opId, _user, totalBalance, true);
         }
+    }
+
+    function claimOpEpochsAndRepay(uint256 _opId, address _user, ClaimData[] memory claims) public {
+        require(address(aaveAddressProvider) != address(0), "AAVE module not initialized");
+
+        uint256 totalBalance = 0;
+        ClaimData memory claim;
+
+        for (uint256 i = 0; i < claims.length; i++) {
+            claim = claims[i];
+
+            if (!opClaimed[_opId][claim.epoch][_user]) {
+                require(
+                    verifyOpClaim(_opId, _user, claim.epoch, claim.balance, claim.merkleProof), "Incorrect merkle proof"
+                );
+
+                totalBalance += claim.balance;
+                opClaimed[_opId][claim.epoch][_user] = true;
+            }
+        }
+
+        claimAndRepay(_opId, _user, totalBalance);
+    }
+
+    function claimOpEpochAndRepay(
+        uint256 _opId,
+        address _user,
+        uint256 _epoch,
+        uint256 _claimedBalance,
+        bytes32[] memory _merkleProof
+    ) public {
+        require(address(aaveAddressProvider) != address(0), "AAVE module not initialized");
+        require(_claimedBalance > 0, "claim balance must be more than 0");
+        require(!opClaimed[_opId][_epoch][_user], "epoch already claimed for this user");
+        require(verifyOpClaim(_opId, _user, _epoch, _claimedBalance, _merkleProof), "Incorrect merkle proof");
+
+        opClaimed[_opId][_epoch][_user] = true;
+        claimAndRepay(_opId, _user, _claimedBalance);
     }
 
     function claimRefEpoch(address _user, uint256 _epoch, uint256 _claimedBalance, bytes32[] memory _merkleProof)
