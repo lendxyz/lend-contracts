@@ -10,8 +10,6 @@ import {IPoolDataProvider, IPoolAddressesProvider, IPool} from "./interfaces/Aav
 
 /// @custom:oz-upgrades-from src/legacy/Rewards/RewardsV1.sol:LendRewardsV1
 contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
-    //********** Init **********
-
     IERC20 public rewardToken;
 
     struct ClaimData {
@@ -194,7 +192,7 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         }
     }
 
-    //********** Claim **********
+    //********** Claim utils **********
 
     function transferRewards(uint256 _opId, address _user, uint256 _balance, bool isOp) private {
         if (_balance > 0) {
@@ -205,21 +203,6 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
                 emit ClaimedRef(_user, _balance);
             }
         }
-    }
-
-    function claimOpEpoch(
-        uint256 _opId,
-        address _user,
-        uint256 _epoch,
-        uint256 _claimedBalance,
-        bytes32[] memory _merkleProof
-    ) public {
-        require(_claimedBalance > 0, "claim balance must be more than 0");
-        require(!opClaimed[_opId][_epoch][_user], "epoch already claimed for this user");
-        require(verifyOpClaim(_opId, _user, _epoch, _claimedBalance, _merkleProof), "Incorrect merkle proof");
-
-        opClaimed[_opId][_epoch][_user] = true;
-        transferRewards(_opId, _user, _claimedBalance, true);
     }
 
     function claimAndRepay(uint256 _opId, address _user, uint256 _totalBalance) private {
@@ -264,6 +247,23 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         }
     }
 
+    //********** Operation rewards **********
+
+    function claimOpEpoch(
+        uint256 _opId,
+        address _user,
+        uint256 _epoch,
+        uint256 _claimedBalance,
+        bytes32[] memory _merkleProof
+    ) public {
+        require(_claimedBalance > 0, "claim balance must be more than 0");
+        require(!opClaimed[_opId][_epoch][_user], "epoch already claimed for this user");
+        require(verifyOpClaim(_opId, _user, _epoch, _claimedBalance, _merkleProof), "Incorrect merkle proof");
+
+        opClaimed[_opId][_epoch][_user] = true;
+        transferRewards(_opId, _user, _claimedBalance, true);
+    }
+
     function claimOpEpochs(uint256 _opId, address _user, ClaimData[] memory claims) public {
         uint256 totalBalance = 0;
         ClaimData memory claim;
@@ -284,6 +284,24 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         if (totalBalance > 0) {
             transferRewards(_opId, _user, totalBalance, true);
         }
+    }
+
+    //********** AAVE module **********
+
+    function claimOpEpochAndRepay(
+        uint256 _opId,
+        address _user,
+        uint256 _epoch,
+        uint256 _claimedBalance,
+        bytes32[] memory _merkleProof
+    ) public {
+        require(address(aaveAddressProvider) != address(0), "AAVE module not initialized");
+        require(_claimedBalance > 0, "claim balance must be more than 0");
+        require(!opClaimed[_opId][_epoch][_user], "epoch already claimed for this user");
+        require(verifyOpClaim(_opId, _user, _epoch, _claimedBalance, _merkleProof), "Incorrect merkle proof");
+
+        opClaimed[_opId][_epoch][_user] = true;
+        claimAndRepay(_opId, _user, _claimedBalance);
     }
 
     function claimOpEpochsAndRepay(uint256 _opId, address _user, ClaimData[] memory claims) public {
@@ -308,21 +326,7 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         claimAndRepay(_opId, _user, totalBalance);
     }
 
-    function claimOpEpochAndRepay(
-        uint256 _opId,
-        address _user,
-        uint256 _epoch,
-        uint256 _claimedBalance,
-        bytes32[] memory _merkleProof
-    ) public {
-        require(address(aaveAddressProvider) != address(0), "AAVE module not initialized");
-        require(_claimedBalance > 0, "claim balance must be more than 0");
-        require(!opClaimed[_opId][_epoch][_user], "epoch already claimed for this user");
-        require(verifyOpClaim(_opId, _user, _epoch, _claimedBalance, _merkleProof), "Incorrect merkle proof");
-
-        opClaimed[_opId][_epoch][_user] = true;
-        claimAndRepay(_opId, _user, _claimedBalance);
-    }
+    //********** Referral rewards **********
 
     function claimRefEpoch(address _user, uint256 _epoch, uint256 _claimedBalance, bytes32[] memory _merkleProof)
         public
