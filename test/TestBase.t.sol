@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.27;
 
+import {Test} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {Test, console} from "forge-std/Test.sol";
 
 // Helpers
 import {Constants} from "../script/common/Constants.s.sol";
@@ -14,14 +14,14 @@ import {LendOperation} from "../src/opLend.sol";
 import {LendRewards} from "../src/Rewards.sol";
 
 // Factory contracts
-import {ILendFactory} from "../src/interfaces/IFactory.sol";
-import {IDiamondCut} from "../src/interfaces/IDiamondCut.sol";
-import {LendFactory} from "../src/DiamondProxy.sol";
-import {Admin} from "../src/facets/Admin.sol";
-import {Getters} from "../src/facets/Getters.sol";
-import {Invest} from "../src/facets/Invest.sol";
-import {Operations} from "../src/facets/Operations.sol";
-import {Ownership} from "../src/facets/Ownership.sol";
+import {ILendFactory} from "../src/Factory/interfaces/IFactory.sol";
+import {IDiamondCut} from "../src/Factory/interfaces/IDiamondCut.sol";
+import {LendFactory} from "../src/Factory/DiamondProxy.sol";
+import {Admin} from "../src/Factory/facets/Admin.sol";
+import {Getters} from "../src/Factory/facets/Getters.sol";
+import {Invest} from "../src/Factory/facets/Invest.sol";
+import {Operations} from "../src/Factory/facets/Operations.sol";
+import {Ownership} from "../src/Factory/facets/Ownership.sol";
 
 contract TestBase is Test, FactoryDiamondCuts, Constants {
     uint256 initialUsdcBalance = 1_000_000_000e6;

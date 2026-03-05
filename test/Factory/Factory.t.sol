@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.27;
 
-import {Test, console} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {SendParam, MessagingFee} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
-import {ILendFactory} from "../../src/interfaces/IFactory.sol";
+import {ILendFactory} from "../../src/Factory/interfaces/IFactory.sol";
 import {USDC} from "../../src/testnet/DummyUSDC.sol";
 import {LendOperation} from "../../src/opLend.sol";
 import {TestBase} from "../TestBase.t.sol";

@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.27;
 
-import {IDiamondCut} from "../../src/interfaces/IDiamondCut.sol";
+import {IDiamondCut} from "../../src/Factory/interfaces/IDiamondCut.sol";
 
-import {Admin} from "../../src/facets/Admin.sol";
-import {Getters} from "../../src/facets/Getters.sol";
-import {Invest} from "../../src/facets/Invest.sol";
-import {Operations} from "../../src/facets/Operations.sol";
-import {Ownership} from "../../src/facets/Ownership.sol";
+import {Admin} from "../../src/Factory/facets/Admin.sol";
+import {Getters} from "../../src/Factory/facets/Getters.sol";
+import {Invest} from "../../src/Factory/facets/Invest.sol";
+import {Operations} from "../../src/Factory/facets/Operations.sol";
+import {Ownership} from "../../src/Factory/facets/Ownership.sol";
 
 contract FactoryDiamondCuts {
     function getAdminFacets(address facet, IDiamondCut.FacetCutAction action)

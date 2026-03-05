@@ -5,7 +5,7 @@ import {LibDiamond} from "../lib/LibDiamond.sol";
 import {Operation, AppStorage, LibAppStorage} from "../lib/Storage.sol";
 import {Utils} from "../lib/Utils.sol";
 import {Events} from "../lib/Utils.sol";
-import {LendOperation} from "../opLend.sol";
+import {LendOperation} from "../../opLend.sol";
 
 contract Admin {
     function refundUser(uint256 id, address user) external {
