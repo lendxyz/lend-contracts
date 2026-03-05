@@ -313,7 +313,7 @@
   },
   {
     "type": "function",
-    "name": "getUSDCBalanceOwed",
+    "name": "getUsdcBalanceOwed",
     "inputs": [
       {
         "name": "user",

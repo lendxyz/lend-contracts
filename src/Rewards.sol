@@ -62,7 +62,7 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     //********** Read **********
 
-    function getUSDCBalanceOwed(address user) public view returns (uint256, uint256) {
+    function getUsdcBalanceOwed(address user) public view returns (uint256, uint256) {
         require(address(aaveAddressProvider) != address(0), "AAVE module not initialized");
 
         bytes32 dataProviderId = "DATA_PROVIDER";
@@ -208,7 +208,7 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     function claimAndRepay(uint256 _opId, address _user, uint256 _totalBalance) private {
         if (_totalBalance > 0) {
             // --- Debt Calculation ---
-            (uint256 stableDebt, uint256 varDebt) = getUSDCBalanceOwed(_user);
+            (uint256 stableDebt, uint256 varDebt) = getUsdcBalanceOwed(_user);
             uint256 totalDebt = stableDebt + varDebt;
 
             // No debt case

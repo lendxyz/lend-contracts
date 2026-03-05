@@ -54,9 +54,9 @@ contract RewardsRepayTest is Test, RewardsTest {
         aavePool.supply(address(usdc), 500e6, ru, 0);
         aavePool.borrow(address(usdc), ra, 2, 0, ru);
 
-        usdc.transfer(address(admin), ra); // simulate invest
+        require(usdc.transfer(address(admin), ra), "transfer failed"); // simulate invest
 
-        (uint256 ob1, uint256 ob2) = rewards.getUSDCBalanceOwed(ru);
+        (uint256 ob1, uint256 ob2) = rewards.getUsdcBalanceOwed(ru);
         uint256 owedAmountBefore = ob1 + ob2;
 
         vm.expectEmit(address(rewards));
@@ -64,7 +64,7 @@ contract RewardsRepayTest is Test, RewardsTest {
 
         rewards.claimOpEpochAndRepay(opId, ru, epoch, ra, proof);
 
-        (uint256 oa1, uint256 oa2) = rewards.getUSDCBalanceOwed(ru);
+        (uint256 oa1, uint256 oa2) = rewards.getUsdcBalanceOwed(ru);
         uint256 owedAmountAfter = oa1 + oa2;
 
         vm.stopPrank();
@@ -89,9 +89,9 @@ contract RewardsRepayTest is Test, RewardsTest {
         aavePool.supply(address(usdc), 500e6, ru, 0);
         aavePool.borrow(address(usdc), ra / 2, 2, 0, ru);
 
-        usdc.transfer(address(admin), ra / 2); // simulate invest
+        require(usdc.transfer(address(admin), ra / 2), "transfer failed"); // simulate invest
 
-        (uint256 ob1, uint256 ob2) = rewards.getUSDCBalanceOwed(ru);
+        (uint256 ob1, uint256 ob2) = rewards.getUsdcBalanceOwed(ru);
         uint256 owedAmountBefore = ob1 + ob2;
 
         vm.expectEmit(address(rewards));
@@ -99,7 +99,7 @@ contract RewardsRepayTest is Test, RewardsTest {
 
         rewards.claimOpEpochAndRepay(opId, ru, epoch, ra, proof);
 
-        (uint256 oa1, uint256 oa2) = rewards.getUSDCBalanceOwed(ru);
+        (uint256 oa1, uint256 oa2) = rewards.getUsdcBalanceOwed(ru);
         uint256 owedAmountAfter = oa1 + oa2;
 
         vm.stopPrank();
