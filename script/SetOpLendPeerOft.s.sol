@@ -40,7 +40,7 @@ contract SetOpLendPeerOft is Script, Constants {
 
         (bytes32 peerSonic, uint32 lzEidSonic) = (bytes32(uint256(uint160(peerSonicAddr))), 30332);
 
-        (bytes32 peerPlume, uint32 lzEidPlume) = (bytes32(uint256(uint160(peerPlumeAddr))), 30370);
+        // (bytes32 peerPlume, uint32 lzEidPlume) = (bytes32(uint256(uint160(peerPlumeAddr))), 30370);
 
         (bytes32 peerLinea, uint32 lzEidLinea) = (bytes32(uint256(uint160(peerLineaAddr))), 30183);
 
