@@ -81,9 +81,4 @@ contract RewardsTest is Test, TestBase, MerkleHelper {
         ru = rewardUsers[rewIndex];
         ra = rewardAmounts[rewIndex];
     }
-
-    function test_UpgradeProxy() public {
-        Options memory opts;
-        Upgrades.validateUpgrade("Rewards.sol:LendRewards", opts);
-    }
 }

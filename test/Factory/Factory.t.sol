@@ -3,10 +3,10 @@ pragma solidity ^0.8.27;
 
 import {Test, console} from "forge-std/Test.sol";
 import {SendParam, MessagingFee} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
-import {ILendFactory} from "../src/interfaces/IFactory.sol";
-import {USDC} from "../src/testnet/DummyUSDC.sol";
-import {LendOperation} from "../src/opLend.sol";
-import {TestBase} from "./TestBase.t.sol";
+import {ILendFactory} from "../../src/interfaces/IFactory.sol";
+import {USDC} from "../../src/testnet/DummyUSDC.sol";
+import {LendOperation} from "../../src/opLend.sol";
+import {TestBase} from "../TestBase.t.sol";
 
 contract FactoryTest is Test, TestBase {
     function beforeTestSetup(bytes4 testSelector) public pure returns (bytes[] memory beforeTestCalldata) {

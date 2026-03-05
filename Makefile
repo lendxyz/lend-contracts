@@ -8,7 +8,7 @@ help:
 	@echo 'make gas-report: get gas reports'
 	@echo 'make coverage: show tests coverage'
 	@echo 'make build: compile contracts'
-	@echo 'make clean: clean build cache and forge cache'
+	@echo 'forge cache clean && forge clean: clean build cache and forge cache'
 	@echo 'make remappings: generate remappings links for dependencies'
 	@echo 'make deploy-factory rpc=[your_rpc_url] pk=[your_private_key]: deploy factory'
 	@echo 'make upgrade-factory rpc=[your_rpc_url] pk=[your_private_key]: upgrade factory'
@@ -28,7 +28,8 @@ fmt:
 	forge fmt
 
 tests:
-	make clean
+	chmod +x test/check-storage.sh
+	forge cache clean && forge clean
 	forge test -vvv --fork-url https://ethereum-rpc.publicnode.com
 
 gas-report:
@@ -38,7 +39,7 @@ coverage:
 	forge coverage -vvv --fork-url https://ethereum-rpc.publicnode.com
 
 build:
-	make clean
+	forge cache clean && forge clean
 	forge compile
 
 clean:
@@ -68,29 +69,29 @@ deploy-oft-testnet:
 	forge script script/testnet/DeployOFT.s.sol:DeployOFTTestnet --slow --broadcast --private-key $(pk) --verify
 
 deploy-rewards-mainnet:
-	make clean
+	forge cache clean && forge clean
 	forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://base-rpc.publicnode.com --verify
     # If deploying on plume/blockscout setup
 	# forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://rpc.plume.org --verify --verifier blockscout --verifier-url https://explorer.plume.org/api
 
 upgrade-rewards-mainnet:
-	make clean
+	forge cache clean && forge clean
 	forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://base-rpc.publicnode.com --verify
     # If deploying on plume/blockscout setup
 	# forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://rpc.plume.org --verify --verifier blockscout --verifier-url https://explorer.plume.org/api
 
 upgrade-rewards-mainnet-no-safe:
-	make clean
+	forge cache clean && forge clean
 	forge script script/mainnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://base-rpc.publicnode.com --verify
     # If deploying on plume/blockscout setup
 	# forge script script/mainnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://rpc.plume.org --verify --verifier blockscout --verifier-url https://explorer.plume.org/api
 
 deploy-rewards-testnet:
-	make clean
+	forge cache clean && forge clean
 	forge script script/testnet/DeployRewards.s.sol:DeployRewardsTestnet --slow --broadcast --private-key $(pk) --verify
 
 upgrade-rewards-testnet:
-	make clean
+	forge cache clean && forge clean
 	forge script script/testnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --private-key $(pk) --verify
 
 set-peer-factory:
