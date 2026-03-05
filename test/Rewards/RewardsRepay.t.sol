@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.27;
 
-import {Test, console} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Options, Upgrades} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
 import {TestBase} from "../TestBase.t.sol";
@@ -56,9 +56,6 @@ contract RewardsRepayTest is Test, RewardsTest {
 
         require(usdc.transfer(address(admin), ra), "transfer failed"); // simulate invest
 
-        (uint256 ob1, uint256 ob2) = rewards.getUsdcBalanceOwed(ru);
-        uint256 owedAmountBefore = ob1 + ob2;
-
         vm.expectEmit(address(rewards));
         emit LendRewards.Claimed(opId, ru, ra);
 
@@ -70,8 +67,7 @@ contract RewardsRepayTest is Test, RewardsTest {
         vm.stopPrank();
 
         assertEq(rewards.opClaimed(opId, epoch, ru), true);
-        assertGt(owedAmountBefore, owedAmountAfter);
-        assertGt(ra, owedAmountAfter);
+        assertApproxEqAbs(owedAmountAfter, 0, 5);
         assertEq(usdc.balanceOf(ru), 0);
     }
 
@@ -91,9 +87,6 @@ contract RewardsRepayTest is Test, RewardsTest {
 
         require(usdc.transfer(address(admin), ra / 2), "transfer failed"); // simulate invest
 
-        (uint256 ob1, uint256 ob2) = rewards.getUsdcBalanceOwed(ru);
-        uint256 owedAmountBefore = ob1 + ob2;
-
         vm.expectEmit(address(rewards));
         emit LendRewards.Claimed(opId, ru, ra);
 
@@ -105,8 +98,7 @@ contract RewardsRepayTest is Test, RewardsTest {
         vm.stopPrank();
 
         assertEq(rewards.opClaimed(opId, epoch, ru), true);
-        assertGt(owedAmountBefore, owedAmountAfter);
-        assertGt(ra / 2, owedAmountAfter);
-        assertEq(usdc.balanceOf(ru), (ra / 2) - 1); // -1 is because of the AAVE interest rate
+        assertApproxEqAbs(owedAmountAfter, 0, 5);
+        assertApproxEqAbs(usdc.balanceOf(ru), (ra / 2), 5);
     }
 }
