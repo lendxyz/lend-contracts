@@ -6,10 +6,9 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {IPoolDataProvider, IPoolAddressesProvider, IPool} from "./utils/AaveInterfaces.sol";
+import {IPoolDataProvider, IPoolAddressesProvider, IPool} from "../../utils/AaveInterfaces.sol";
 
-/// @custom:oz-upgrades-from src/legacy/Rewards/RewardsV2.sol:LendRewardsV2
-contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
+contract LendRewardsV2 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     IERC20 public rewardToken;
 
     struct ClaimData {

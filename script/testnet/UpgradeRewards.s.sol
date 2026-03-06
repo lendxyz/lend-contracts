@@ -9,7 +9,7 @@ contract UpgradeRewards is Script, Constants {
     function run() external {
         vm.startBroadcast();
 
-        Upgrades.upgradeProxy(getTestnetRewardsAddress(), "Rewards.sol", "");
+        Upgrades.upgradeProxy(getTestnetRewardsAddress(), "Rewards.sol:LendRewards", "");
 
         vm.stopBroadcast();
     }

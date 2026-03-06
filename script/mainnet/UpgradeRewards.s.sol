@@ -9,7 +9,7 @@ contract UpgradeRewards is Script, Constants {
     function run() external {
         vm.startBroadcast();
 
-        Upgrades.upgradeProxy(getMainnetRewardsAddress(), "Rewards.sol", "");
+        Upgrades.upgradeProxy(getMainnetRewardsAddress(), "Rewards.sol:LendRewards", "");
 
         vm.stopBroadcast();
     }
@@ -23,8 +23,7 @@ contract ProposeUUPSUpgrade is Script, Constants {
         vm.startBroadcast();
 
         // Deploy & Validate the new implementation
-        // This ensures the new code has the 'upgradeTo' function (is UUPS compliant)
-        address newImplementation = Upgrades.prepareUpgrade("Rewards.sol", opts);
+        address newImplementation = Upgrades.prepareUpgrade("Rewards.sol:LendRewards", opts);
 
         vm.stopBroadcast();
 

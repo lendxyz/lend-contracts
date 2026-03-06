@@ -76,23 +76,45 @@ deploy-rewards-mainnet:
 
 upgrade-rewards-mainnet:
 	forge cache clean && forge clean
-	forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://base-rpc.publicnode.com --verify
-    # If deploying on plume/blockscout setup
-	# forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://rpc.plume.org --verify --verifier blockscout --verifier-url https://explorer.plume.org/api
+	forge compile
+	# Ethereum
+	forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	# Arbitrum
+	# forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://arbitrum-one-rpc.publicnode.com --verify
+	# Base
+	# forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://base-rpc.publicnode.com --verify
+	# BSC
+	# forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://bsc-rpc.publicnode.com --verify
+	# Polygon
+	# forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://polygon-bor-rpc.publicnode.com --verify
+	# Sonic
+	# forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://sonic-rpc.publicnode.com:443 --verify
+	# Linea
+	# forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://linea-rpc.publicnode.com --verify
 
 upgrade-rewards-mainnet-no-safe:
 	forge cache clean && forge clean
-	forge script script/mainnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://base-rpc.publicnode.com --verify
-    # If deploying on plume/blockscout setup
-	# forge script script/mainnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://rpc.plume.org --verify --verifier blockscout --verifier-url https://explorer.plume.org/api
+	forge compile
+	forge script script/mainnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://rpc.plume.org --verify --verifier blockscout --verifier-url https://explorer.plume.org/api
 
 deploy-rewards-testnet:
 	forge cache clean && forge clean
+	forge compile
 	forge script script/testnet/DeployRewards.s.sol:DeployRewardsTestnet --slow --broadcast --private-key $(pk) --verify
 
 upgrade-rewards-testnet:
 	forge cache clean && forge clean
-	forge script script/testnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --private-key $(pk) --verify
+	forge compile
+	# Ethereum Sepolia
+	forge script script/testnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --private-key $(pk) --rpc-url https://ethereum-sepolia-rpc.publicnode.com --verify
+	# Arbitrum Sepolia
+	# forge script script/testnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --private-key $(pk) --rpc-url https://arbitrum-sepolia-rpc.publicnode.com --verify
+	# Base Sepolia
+	# forge script script/testnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --private-key $(pk) --rpc-url https://base-sepolia-rpc.publicnode.com --verify
+	# BSC Testnet
+	# forge script script/testnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --private-key $(pk) --rpc-url https://bsc-testnet-dataseed.bnbchain.org --verify
+	# Polygon Amoy
+	# forge script script/testnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --private-key $(pk) --rpc-url https://polygon-amoy-bor-rpc.publicnode.com --verify
 
 set-peer-factory:
 	forge script script/SetOpLendPeerFactory.s.sol:SetOpLendPeerFactory --slow --broadcast --private-key $(pk)
