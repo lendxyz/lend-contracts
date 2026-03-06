@@ -142,8 +142,8 @@ playground:
 
 abi:
 	mkdir -p abis
-	forge inspect ILendFactory abi --json > ./abis/IFactory.json
-	forge inspect LendOperation abi --json > ./abis/opLend.json
-	forge inspect LendOperation bytecode > ./abis/opLend-bytecode.txt
-	forge inspect LendRewards abi --json > ./abis/Rewards.json
-	forge inspect LendFaucet abi --json > ./abis/Faucet.json
+	forge inspect src/Factory/interfaces/IFactory.sol:ILendFactory abi --json > ./abis/IFactory.json
+	forge inspect src/opLend.sol:LendOperation abi --json > ./abis/opLend.json
+	forge inspect src/opLend.sol:LendOperation bytecode > ./abis/opLend-bytecode.txt
+	forge inspect src/Rewards.sol:LendRewards abi --json > ./abis/Rewards.json
+	forge inspect src/testnet/Faucet.sol:LendFaucet abi --json > ./abis/Faucet.json
