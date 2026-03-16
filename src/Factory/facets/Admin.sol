@@ -112,7 +112,7 @@ contract Admin {
         s.blacklisted[user] = state;
     }
 
-    function whitelistUser(uint256 opId, address user, bool state) external {
+    function opLendWhitelistUser(uint256 opId, address user, bool state) external {
         LibDiamond.enforceIsContractOwner();
         AppStorage storage s = LibAppStorage.appStorage();
 
@@ -124,7 +124,7 @@ contract Admin {
         opLend.whitelistUserAdmin(user, state);
     }
 
-    function updateOpLendBackendSigner(uint256 opId, address newSigner) external {
+    function opLendUpdateBackendSigner(uint256 opId, address newSigner) external {
         LibDiamond.enforceIsContractOwner();
         AppStorage storage s = LibAppStorage.appStorage();
 
@@ -136,7 +136,7 @@ contract Admin {
         opLend.updateBackendSigner(newSigner);
     }
 
-    function burnOpLend(uint256 opId, address user, uint256 value) external {
+    function opLendAdminBurn(uint256 opId, address user, uint256 value) external {
         LibDiamond.enforceIsContractOwner();
         AppStorage storage s = LibAppStorage.appStorage();
 
