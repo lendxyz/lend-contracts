@@ -121,6 +121,7 @@ contract Admin {
 
         if (opId > s.operationCount) revert Events.OpNotExist();
         LendOperation opLend = LendOperation(s.operations[opId].opToken);
+
         opLend.whitelistUserAdmin(user, state);
     }
 
@@ -133,6 +134,7 @@ contract Admin {
 
         if (opId > s.operationCount) revert Events.OpNotExist();
         LendOperation opLend = LendOperation(s.operations[opId].opToken);
+
         opLend.updateBackendSigner(newSigner);
     }
 
@@ -140,12 +142,13 @@ contract Admin {
         LibDiamond.enforceIsContractOwner();
         AppStorage storage s = LibAppStorage.appStorage();
 
-        require(user != address(0), "Cannot whitelist address 0");
-        require(user != address(this), "Cannot whitelist factory");
+        require(user != address(0), "Cannot burn tokens from address 0");
+        require(user != address(this), "Cannot burn tokens from factory");
         require(value > 0, "No amount specified");
 
         if (opId > s.operationCount) revert Events.OpNotExist();
         LendOperation opLend = LendOperation(s.operations[opId].opToken);
+
         opLend.adminBurn(user, value);
     }
 }
