@@ -46,15 +46,63 @@ contract OpLendOftTest is TestHelperOz5, TestBase {
         super.setUp();
     }
 
-    // TODO: test multichain transfer here
     function test_TransferOFT() public {
         LendOperation opLend = new LendOperation(
             address(admin), "LendOpTest", "opLend-0", 1_000_000, mnFactArgs.lzEndpoint, address(admin), backendSigner
         );
-        bytes memory signature = getTransferSignature(address(user), testNonce);
+
+        deal(address(opLend), address(user), 500e6);
+
+        bytes memory signatureu1 = getTransferSignature(address(user), testNonce);
+        bytes memory signatureu2 = getTransferSignature(address(user2), testNonce2);
+
+        vm.startPrank(user2);
+        opLend.whitelistUser(address(user2), testNonce2, signatureu2);
+        vm.stopPrank();
 
         vm.startPrank(user);
-        opLend.whitelistUser(address(user), testNonce, signature);
+        opLend.whitelistUser(address(user), testNonce, signatureu1);
+        opLend.transfer(address(user2), 500e6);
         vm.stopPrank();
+
+        assertEq(opLend.balanceOf(address(user)), 0);
+        assertEq(opLend.balanceOf(address(user2)), 500e6);
+    }
+
+    function test_AdminWhitelist() public {
+        address op = createOperation();
+        LendOperation opLend = LendOperation(op);
+
+        deal(address(opLend), address(user), 500e6);
+
+        vm.startPrank(user);
+        vm.expectRevert();
+        opLend.transfer(address(user2), 500e6);
+        vm.stopPrank();
+
+        vm.startPrank(admin);
+        factory.opLendWhitelistUser(1, address(user), true);
+        factory.opLendWhitelistUser(1, address(user2), true);
+        vm.stopPrank();
+
+        vm.startPrank(user);
+        opLend.transfer(address(user2), 500e6);
+        vm.stopPrank();
+
+        assertEq(opLend.balanceOf(address(user)), 0);
+        assertEq(opLend.balanceOf(address(user2)), 500e6);
+    }
+
+    function test_AdminBurn() public {
+        address op = createOperation();
+        LendOperation opLend = LendOperation(op);
+
+        deal(address(opLend), address(user), 500e6);
+
+        vm.startPrank(admin);
+        factory.opLendAdminBurn(1, address(user), 500e6);
+        vm.stopPrank();
+
+        assertEq(opLend.balanceOf(address(user)), 0);
     }
 }

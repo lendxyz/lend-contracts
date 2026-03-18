@@ -64,6 +64,9 @@ interface ILendFactory {
     function setOpLendPeer(uint256 id, uint32 chainId, uint32 lzEndpointId, bytes32 peerAddress) external;
     function blacklist(address user, bool state) external;
     function withdrawUsdc(uint256 id, address destination) external;
+    function opLendWhitelistUser(uint256 opId, address user, bool state) external;
+    function opLendUpdateBackendSigner(uint256 opId, address newSigner) external;
+    function opLendAdminBurn(uint256 opId, address user, uint256 value) external;
     function batchSetOpLendPeers(
         uint256[] calldata ids,
         uint32[] calldata chainIds,

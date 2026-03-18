@@ -111,4 +111,44 @@ contract Admin {
 
         s.blacklisted[user] = state;
     }
+
+    function opLendWhitelistUser(uint256 opId, address user, bool state) external {
+        LibDiamond.enforceIsContractOwner();
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        require(user != address(0), "Cannot whitelist address 0");
+        require(user != address(this), "Cannot whitelist factory");
+
+        if (opId > s.operationCount) revert Events.OpNotExist();
+        LendOperation opLend = LendOperation(s.operations[opId].opToken);
+
+        opLend.whitelistUserAdmin(user, state);
+    }
+
+    function opLendUpdateBackendSigner(uint256 opId, address newSigner) external {
+        LibDiamond.enforceIsContractOwner();
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        require(newSigner != address(0), "New backend signer cannot be address 0");
+        require(newSigner != address(this), "New backend signer cannot be the factory");
+
+        if (opId > s.operationCount) revert Events.OpNotExist();
+        LendOperation opLend = LendOperation(s.operations[opId].opToken);
+
+        opLend.updateBackendSigner(newSigner);
+    }
+
+    function opLendAdminBurn(uint256 opId, address user, uint256 value) external {
+        LibDiamond.enforceIsContractOwner();
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        require(user != address(0), "Cannot burn tokens from address 0");
+        require(user != address(this), "Cannot burn tokens from factory");
+        require(value > 0, "No amount specified");
+
+        if (opId > s.operationCount) revert Events.OpNotExist();
+        LendOperation opLend = LendOperation(s.operations[opId].opToken);
+
+        opLend.adminBurn(user, value);
+    }
 }

@@ -50,6 +50,7 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
     uint256[] rewardAmounts;
 
     string testNonce = "QSfd8gQE4WYzO29";
+    string testNonce2 = "q5tL8jK6hgT44WYz";
 
     function mintUsdc() public {
         vm.startPrank(admin);
