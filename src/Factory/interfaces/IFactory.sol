@@ -50,6 +50,7 @@ interface ILendFactory {
     error AlreadyWithdrawn();
     error InvalidSignatureLength();
     error PredepositsNotOpen();
+    error BackendSignerOnly();
 
     struct Operation {
         address opToken;

@@ -1306,6 +1306,11 @@
   },
   {
     "type": "error",
+    "name": "BackendSignerOnly",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InputCannotBeZero",
     "inputs": []
   },

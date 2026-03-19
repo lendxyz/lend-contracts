@@ -83,12 +83,11 @@ contract Invest {
 
         if (isOpFinished) revert Events.OpFinished();
         if (id > s.operationCount) revert Events.OpNotExist();
-        if (!s.operationStarted[id]) revert Events.OpNotStarted();
         if (s.fundingProgress[id] + sharesAmount > s.operations[id].totalShares) revert Events.TooManyShares();
         if (s.operationCanceled[id]) revert Events.OpCanceled();
         if (s.fundingPaused[id]) revert Events.OpPaused();
         if (sharesAmount <= 0) revert Events.ZeroShares();
-        if (msg.sender != s.backendSigner) revert("Backend signer only");
+        if (msg.sender != s.backendSigner) revert Events.BackendSignerOnly();
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
