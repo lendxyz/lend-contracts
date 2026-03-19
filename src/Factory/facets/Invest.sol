@@ -11,6 +11,9 @@ import {LendOperation} from "../../opLend.sol";
 contract Invest {
     uint256 private reentrancyStatus;
 
+    string constant FIAT_INVEST = "FIAT_INVEST";
+    string constant ONCHAIN_INVEST = "ONCHAIN_INVEST";
+
     modifier nonReentrant() {
         require(reentrancyStatus == 0, "ReentrancyGuard: reentrant call");
         reentrancyStatus = 1;
@@ -36,7 +39,7 @@ contract Invest {
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
-        bool isSignatureValid = _verifySignature(msg.sender, sharesAmount, id, nonce, signature);
+        bool isSignatureValid = _verifySignature(ONCHAIN_INVEST, msg.sender, sharesAmount, id, nonce, signature);
         if (!isSignatureValid) revert Events.InvalidSignature();
         if (s.usdc.allowance(msg.sender, address(this)) < cost) revert Events.InsufficientAllowance();
 
@@ -66,7 +69,46 @@ contract Invest {
         LendOperation(s.operations[id].opToken).mint(msg.sender, sharesAmount);
     }
 
+    function fiatInvest(
+        uint256 id,
+        uint256 sharesAmount,
+        address user,
+        address opLendHolder,
+        string calldata nonce,
+        bytes calldata signature
+    ) external {
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        bool isOpFinished = s.operationStarted[id] && s.fundingProgress[id] >= s.operations[id].totalShares;
+
+        if (isOpFinished) revert Events.OpFinished();
+        if (id > s.operationCount) revert Events.OpNotExist();
+        if (!s.operationStarted[id]) revert Events.OpNotStarted();
+        if (s.fundingProgress[id] + sharesAmount > s.operations[id].totalShares) revert Events.TooManyShares();
+        if (s.operationCanceled[id]) revert Events.OpCanceled();
+        if (s.fundingPaused[id]) revert Events.OpPaused();
+        if (sharesAmount <= 0) revert Events.ZeroShares();
+        if (msg.sender != s.backendSigner) revert("Backend signer only");
+
+        uint256 cost = this.getAmountIn(id, sharesAmount);
+
+        bool isSignatureValid = _verifySignature(FIAT_INVEST, user, sharesAmount, id, nonce, signature);
+        if (!isSignatureValid) revert Events.InvalidSignature();
+
+        s.fundingProgress[id] += sharesAmount;
+
+        emit Events.Invested(user, id, cost, sharesAmount);
+        emit Events.InvestedFiat(user, opLendHolder, id, sharesAmount);
+
+        if (s.fundingProgress[id] >= s.operations[id].totalShares) {
+            emit Events.OperationFinished(id, s.operations[id].totalShares * s.operations[id].eurPerShares);
+        }
+
+        LendOperation(s.operations[id].opToken).mint(opLendHolder, sharesAmount);
+    }
+
     function _verifySignature(
+        string memory _type,
         address _user,
         uint256 _amount,
         uint256 _opId,
@@ -79,14 +121,14 @@ contract Invest {
             return false;
         }
 
-        bytes32 messageHash = keccak256(abi.encodePacked(address(this), block.chainid, _opId, _user, _amount, _nonce));
+        bytes32 messageHash =
+            keccak256(abi.encodePacked(_type, address(this), block.chainid, _opId, _user, _amount, _nonce));
         bytes32 ethSignedMessageHash = Utils.computeEthSignedHash(messageHash);
         address recovered = Utils.recoverSigner(ethSignedMessageHash, _signature);
         bool isValid = recovered == s.backendSigner;
 
         if (isValid) {
             s.usedNonces[_nonce] = true;
-            s.mintAllowance[_opId][_user] += _amount;
         }
 
         return isValid;
@@ -185,7 +227,7 @@ contract Invest {
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
-        bool isSignatureValid = _verifySignature(msg.sender, sharesAmount, id, nonce, signature);
+        bool isSignatureValid = _verifySignature(ONCHAIN_INVEST, msg.sender, sharesAmount, id, nonce, signature);
         if (!isSignatureValid) revert Events.InvalidSignature();
         if (s.usdc.allowance(msg.sender, address(this)) < cost) revert Events.InsufficientAllowance();
 

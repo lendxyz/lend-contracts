@@ -16,6 +16,9 @@ interface ILendFactory {
     event Refunded(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesRefunded
     );
+    event InvestedFiat(
+        address indexed investor, address indexed opLendDestination, uint256 indexed operationId, uint256 sharesBought
+    );
     event Invested(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
     );
@@ -102,13 +105,21 @@ interface ILendFactory {
         bytes calldata signature,
         uint32 lzEndpointId
     ) external payable;
-    function giftOpTokens(uint256 id, uint256 sharesAmount, address user) external;
     function predeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes calldata signature) external;
     function claimOpTokens(uint256 id, address user) external;
-    function claimOpTokensAndBridge(uint256 id, uint32 lzEndpointId) external payable;
-    function claimOpTokensBatch(uint256 id, address[] memory users) external;
     function getAmountIn(uint256 id, uint256 sharesAmount) external view returns (uint256 usdcCost);
     function getAmountOut(uint256 id, uint256 usdcAmount) external view returns (uint256 sharesAmount);
+    function giftOpTokens(uint256 id, uint256 sharesAmount, address user) external;
+    function claimOpTokensAndBridge(uint256 id, uint32 lzEndpointId) external payable;
+    function claimOpTokensBatch(uint256 id, address[] memory users) external;
+    function fiatInvest(
+        uint256 id,
+        uint256 sharesAmount,
+        address user,
+        address opLendHolder,
+        string calldata nonce,
+        bytes calldata signature
+    ) external;
 
     // Operations facet
 

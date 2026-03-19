@@ -15,6 +15,9 @@ library Events {
     event Refunded(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesRefunded
     );
+    event InvestedFiat(
+        address indexed investor, address indexed opLendDestination, uint256 indexed operationId, uint256 sharesBought
+    );
     event Invested(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
     );
