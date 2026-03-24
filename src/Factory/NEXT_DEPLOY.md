@@ -18,4 +18,5 @@ New functions:
 
 ```
 Invest.claimOpTokensBatch
+Invest.fiatInvest
 ```

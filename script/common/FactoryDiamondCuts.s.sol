@@ -63,7 +63,7 @@ contract FactoryDiamondCuts {
         pure
         returns (IDiamondCut.FacetCut memory)
     {
-        bytes4[] memory investSelectors = new bytes4[](9);
+        bytes4[] memory investSelectors = new bytes4[](10);
 
         investSelectors[0] = Invest.invest.selector;
         investSelectors[1] = Invest.investAndBridge.selector;
@@ -74,6 +74,7 @@ contract FactoryDiamondCuts {
         investSelectors[6] = Invest.giftOpTokens.selector;
         investSelectors[7] = Invest.claimOpTokensAndBridge.selector;
         investSelectors[8] = Invest.claimOpTokensBatch.selector;
+        investSelectors[9] = Invest.fiatInvest.selector;
 
         return IDiamondCut.FacetCut({facetAddress: facet, action: action, functionSelectors: investSelectors});
     }

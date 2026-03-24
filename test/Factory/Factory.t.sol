@@ -207,6 +207,34 @@ contract FactoryTest is Test, TestBase {
         assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
     }
 
+    function test_InvestFiat() public {
+        LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
+        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
+        bytes memory signatureFiat = getMintSignatureFiat(address(user2), 1, sharesToBuy, testNonce2);
+
+        vm.startPrank(user);
+        uint256 cost = factory.getAmountIn(1, sharesToBuy);
+        usdc.approve(address(factory), cost);
+        factory.invest(1, sharesToBuy, testNonce, signature);
+        vm.stopPrank();
+
+        vm.startPrank(user2);
+        factory.fiatInvest(1, sharesToBuy, address(user2), address(user3), testNonce2, signatureFiat);
+        vm.stopPrank();
+
+        assertEq(usdc.balanceOf(address(user)), initialUsdcBalance - cost);
+        assertEq(usdc.balanceOf(address(factory)), cost);
+        assertEq(opLend.balanceOf(address(user)), sharesToBuy);
+        assertEq(opLend.balanceOf(address(user2)), 0);
+        assertEq(opLend.balanceOf(address(user3)), sharesToBuy);
+        assertEq(factory.fundingProgress(1), sharesToBuy * 2);
+        assertEq(factory.operationStarted(1), true);
+        assertEq(factory.usdcRaised(1), cost);
+        assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
+        assertEq(factory.usdcRaisedPerClient(1, address(user2)), 0);
+        assertEq(factory.usdcRaisedPerClient(1, address(user3)), 0);
+    }
+
     function test_InvestAndBridge() public {
         LendOperation opToken = LendOperation(factory.getOperation(1).opToken);
         bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
