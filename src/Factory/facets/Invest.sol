@@ -95,14 +95,15 @@ contract Invest {
 
         s.fundingProgress[id] += sharesAmount;
 
+        LendOperation(s.operations[id].opToken).mint(opLendHolder, sharesAmount);
+        LendOperation(s.operations[id].opToken).whitelistUserAdmin(user, true);
+
         emit Events.Invested(user, id, cost, sharesAmount);
         emit Events.InvestedFiat(user, opLendHolder, id, sharesAmount);
 
         if (s.fundingProgress[id] >= s.operations[id].totalShares) {
             emit Events.OperationFinished(id, s.operations[id].totalShares * s.operations[id].eurPerShares);
         }
-
-        LendOperation(s.operations[id].opToken).mint(opLendHolder, sharesAmount);
     }
 
     function _verifySignature(
