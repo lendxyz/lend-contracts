@@ -87,7 +87,6 @@ contract Invest {
         if (s.operationCanceled[id]) revert Events.OpCanceled();
         if (s.fundingPaused[id]) revert Events.OpPaused();
         if (sharesAmount <= 0) revert Events.ZeroShares();
-        if (msg.sender != s.backendSigner) revert Events.BackendSignerOnly();
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
