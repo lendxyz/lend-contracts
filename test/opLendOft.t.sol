@@ -53,8 +53,8 @@ contract OpLendOftTest is TestHelperOz5, TestBase {
 
         deal(address(opLend), address(user), 500e6);
 
-        bytes memory signatureu1 = getTransferSignature(address(user), testNonce);
-        bytes memory signatureu2 = getTransferSignature(address(user2), testNonce2);
+        bytes memory signatureu1 = getTransferSignature(address(opLend), address(user), testNonce);
+        bytes memory signatureu2 = getTransferSignature(address(opLend), address(user2), testNonce2);
 
         vm.startPrank(user2);
         opLend.whitelistUser(address(user2), testNonce2, signatureu2);

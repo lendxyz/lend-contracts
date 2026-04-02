@@ -97,10 +97,10 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
         return signature;
     }
 
-    function getTransferSignature(address _user, string memory _nonce) public returns (bytes memory) {
+    function getTransferSignature(address _opLend, address _user, string memory _nonce) public returns (bytes memory) {
         vm.startPrank(backendSigner);
 
-        bytes32 digest = keccak256(abi.encodePacked(block.chainid, _user, _nonce));
+        bytes32 digest = keccak256(abi.encodePacked(_opLend, block.chainid, _user, _nonce));
         bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", digest));
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(backendSignerPk, hash);
         bytes memory signature = abi.encodePacked(r, s, v);

@@ -20,3 +20,7 @@ New functions:
 Invest.claimOpTokensBatch
 Invest.fiatInvest
 ```
+
+- Redeploy Operations
+
+No new functions, new OpLend
