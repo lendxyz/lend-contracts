@@ -6,7 +6,14 @@ import {Events} from "./Events.sol";
 
 library Utils {
     function getEurUsdOraclePrice(address oracle) public view returns (uint256 eurUsd) {
-        (, int256 eurUsdRaw,,,) = AggregatorV3Interface(oracle).latestRoundData();
+        (uint80 roundId, int256 eurUsdRaw,, uint256 updatedAt, uint80 answeredInRound) =
+            AggregatorV3Interface(oracle).latestRoundData();
+
+        require(eurUsdRaw > 0, "Oracle: non-positive price");
+        require(answeredInRound >= roundId, "Oracle: stale round");
+        require(updatedAt != 0, "Oracle: incomplete round");
+        require(block.timestamp - updatedAt <= 25 hours, "Oracle: stale price");
+
         uint8 oracleDecimals = AggregatorV3Interface(oracle).decimals();
         int256 scaled = eurUsdRaw;
         if (oracleDecimals < 6) {
