@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.27;
+pragma solidity 0.8.30;
 
 library Events {
     event ClaimedOpToken(address indexed investor, uint256 indexed operationId, uint256 indexed amount);

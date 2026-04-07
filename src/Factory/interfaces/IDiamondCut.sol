@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.27;
+pragma solidity 0.8.30;
 
 interface IDiamondCut {
     // Add=0, Replace=1, Remove=2
