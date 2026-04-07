@@ -305,6 +305,10 @@ contract Invest {
     function claimOpTokensAndBridge(uint256 id, uint32 lzEndpointId) external payable nonReentrant {
         AppStorage storage s = LibAppStorage.appStorage();
 
+        if (id > s.operationCount) revert Events.OpNotExist();
+        if (!s.operationStarted[id]) revert Events.OpNotStarted();
+        if (s.operationCanceled[id]) revert Events.OpCanceled();
+
         uint256 amount = s.gifted[id][msg.sender] + s.predeposits[id][msg.sender];
 
         if (amount > 0) {
