@@ -11,6 +11,10 @@ import {LendOperation} from "../../opLend.sol";
 contract Invest {
     uint256 private reentrancyStatus;
 
+    uint256 private constant MAX_BATCH = 200;
+    uint256 private constant PRICE_PRECISION = 1e6;
+    uint256 private constant SHARE_PRECISION = 1e12;
+
     modifier nonReentrant() {
         require(reentrancyStatus == 0, "ReentrancyGuard: reentrant call");
         reentrancyStatus = 1;
@@ -32,13 +36,12 @@ contract Invest {
         if (s.fundingProgress[id] + sharesAmount > s.operations[id].totalShares) revert Events.TooManyShares();
         if (s.operationCanceled[id]) revert Events.OpCanceled();
         if (s.fundingPaused[id]) revert Events.OpPaused();
-        if (sharesAmount <= 0) revert Events.ZeroShares();
+        if (sharesAmount == 0) revert Events.ZeroShares();
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
         bool isSignatureValid = _verifySignature(msg.sender, sharesAmount, id, nonce, signature);
         if (!isSignatureValid) revert Events.InvalidSignature();
-        if (s.usdc.allowance(msg.sender, address(this)) < cost) revert Events.InsufficientAllowance();
 
         s.fundingProgress[id] += sharesAmount;
         s.usdcRaised[id] += cost;
@@ -83,7 +86,7 @@ contract Invest {
         if (s.fundingProgress[id] + sharesAmount > s.operations[id].totalShares) revert Events.TooManyShares();
         if (s.operationCanceled[id]) revert Events.OpCanceled();
         if (s.fundingPaused[id]) revert Events.OpPaused();
-        if (sharesAmount <= 0) revert Events.ZeroShares();
+        if (sharesAmount == 0) revert Events.ZeroShares();
         if (s.blacklisted[user]) revert Events.UserBlacklisted();
         if (s.blacklisted[opLendHolder]) revert Events.UserBlacklisted();
 
@@ -214,8 +217,6 @@ contract Invest {
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
-        if (s.usdc.allowance(msg.sender, address(this)) < cost) revert Events.InsufficientAllowance();
-
         s.fundingProgress[id] += sharesAmount;
         s.usdcRaised[id] += cost;
         s.usdcRaisedPerClient[id][user] += cost;
@@ -254,7 +255,6 @@ contract Invest {
 
         bool isSignatureValid = _verifySignature(msg.sender, sharesAmount, id, nonce, signature);
         if (!isSignatureValid) revert Events.InvalidSignature();
-        if (s.usdc.allowance(msg.sender, address(this)) < cost) revert Events.InsufficientAllowance();
 
         s.fundingProgress[id] += sharesAmount;
         s.usdcRaised[id] += cost;
@@ -298,6 +298,7 @@ contract Invest {
 
         if (id > s.operationCount) revert Events.OpNotExist();
         if (!s.operationStarted[id]) revert Events.OpNotStarted();
+        if (s.operationCanceled[id]) revert Events.OpCanceled();
 
         _claimToken(id, user, user);
     }
@@ -318,8 +319,16 @@ contract Invest {
     }
 
     function claimOpTokensBatch(uint256 id, address[] memory users) external {
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        require(users.length <= MAX_BATCH, "Batch too large");
+
+        if (id > s.operationCount) revert Events.OpNotExist();
+        if (!s.operationStarted[id]) revert Events.OpNotStarted();
+        if (s.operationCanceled[id]) revert Events.OpCanceled();
+
         for (uint256 i = 0; i < users.length; i++) {
-            this.claimOpTokens(id, users[i]);
+            _claimToken(id, users[i], users[i]);
         }
     }
 
@@ -329,8 +338,8 @@ contract Invest {
         if (id > s.operationCount) revert Events.OpNotExist();
         if (sharesAmount <= 0) revert Events.InputCannotBeZero();
 
-        uint256 sharesPriceEur = (s.operations[id].eurPerShares * sharesAmount) / 10 ** 6;
-        usdcCost = sharesPriceEur * Utils.getEurUsdOraclePrice(s.eurUsdOracle) / 10 ** 6;
+        uint256 sharesPriceEur = (s.operations[id].eurPerShares * sharesAmount) / PRICE_PRECISION;
+        usdcCost = sharesPriceEur * Utils.getEurUsdOraclePrice(s.eurUsdOracle) / PRICE_PRECISION;
 
         if (usdcCost <= 0) {
             usdcCost = 1;
@@ -346,7 +355,7 @@ contract Invest {
         uint256 eurPerShares = s.operations[id].eurPerShares;
         uint256 oraclePrice = Utils.getEurUsdOraclePrice(s.eurUsdOracle);
 
-        sharesAmount = (usdcAmount * 10 ** 12) / (eurPerShares * oraclePrice);
+        sharesAmount = (usdcAmount * SHARE_PRECISION) / (eurPerShares * oraclePrice);
 
         if (sharesAmount <= 0) {
             sharesAmount = 1;

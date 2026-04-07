@@ -25,6 +25,7 @@ contract Playground is Script {
     }
 
     function run() public pure {
-        logLzOptions();
+        console.logUint(5 * 10 ** 6);
+        console.logUint(5 * 1e6);
     }
 }

@@ -32,7 +32,7 @@ contract Invest {
         if (s.fundingProgress[id] + sharesAmount > s.operations[id].totalShares) revert Events.TooManyShares();
         if (s.operationCanceled[id]) revert Events.OpCanceled();
         if (s.fundingPaused[id]) revert Events.OpPaused();
-        if (sharesAmount <= 0) revert Events.ZeroShares();
+        if (sharesAmount == 0) revert Events.ZeroShares();
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
@@ -119,14 +119,13 @@ contract Invest {
         bytes calldata signature,
         uint32 lzEndpointId
     ) external payable nonReentrant {
-        require(msg.value > 0, "Must include LZ fees in ethers");
-        _invest(id, sharesAmount, nonce, signature);
         AppStorage storage s = LibAppStorage.appStorage();
 
+        require(msg.value > 0, "Must include LZ fees in ethers");
         if (s.blacklisted[msg.sender]) revert Events.UserBlacklisted();
 
+        _invest(id, sharesAmount, nonce, signature);
         LendOperation(s.operations[id].opToken).mint(address(this), sharesAmount);
-
         _bridge(id, sharesAmount, lzEndpointId);
     }
 
@@ -143,7 +142,7 @@ contract Invest {
         if (s.fundingProgress[id] + sharesAmount > s.operations[id].totalShares) revert Events.TooManyShares();
         if (s.operationCanceled[id]) revert Events.OpCanceled();
         if (s.fundingPaused[id]) revert Events.OpPaused();
-        if (sharesAmount <= 0) revert Events.ZeroShares();
+        if (sharesAmount == 0) revert Events.ZeroShares();
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
@@ -181,7 +180,7 @@ contract Invest {
         if (s.fundingProgress[id] + sharesAmount > s.operations[id].totalShares) revert Events.TooManyShares();
         if (s.operationCanceled[id]) revert Events.OpCanceled();
         if (s.fundingPaused[id]) revert Events.OpPaused();
-        if (sharesAmount <= 0) revert Events.ZeroShares();
+        if (sharesAmount == 0) revert Events.ZeroShares();
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
@@ -247,6 +246,8 @@ contract Invest {
     }
 
     function claimOpTokensBatch(uint256 id, address[] memory users) external {
+        require(users.length <= 200, "Batch too large");
+
         for (uint256 i = 0; i < users.length; i++) {
             this.claimOpTokens(id, users[i]);
         }
@@ -256,12 +257,12 @@ contract Invest {
         AppStorage storage s = LibAppStorage.appStorage();
 
         if (id > s.operationCount) revert Events.OpNotExist();
-        if (sharesAmount <= 0) revert Events.InputCannotBeZero();
+        if (sharesAmount == 0) revert Events.InputCannotBeZero();
 
         uint256 sharesPriceEur = (s.operations[id].eurPerShares * sharesAmount) / 10 ** 6;
         usdcCost = sharesPriceEur * Utils.getEurUsdOraclePrice(s.eurUsdOracle) / 10 ** 6;
 
-        if (usdcCost <= 0) {
+        if (usdcCost == 0) {
             usdcCost = 1;
         }
     }
@@ -270,14 +271,14 @@ contract Invest {
         AppStorage storage s = LibAppStorage.appStorage();
 
         if (id > s.operationCount) revert Events.OpNotExist();
-        if (usdcAmount <= 0) revert Events.InputCannotBeZero();
+        if (usdcAmount == 0) revert Events.InputCannotBeZero();
 
         uint256 eurPerShares = s.operations[id].eurPerShares;
         uint256 oraclePrice = Utils.getEurUsdOraclePrice(s.eurUsdOracle);
 
         sharesAmount = (usdcAmount * 10 ** 12) / (eurPerShares * oraclePrice);
 
-        if (sharesAmount <= 0) {
+        if (sharesAmount == 0) {
             sharesAmount = 1;
         }
     }
