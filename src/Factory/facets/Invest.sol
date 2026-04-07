@@ -84,6 +84,8 @@ contract Invest {
         if (s.operationCanceled[id]) revert Events.OpCanceled();
         if (s.fundingPaused[id]) revert Events.OpPaused();
         if (sharesAmount <= 0) revert Events.ZeroShares();
+        if (s.blacklisted[user]) revert Events.UserBlacklisted();
+        if (s.blacklisted[opLendHolder]) revert Events.UserBlacklisted();
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
