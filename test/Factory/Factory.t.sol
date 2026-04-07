@@ -210,7 +210,7 @@ contract FactoryTest is Test, TestBase {
     function test_InvestFiat() public {
         LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
         bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
-        bytes memory signatureFiat = getMintSignatureFiat(address(user2), 1, sharesToBuy, testNonce2);
+        bytes memory signatureFiat = getMintSignatureFiat(address(user2), address(user3), 1, sharesToBuy, testNonce2);
 
         vm.startPrank(user);
         uint256 cost = factory.getAmountIn(1, sharesToBuy);

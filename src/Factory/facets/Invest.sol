@@ -11,9 +11,6 @@ import {LendOperation} from "../../opLend.sol";
 contract Invest {
     uint256 private reentrancyStatus;
 
-    string constant FIAT_INVEST = "FIAT_INVEST";
-    string constant ONCHAIN_INVEST = "ONCHAIN_INVEST";
-
     modifier nonReentrant() {
         require(reentrancyStatus == 0, "ReentrancyGuard: reentrant call");
         reentrancyStatus = 1;
@@ -39,7 +36,7 @@ contract Invest {
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
-        bool isSignatureValid = _verifySignature(ONCHAIN_INVEST, msg.sender, sharesAmount, id, nonce, signature);
+        bool isSignatureValid = _verifySignature(msg.sender, sharesAmount, id, nonce, signature);
         if (!isSignatureValid) revert Events.InvalidSignature();
         if (s.usdc.allowance(msg.sender, address(this)) < cost) revert Events.InsufficientAllowance();
 
@@ -90,7 +87,7 @@ contract Invest {
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
-        bool isSignatureValid = _verifySignature(FIAT_INVEST, user, sharesAmount, id, nonce, signature);
+        bool isSignatureValid = _verifyFiatSignature(user, opLendHolder, sharesAmount, id, nonce, signature);
         if (!isSignatureValid) revert Events.InvalidSignature();
 
         s.fundingProgress[id] += sharesAmount;
@@ -106,8 +103,35 @@ contract Invest {
         }
     }
 
+    function _verifyFiatSignature(
+        address _user,
+        address _opLendHolder,
+        uint256 _amount,
+        uint256 _opId,
+        string calldata _nonce,
+        bytes memory _signature
+    ) internal returns (bool) {
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        if (s.usedNonces[_nonce]) {
+            return false;
+        }
+
+        bytes32 messageHash = keccak256(
+            abi.encodePacked("FIAT_INVEST", address(this), block.chainid, _opId, _user, _opLendHolder, _amount, _nonce)
+        );
+        bytes32 ethSignedMessageHash = Utils.computeEthSignedHash(messageHash);
+        address recovered = Utils.recoverSigner(ethSignedMessageHash, _signature);
+        bool isValid = recovered == s.backendSigner;
+
+        if (isValid) {
+            s.usedNonces[_nonce] = true;
+        }
+
+        return isValid;
+    }
+
     function _verifySignature(
-        string memory _type,
         address _user,
         uint256 _amount,
         uint256 _opId,
@@ -121,7 +145,7 @@ contract Invest {
         }
 
         bytes32 messageHash =
-            keccak256(abi.encodePacked(_type, address(this), block.chainid, _opId, _user, _amount, _nonce));
+            keccak256(abi.encodePacked("ONCHAIN_INVEST", address(this), block.chainid, _opId, _user, _amount, _nonce));
         bytes32 ethSignedMessageHash = Utils.computeEthSignedHash(messageHash);
         address recovered = Utils.recoverSigner(ethSignedMessageHash, _signature);
         bool isValid = recovered == s.backendSigner;
@@ -226,7 +250,7 @@ contract Invest {
 
         uint256 cost = this.getAmountIn(id, sharesAmount);
 
-        bool isSignatureValid = _verifySignature(ONCHAIN_INVEST, msg.sender, sharesAmount, id, nonce, signature);
+        bool isSignatureValid = _verifySignature(msg.sender, sharesAmount, id, nonce, signature);
         if (!isSignatureValid) revert Events.InvalidSignature();
         if (s.usdc.allowance(msg.sender, address(this)) < cost) revert Events.InsufficientAllowance();
 
