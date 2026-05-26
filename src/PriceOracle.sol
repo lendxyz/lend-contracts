@@ -23,7 +23,6 @@ contract PriceOracle is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     event PriceUpdated(uint256 indexed opId, uint256 newPrice);
 
     error InvalidSignature();
-    error InvalidSignatureLength();
 
     address internal backendSigner;
     address internal eurUsdOracle;
@@ -61,6 +60,21 @@ contract PriceOracle is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     function setEurUsdOracle(address oracle) public onlyOwner {
         require(oracle != address(0), "Oracle cannot be zero address");
         eurUsdOracle = oracle;
+    }
+
+    function registerOpLendAddress(uint256 opId, uint256 chainId, address opLend) public onlyOwner {
+        addressToOpId[chainId][opLend] = opId;
+    }
+
+    function registerOpLendAddresses(uint256[] calldata opIds, uint256[] calldata chainIds, address[] calldata opLends)
+        public
+        onlyOwner
+    {
+        require(opIds.length == chainIds.length && opIds.length == opLends.length, "Length missmatch");
+
+        for (uint256 i = 0; i < opIds.length; i++) {
+            addressToOpId[chainIds[i]][opLends[i]] = opIds[i];
+        }
     }
 
     /**
@@ -135,7 +149,7 @@ contract PriceOracle is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     function splitSignature(bytes memory sig) internal pure returns (bytes32 r, bytes32 s, uint8 v) {
-        if (sig.length != 65) revert InvalidSignatureLength();
+        if (sig.length != 65) revert InvalidSignature();
         assembly {
             r := mload(add(sig, 32))
             s := mload(add(sig, 64))
