@@ -8,9 +8,9 @@ import {Constants} from "../common/Constants.s.sol";
 contract DeployOFT is Script, Constants {
     LendOperation public oft;
 
-    string name = "Lend Operation - Datacenter Facility";
-    string symbol = "opLEND-1";
-    uint256 maxSupply = 500_000 * 10 ** 18; // use supply from source chain
+    string name = "Lend Operation - Vouziers - Commercial Units";
+    string symbol = "opLEND-2";
+    uint256 maxSupply = 364250000000; // use supply from source chain
 
     function setUp() public {}
 
@@ -18,13 +18,13 @@ contract DeployOFT is Script, Constants {
         vm.startBroadcast();
 
         new LendOperation(
-            mnFactArgs.admin, // admin - should be Lend multisig after setup
+            multisigAddress, // admin - should be Lend multisig after setup
             name,
             symbol,
             maxSupply,
             getLzEndpointMainnet(),
-            aymAddress, // lz delegate - should be Lend multisig
-            mnFactArgs.backendSigner
+            multisigAddress, // lz delegate - should be Lend multisig
+            address(0x499603A70DC410c50A435D0Cd40C656bef4685FD)
         );
 
         // (bytes32 peerEth, uint32 lzEidEth) =
