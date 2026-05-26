@@ -112,6 +112,11 @@ contract PriceOracle is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         return opIdToPrice[addressToOpId[chainId][opLend]];
     }
 
+    function getLastRoundByOpId(uint256 opId) public view returns (Price memory) {
+        return
+            Price(opIdToPrice[opId].lastRound, opId, opIdToPrice[opId].price, convertEurToUsd(opIdToPrice[opId].price));
+    }
+
     function publishNewRound(uint256 opId, uint256 newPrice, string calldata nonce, bytes memory signature) public {
         bool isSignatureValid = verifySignature(opId, newPrice, nonce, signature);
         if (!isSignatureValid) revert InvalidSignature();
