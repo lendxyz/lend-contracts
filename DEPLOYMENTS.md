@@ -39,6 +39,13 @@
 | BSC Testnet      | 0x9291075065379d044A99306028Db70f0A24C9706 |
 | Polygon Amoy     | 0x8cE18070660B07e5392E6072463710BFEd16f92f |
 
+## Price oracle
+
+| Network          | Address                                    |
+| ---------------- | ------------------------------------------ |
+| Ethereum         | 0xf67800302318D0B4f34dCAE98F3aAb129D76856C |
+| Ethereum Sepolia | 0xd706cDC9Ef8EeFe399Fe376693a832794e95AA53 |
+
 ## Misc testnet contracts
 
 ### Mock USDC

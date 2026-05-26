@@ -118,7 +118,7 @@ upgrade-rewards-testnet:
 
 deploy-oracle-mainnet:
 	forge cache clean && forge clean
-	forge script script/mainnet/DeployOracle.s.sol:DeployOracle --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://base-rpc.publicnode.com --verify
+	forge script script/mainnet/DeployOracle.s.sol:DeployOracle --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
 
 upgrade-oracle-mainnet:
 	forge cache clean && forge clean

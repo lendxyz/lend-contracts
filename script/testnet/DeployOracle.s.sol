@@ -11,11 +11,7 @@ contract DeployOracleTestnet is Script, Constants {
     function setUp() public {}
 
     function run() public {
-        // vm.createSelectFork("arbitrum-sepolia");
-        vm.createSelectFork("polygon-testnet");
-        // vm.createSelectFork("sepolia");
-        // vm.createSelectFork("base-sepolia");
-        // vm.createSelectFork("bsc-testnet");
+        vm.createSelectFork("sepolia");
         vm.startBroadcast();
 
         // Deploy the implementation contract

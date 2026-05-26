@@ -15,7 +15,7 @@ contract DeployOracle is Script, Constants {
 
         // Prepare initializer data
         bytes memory initData =
-            abi.encodeCall(PriceOracle.initialize, (multisigAddress, mnFactArgs.backendSigner, mnFactArgs.eurUsdOracle));
+            abi.encodeCall(PriceOracle.initialize, (aymAddress, mnFactArgs.backendSigner, mnFactArgs.eurUsdOracle));
 
         // Deploy the proxy and initialize
         new ERC1967Proxy(address(implementation), initData);
