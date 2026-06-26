@@ -68,11 +68,9 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         bytes32 dataProviderId = "DATA_PROVIDER";
         address dataProviderAddress = aaveAddressProvider.getAddress(dataProviderId);
 
-        (
-            , // currentATokenBalance
+        (, // currentATokenBalance
             uint256 currentStableDebt,
-            uint256 currentVariableDebt,
-            , // principalStableDebt
+            uint256 currentVariableDebt,, // principalStableDebt
             , // scaledVariableDebt
             , // stableBorrowRate
             , // liquidityIndex
