@@ -170,5 +170,6 @@ abi:
 	forge inspect src/opLend.sol:LendOperation abi --json > ./abis/opLend.json
 	forge inspect src/opLend.sol:LendOperation bytecode > ./abis/opLend-bytecode.txt
 	forge inspect src/Rewards.sol:LendRewards abi --json > ./abis/Rewards.json
+	forge inspect src/Restitution.sol:LendRestitution abi --json > ./abis/Restitution.json
 	forge inspect src/PriceOracle.sol:PriceOracle abi --json > ./abis/PriceOracle.json
 	forge inspect src/testnet/Faucet.sol:LendFaucet abi --json > ./abis/Faucet.json
