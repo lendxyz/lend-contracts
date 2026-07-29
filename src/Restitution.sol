@@ -22,6 +22,7 @@ contract LendRestitution is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     mapping(uint256 => uint256) public opLendReturned;
 
     event RestitutionClaimed(uint256 indexed opId, address indexed user, uint256 usdcAmount, uint256 opLendAmount);
+    event RestitutionFinished(uint256 indexed opId);
     event RestitutionDistributed(uint256 indexed opId, uint256 usdcAmount, uint256 usdcPerOpLend);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -57,6 +58,8 @@ contract LendRestitution is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         opLendReturned[_id] = restitution.sharesAmount;
 
         require(usdc.transfer(_destination, amountLeft));
+
+        emit RestitutionFinished(_id);
     }
 
     function emergencyWithdraw(address _asset, address _destination) public onlyOwner {
@@ -140,5 +143,9 @@ contract LendRestitution is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         require(usdc.transfer(msg.sender, claimable));
 
         emit RestitutionClaimed(_id, msg.sender, claimable, _amount);
+
+        if (isFinished(_id)) {
+            emit RestitutionFinished(_id);
+        }
     }
 }

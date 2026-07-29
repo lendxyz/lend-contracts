@@ -415,6 +415,19 @@
   },
   {
     "type": "event",
+    "name": "RestitutionFinished",
+    "inputs": [
+      {
+        "name": "opId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "Upgraded",
     "inputs": [
       {
