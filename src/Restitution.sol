@@ -97,7 +97,7 @@ contract LendRestitution is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         return amountLeftOpLend == 0 || amountLeftUsdc == 0;
     }
 
-    function getUsdcPerOpLend(uint256 _id, uint256 _amount) private view returns (uint256) {
+    function getUsdcPerOpLend(uint256 _id, uint256 _amount) public view returns (uint256) {
         Restitution storage restitution = restitutions[_id];
 
         if (restitution.sharesAmount == 0) {
@@ -119,7 +119,7 @@ contract LendRestitution is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
     //********** Write **********
 
-    function claimRestitution(uint256 _id) public {
+    function claimRestitution(uint256 _id, uint256 _amount) public {
         Restitution storage restitution = restitutions[_id];
         require(restitution.usdcAmount > 0, "Operation has not been restitued yet");
         require(!isFinished(_id), "Restitution period ended");
@@ -127,16 +127,18 @@ contract LendRestitution is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         LendOperation opLend = LendOperation(restitution.opLend);
 
         uint256 userBalance = opLend.balanceOf(msg.sender);
-        uint256 claimable = getUsdcPerOpLend(_id, userBalance);
+        require(userBalance >= _amount, "Not enough balance");
+
+        uint256 claimable = getUsdcPerOpLend(_id, _amount);
 
         require(claimable > 0, "Nothing to claim for this address");
 
         claimedAmount[_id] += claimable;
-        opLendReturned[_id] += userBalance;
+        opLendReturned[_id] += _amount;
 
-        require(opLend.transferFrom(msg.sender, address(this), userBalance));
+        require(opLend.transferFrom(msg.sender, address(this), _amount));
         require(usdc.transfer(msg.sender, claimable));
 
-        emit RestitutionClaimed(_id, msg.sender, claimable, userBalance);
+        emit RestitutionClaimed(_id, msg.sender, claimable, _amount);
     }
 }

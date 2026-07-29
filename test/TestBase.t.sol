@@ -8,10 +8,11 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {Constants} from "../script/common/Constants.s.sol";
 import {FactoryDiamondCuts} from "../script/common/FactoryDiamondCuts.s.sol";
 
-// Misc contracts
+// Periphery contracts
 import {USDC} from "../src/testnet/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
 import {LendRewards} from "../src/Rewards.sol";
+import {LendRestitution} from "../src/Restitution.sol";
 
 // Factory contracts
 import {ILendFactory} from "../src/Factory/interfaces/IFactory.sol";
@@ -37,6 +38,7 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
     USDC public usdc;
     ILendFactory public factory;
     LendRewards public rewards;
+    LendRestitution public restitution;
 
     address backendSigner;
     uint256 backendSignerPk;
@@ -127,6 +129,15 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
         return op;
     }
 
+    function deployRestitution() public {
+        LendRestitution implementation = new LendRestitution();
+        ERC1967Proxy restitutionProxy = new ERC1967Proxy(
+            address(implementation), abi.encodeCall(LendRewards.initialize, (address(admin), address(usdc)))
+        );
+
+        restitution = LendRestitution(payable(restitutionProxy));
+    }
+
     function deployRewards() public {
         LendRewards implementation = new LendRewards();
         ERC1967Proxy rewardsProxy = new ERC1967Proxy(
@@ -176,6 +187,7 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
 
         deployDiamond();
         deployRewards();
+        deployRestitution();
 
         vm.stopPrank();
     }
