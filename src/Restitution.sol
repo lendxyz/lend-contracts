@@ -92,10 +92,7 @@ contract LendRestitution is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         Restitution storage restitution = restitutions[_id];
 
         uint256 amountLeftUsdc = restitution.usdcAmount - claimedAmount[_id];
-        require(amountLeftUsdc > 0, "Already claimed all");
-
         uint256 amountLeftOpLend = restitution.sharesAmount - opLendReturned[_id];
-        require(amountLeftOpLend > 0, "Already claimed all");
 
         return amountLeftOpLend == 0 || amountLeftUsdc == 0;
     }
