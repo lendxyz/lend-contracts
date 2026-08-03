@@ -132,7 +132,7 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
     function deployRestitution() public {
         LendRestitution implementation = new LendRestitution();
         ERC1967Proxy restitutionProxy = new ERC1967Proxy(
-            address(implementation), abi.encodeCall(LendRewards.initialize, (address(admin), address(usdc)))
+            address(implementation), abi.encodeCall(LendRestitution.initialize, (address(admin), address(usdc)))
         );
 
         restitution = LendRestitution(payable(restitutionProxy));

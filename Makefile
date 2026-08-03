@@ -16,6 +16,8 @@ help:
 	@echo 'make deploy-oft-testnet pk=[your_private_key]: deploy opLend OFT on sepolia testnet'
 	@echo 'make deploy-rewards-mainnet pk=[your_private_key]: deploy rewards contract'
 	@echo 'make deploy-rewards-testnet pk=[your_private_key]: deploy rewards contract on sepolia testnet'
+	@echo 'make deploy-restitution-mainnet: deploy restitution contract'
+	@echo 'make deploy-restitution-testnet pk=[your_private_key]: deploy restitution contract on sepolia testnet'
 	@echo 'make abi: generate contract abis in the `abis` folder'
 
 install:
@@ -115,6 +117,30 @@ upgrade-rewards-testnet:
 	# forge script script/testnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --private-key $(pk) --rpc-url https://bsc-testnet-dataseed.bnbchain.org --verify
 	# Polygon Amoy
 	# forge script script/testnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --private-key $(pk) --rpc-url https://polygon-amoy-bor-rpc.publicnode.com --verify
+
+deploy-restitution-mainnet:
+	forge cache clean && forge clean
+	forge script script/mainnet/DeployRestitution.s.sol:DeployRestitution --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+
+upgrade-restitution-mainnet:
+	forge cache clean && forge clean
+	forge compile
+	forge script script/mainnet/UpgradeRestitution.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+
+upgrade-restitution-mainnet-no-safe:
+	forge cache clean && forge clean
+	forge compile
+	forge script script/mainnet/UpgradeRestitution.s.sol:UpgradeRestitution --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+
+deploy-restitution-testnet:
+	forge cache clean && forge clean
+	forge compile
+	forge script script/testnet/DeployRestitution.s.sol:DeployRestitutionTestnet --slow --broadcast --private-key $(pk) --verify
+
+upgrade-restitution-testnet:
+	forge cache clean && forge clean
+	forge compile
+	forge script script/testnet/UpgradeRestitution.s.sol:UpgradeRestitution --slow --broadcast --private-key $(pk) --rpc-url https://ethereum-sepolia-rpc.publicnode.com --verify
 
 deploy-oracle-mainnet:
 	forge cache clean && forge clean

@@ -189,4 +189,16 @@ contract Constants {
 
         revert("Unknown chain id");
     }
+
+    // TODO: change this once deployed
+    address internal constant MAINNET_RESTITUTION = address(0);
+    address internal constant TESTNET_RESTITUTION = address(0);
+
+    function getMainnetRestitutionAddress() public pure returns (address) {
+        return MAINNET_RESTITUTION;
+    }
+
+    function getTestnetRestitutionAddress() public pure returns (address) {
+        return TESTNET_RESTITUTION;
+    }
 }

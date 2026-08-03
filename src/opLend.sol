@@ -2,10 +2,7 @@
 pragma solidity ^0.8.27;
 
 import {
-    SendParam,
-    MessagingFee,
-    MessagingReceipt,
-    OFTReceipt
+    SendParam, MessagingFee, MessagingReceipt, OFTReceipt
 } from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
 import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {IOFT, OFTCore} from "@layerzerolabs/oft-evm/contracts/OFTCore.sol";
@@ -200,11 +197,7 @@ contract LendOperation is Ownable, ERC20, OFTCore {
      * @dev _srcEid The source chain ID.
      * @return amountReceivedLd The amount of tokens ACTUALLY received in local decimals.
      */
-    function _credit(
-        address _to,
-        uint256 _amountLd,
-        uint32 /*_srcEid*/
-    )
+    function _credit(address _to, uint256 _amountLd, uint32 /*_srcEid*/ )
         internal
         virtual
         override
