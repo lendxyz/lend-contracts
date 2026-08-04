@@ -27,6 +27,5 @@ contract DeployRestitution is Script, Constants {
 
         console.log("Restitution implementation:", address(implementation));
         console.log("Restitution proxy:", address(proxy));
-        console.log("Record the proxy in DEPLOYMENTS.md and Constants.s.sol");
     }
 }

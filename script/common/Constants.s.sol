@@ -191,8 +191,8 @@ contract Constants {
     }
 
     // TODO: change this once deployed
-    address internal constant MAINNET_RESTITUTION = address(0);
-    address internal constant TESTNET_RESTITUTION = address(0);
+    address internal constant MAINNET_RESTITUTION = address(0x3F74caB9C259C8F7F797A3F50beCC913E86175B2);
+    address internal constant TESTNET_RESTITUTION = address(0x47570B8b52c462e6D0b4Dc832A96268E95E36999);
 
     function getMainnetRestitutionAddress() public pure returns (address) {
         return MAINNET_RESTITUTION;

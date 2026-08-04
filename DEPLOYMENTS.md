@@ -44,8 +44,8 @@
 
 | Network          | Address    |
 | ---------------- | ---------- |
-| Ethereum         | _TBD_ |
-| Ethereum Sepolia | _TBD_ |
+| [Ethereum](https://etherscan.io/address/0x3F74caB9C259C8F7F797A3F50beCC913E86175B2)         | 0x3F74caB9C259C8F7F797A3F50beCC913E86175B2 |
+| [Ethereum Sepolia](https://sepolia.etherscan.io/address/0x47570B8b52c462e6D0b4Dc832A96268E95E36999) | 0x47570B8b52c462e6D0b4Dc832A96268E95E36999 |
 
 ## Price oracle
 
