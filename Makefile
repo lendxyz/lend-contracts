@@ -166,6 +166,30 @@ upgrade-oracle-testnet:
 	forge compile
 	forge script script/testnet/UpgradeOracle.s.sol:UpgradeOracle --slow --broadcast --private-key $(pk) --rpc-url https://ethereum-sepolia-rpc.publicnode.com --verify
 
+deploy-oplend-wallet-mainnet:
+	forge cache clean && forge clean
+	forge script script/mainnet/DeployOpLendWallet.s.sol:DeployOpLendWallet --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+
+upgrade-oplend-wallet-mainnet:
+	forge cache clean && forge clean
+	forge compile
+	forge script script/mainnet/UpgradeOpLendWallet.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+
+upgrade-oplend-wallet-mainnet-no-safe:
+	forge cache clean && forge clean
+	forge compile
+	forge script script/mainnet/UpgradeOpLendWallet.s.sol:UpgradeOpLendWallet --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+
+deploy-oplend-wallet-testnet:
+	forge cache clean && forge clean
+	forge compile
+	forge script script/testnet/DeployOpLendWallet.s.sol:DeployOpLendWalletTestnet --slow --broadcast --private-key $(pk) --verify
+
+upgrade-oplend-wallet-testnet:
+	forge cache clean && forge clean
+	forge compile
+	forge script script/testnet/UpgradeOpLendWallet.s.sol:UpgradeOpLendWallet --slow --broadcast --private-key $(pk) --rpc-url https://ethereum-sepolia-rpc.publicnode.com --verify
+
 set-peer-factory:
 	forge script script/SetOpLendPeerFactory.s.sol:SetOpLendPeerFactory --slow --broadcast --private-key $(pk)
 
@@ -198,4 +222,5 @@ abi:
 	forge inspect src/Rewards.sol:LendRewards abi --json > ./abis/Rewards.json
 	forge inspect src/Restitution.sol:LendRestitution abi --json > ./abis/Restitution.json
 	forge inspect src/PriceOracle.sol:PriceOracle abi --json > ./abis/PriceOracle.json
+	forge inspect src/OpLendWallet.sol:OpLendWallet abi --json > ./abis/OpLendWallet.json
 	forge inspect src/testnet/Faucet.sol:LendFaucet abi --json > ./abis/Faucet.json
