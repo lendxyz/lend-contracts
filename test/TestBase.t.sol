@@ -13,6 +13,7 @@ import {USDC} from "../src/testnet/DummyUSDC.sol";
 import {LendOperation} from "../src/opLend.sol";
 import {LendRewards} from "../src/Rewards.sol";
 import {LendRestitution} from "../src/Restitution.sol";
+import {OpLendWallet} from "../src/OpLendWallet.sol";
 
 // Factory contracts
 import {ILendFactory} from "../src/Factory/interfaces/IFactory.sol";
@@ -39,6 +40,7 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
     ILendFactory public factory;
     LendRewards public rewards;
     LendRestitution public restitution;
+    OpLendWallet public opLendWallet;
 
     address backendSigner;
     uint256 backendSignerPk;
@@ -129,6 +131,15 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
         return op;
     }
 
+    function deployOpLendWallet() public {
+        OpLendWallet implementation = new OpLendWallet();
+        ERC1967Proxy opLendWalletProxy = new ERC1967Proxy(
+            address(implementation), abi.encodeCall(OpLendWallet.initialize, (address(admin), address(backendSigner)))
+        );
+
+        opLendWallet = OpLendWallet(payable(opLendWalletProxy));
+    }
+
     function deployRestitution() public {
         LendRestitution implementation = new LendRestitution();
         ERC1967Proxy restitutionProxy = new ERC1967Proxy(
@@ -188,6 +199,7 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
         deployDiamond();
         deployRewards();
         deployRestitution();
+        deployOpLendWallet();
 
         vm.stopPrank();
     }

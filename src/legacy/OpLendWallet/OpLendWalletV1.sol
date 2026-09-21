@@ -16,8 +16,7 @@ contract OpLendWalletV1 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     event AdminRedeemed(uint256 indexed opId, address indexed user, uint256 opLendAmount);
 
     mapping(string => bool) private usedNonces;
-    mapping(address => uint256) private addressToOpId;
-    mapping(uint256 => address) private opIdToAddress;
+    mapping(uint256 => address) public opIdToAddress;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -47,7 +46,6 @@ contract OpLendWalletV1 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     function registerOpLendAddress(uint256 opId, address opLend) public onlyOwner {
         require(opLend.code.length > 0, "Provided address is not a contract");
 
-        addressToOpId[opLend] = opId;
         opIdToAddress[opId] = opLend;
     }
 
@@ -55,7 +53,8 @@ contract OpLendWalletV1 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         require(opIds.length == opLends.length, "Length missmatch");
 
         for (uint256 i = 0; i < opIds.length; i++) {
-            addressToOpId[opLends[i]] = opIds[i];
+            require(opLends[i].code.length > 0, "Provided address is not a contract");
+            opIdToAddress[opIds[i]] = opLends[i];
         }
     }
 
@@ -88,7 +87,7 @@ contract OpLendWalletV1 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
 
         uint256 balance = opLend.balanceOf(address(this));
         require(balance >= amount, "Not enough opLend");
-        require(verifySignature(opId, destination, amount, rNonce, rSignature));
+        require(verifySignature(opId, destination, amount, rNonce, rSignature), "Invalid signature");
 
         if (shouldWl) {
             opLend.whitelistUser(destination, tNonce, tSignature);
