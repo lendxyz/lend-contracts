@@ -54,6 +54,12 @@
 | [Ethereum](https://etherscan.io/address/0xf67800302318D0B4f34dCAE98F3aAb129D76856C)                 | 0xf67800302318D0B4f34dCAE98F3aAb129D76856C |
 | [Ethereum Sepolia](https://sepolia.etherscan.io/address/0xd706cDC9Ef8EeFe399Fe376693a832794e95AA53) | 0xd706cDC9Ef8EeFe399Fe376693a832794e95AA53 |
 
+## OpLend Wallet
+
+| Network                                                                                          | Address                                    |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------ |
+| [Ethereum](https://etherscan.io/address/0x5Be7FF28AE03FD76e0765b758205A3fA20347424)                 | 0x5Be7FF28AE03FD76e0765b758205A3fA20347424 |
+| [Ethereum Sepolia](https://sepolia.etherscan.io/address/0xfC12466C33cFfD651dF352C815CDD9CC5aCc6D59) | 0xfC12466C33cFfD651dF352C815CDD9CC5aCc6D59 |
 ## Misc testnet contracts
 
 ### Mock USDC
