@@ -5,15 +5,20 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+import {LendOperation} from "./opLend.sol";
 
-// TODO: add Upgrade path decorator and legacy code snapshot when deployed
+/// @custom:oz-upgrades-from src/legacy/OpLendWallet/OpLendWalletV1.sol:OpLendWalletV1
 contract OpLendWallet is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address internal backendSigner;
 
     error InvalidSignature();
 
+    event Redeemed(uint256 indexed opId, address indexed user, uint256 opLendAmount);
+    event AdminRedeemed(uint256 indexed opId, address indexed user, uint256 opLendAmount);
+
     mapping(string => bool) private usedNonces;
     mapping(address => uint256) private addressToOpId;
+    mapping(uint256 => address) private opIdToAddress;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -41,7 +46,10 @@ contract OpLendWallet is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     function registerOpLendAddress(uint256 opId, address opLend) public onlyOwner {
+        require(opLend.code.length > 0, "Provided address is not a contract");
+
         addressToOpId[opLend] = opId;
+        opIdToAddress[opId] = opLend;
     }
 
     function registerOpLendAddresses(uint256[] calldata opIds, address[] calldata opLends) public onlyOwner {
@@ -52,32 +60,79 @@ contract OpLendWallet is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         }
     }
 
-    // TODO
-    // adminRedeem -> enable admin to redeem arbitrary balance (multisig only; can select destination)
+    function adminRedeem(uint256 opId, address destination, uint256 amount) public onlyOwner {
+        require(opIdToAddress[opId] != address(0), "Invalid opId");
+        LendOperation opLend = LendOperation(opIdToAddress[opId]);
+
+        uint256 balance = opLend.balanceOf(address(this));
+        require(balance >= amount, "Not enough opLend");
+        require(opLend.transfer(destination, amount), "Failed to transfer opLend");
+
+        emit AdminRedeemed(opId, destination, amount);
+    }
 
     /**
-     * Custody functions ***
+     * Redeem functions ***
      */
+    function _redeem(
+        uint256 opId,
+        address destination,
+        uint256 amount,
+        string memory rNonce,
+        bytes memory rSignature,
+        string memory tNonce,
+        bytes memory tSignature,
+        bool shouldWl
+    ) private {
+        require(opIdToAddress[opId] != address(0), "Invalid opId");
+        LendOperation opLend = LendOperation(opIdToAddress[opId]);
 
-    // TODO
-    // redeem -> enables user to redeem their managed balance (works with backend signature; emits `Redeemed` event)
+        uint256 balance = opLend.balanceOf(address(this));
+        require(balance >= amount, "Not enough opLend");
+        require(verifySignature(opId, destination, amount, rNonce, rSignature));
+
+        if (shouldWl) {
+            opLend.whitelistUser(destination, tNonce, tSignature);
+        }
+
+        require(opLend.transfer(destination, amount), "Failed to transfer opLend");
+
+        emit Redeemed(opId, destination, amount);
+    }
+
+    function redeem(uint256 opId, address destination, uint256 amount, string calldata nonce, bytes memory signature)
+        public
+    {
+        return _redeem(opId, destination, amount, nonce, signature, "", new bytes(0), false);
+    }
+
+    function whitelistAndRedeem(
+        uint256 opId,
+        address destination,
+        uint256 amount,
+        string calldata tNonce,
+        bytes memory tSignature,
+        string calldata rNonce,
+        bytes memory rSignature
+    ) public {
+        return _redeem(opId, destination, amount, rNonce, rSignature, tNonce, tSignature, true);
+    }
 
     /**
      * Signature verification functions ***
      */
     function verifySignature(
         uint256 opId,
-        address user,
         address destination,
         uint256 amount,
-        string calldata nonce,
+        string memory nonce,
         bytes memory signature
     ) internal returns (bool) {
         if (usedNonces[nonce]) {
             return false;
         }
 
-        bytes32 messageHash = keccak256(abi.encodePacked(opId, block.chainid, user, destination, amount, nonce));
+        bytes32 messageHash = keccak256(abi.encodePacked("OP_REDEEM", opId, block.chainid, destination, amount, nonce));
         bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
         address recovered = recoverSigner(ethSignedMessageHash, signature);
         bool isValid = recovered == backendSigner;
