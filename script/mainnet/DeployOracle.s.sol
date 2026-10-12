@@ -18,7 +18,9 @@ contract DeployOracle is Script, Constants {
             abi.encodeCall(PriceOracle.initialize, (aymAddress, mnFactArgs.backendSigner, mnFactArgs.eurUsdOracle));
 
         // Deploy the proxy and initialize
-        new ERC1967Proxy(address(implementation), initData);
+        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), initData);
+
+        PriceOracle(payable(proxy)).transferOwnership(Constants.multisigAddress);
 
         vm.stopBroadcast();
     }

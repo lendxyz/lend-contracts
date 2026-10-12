@@ -1,3 +1,6 @@
+# Ledger derivation path of the signer, used by every Ledger target. Override with `make <target> hd="m/44'/60'/0'/0/0"`.
+hd ?= m/44'/60'/5'/0/0
+
 help:
 	@echo 'Usage: make [TARGET] [EXTRA_ARGUMENTS]'
 	@echo 'Targets:'
@@ -19,7 +22,8 @@ help:
 	@echo 'make deploy-restitution-mainnet: deploy restitution contract'
 	@echo 'make deploy-restitution-testnet pk=[your_private_key]: deploy restitution contract on sepolia testnet'
 	@echo 'make abi: generate contract abis in the `abis` folder'
-	@echo 'make deploy-facet-upgrade-mainnet [hd=your_ledger_derivation_path]: deploy the Admin, Getters and Invest facets and propose the EURC diamond cut to the Safe'
+	@echo "Ledger targets: pass hd=[your_ledger_derivation_path] (default: $(hd))"
+	@echo 'make deploy-facet-upgrade-mainnet: deploy the Admin, Getters and Invest facets and propose the EURC diamond cut to the Safe'
 
 install:
 	forge install && npm i
@@ -52,12 +56,11 @@ remappings:
 	forge remappings > remappings.txt
 
 deploy-factory-mainnet:
-	forge script script/DeployFactory.s.sol:DeployFactory -vvvv --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	forge script script/DeployFactory.s.sol:DeployFactory -vvvv --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
 
 deploy-factory-testnet:
 	forge script script/DeployFactory.s.sol:DeployFactory -vvvv --slow --broadcast --private-key $(pk) --rpc-url https://ethereum-sepolia-rpc.publicnode.com --verify
 
-deploy-facet-upgrade-mainnet: hd ?= m/44'/60'/5'/0/0
 deploy-facet-upgrade-mainnet:
 	forge script script/mainnet/DeployFacetUpgrade.s.sol:DeployFacetUpgrade -vvvv --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
 	LEDGER_HD_PATH="$(hd)" forge script script/mainnet/DeployFacetUpgrade.s.sol:ProposeFacetUpgrade -vvvv --broadcast --rpc-url https://ethereum-rpc.publicnode.com
@@ -66,41 +69,48 @@ upgrade-factory-testnet:
 	forge script script/testnet/UpgradeFactory.s.sol:UpgradeFactoryTestnet -vvvv --slow --broadcast --private-key $(pk) --rpc-url https://ethereum-sepolia-rpc.publicnode.com --verify
 
 deploy-oft-mainnet:
-	forge script script/mainnet/DeployOFT.s.sol:DeployOFT --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://polygon-bor-rpc.publicnode.com --verify
+	forge script script/mainnet/DeployOFT.s.sol:DeployOFT --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://polygon-bor-rpc.publicnode.com --verify
   # If deploying on plume/blockscout setup
-	# forge script script/mainnet/DeployOFT.s.sol:DeployOFT --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://rpc.plume.org --verify --verifier blockscout --verifier-url https://explorer.plume.org/api
+	# forge script script/mainnet/DeployOFT.s.sol:DeployOFT --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://rpc.plume.org --verify --verifier blockscout --verifier-url https://explorer.plume.org/api
 
 deploy-oft-testnet:
 	forge script script/testnet/DeployOFT.s.sol:DeployOFTTestnet --slow --broadcast --private-key $(pk) --verify
 
 deploy-rewards-mainnet:
 	forge cache clean && forge clean
-	forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://base-rpc.publicnode.com --verify
-    # If deploying on plume/blockscout setup
-	# forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://rpc.plume.org --verify --verifier blockscout --verifier-url https://explorer.plume.org/api
+	forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://base-rpc.publicnode.com --verify
+  # If deploying on plume/blockscout setup
+	# forge script script/mainnet/DeployRewards.s.sol:DeployRewards --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://rpc.plume.org --verify --verifier blockscout --verifier-url https://explorer.plume.org/api
 
 upgrade-rewards-mainnet:
 	forge cache clean && forge clean
 	forge compile
 	# Ethereum
-	forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	forge script script/mainnet/UpgradeRewards.s.sol:DeployUUPSImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --broadcast --rpc-url https://ethereum-rpc.publicnode.com
 	# Arbitrum
-	# forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://arbitrum-one-rpc.publicnode.com --verify
+	# forge script script/mainnet/UpgradeRewards.s.sol:DeployUUPSImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://arbitrum-one-rpc.publicnode.com --verify
+	# LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --broadcast --rpc-url https://arbitrum-one-rpc.publicnode.com
 	# Base
-	# forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://base-rpc.publicnode.com --verify
+	# forge script script/mainnet/UpgradeRewards.s.sol:DeployUUPSImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://base-rpc.publicnode.com --verify
+	# LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --broadcast --rpc-url https://base-rpc.publicnode.com
 	# BSC
-	# forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://bsc-rpc.publicnode.com --verify
+	# forge script script/mainnet/UpgradeRewards.s.sol:DeployUUPSImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://bsc-rpc.publicnode.com --verify
+	# LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --broadcast --rpc-url https://bsc-rpc.publicnode.com
 	# Polygon
-	# forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://polygon-bor-rpc.publicnode.com --verify
+	# forge script script/mainnet/UpgradeRewards.s.sol:DeployUUPSImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://polygon-bor-rpc.publicnode.com --verify
+	# LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --broadcast --rpc-url https://polygon-bor-rpc.publicnode.com
 	# Sonic
-	# forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://sonic-rpc.publicnode.com:443 --verify
+	# forge script script/mainnet/UpgradeRewards.s.sol:DeployUUPSImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://sonic-rpc.publicnode.com:443 --verify
+	# LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --broadcast --rpc-url https://sonic-rpc.publicnode.com:443
 	# Linea
-	# forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://linea-rpc.publicnode.com --verify
+	# forge script script/mainnet/UpgradeRewards.s.sol:DeployUUPSImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://linea-rpc.publicnode.com --verify
+	# LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeRewards.s.sol:ProposeUUPSUpgrade --broadcast --rpc-url https://linea-rpc.publicnode.com
 
 upgrade-rewards-mainnet-no-safe:
 	forge cache clean && forge clean
 	forge compile
-	forge script script/mainnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://rpc.plume.org --verify --verifier blockscout --verifier-url https://explorer.plume.org/api
+	forge script script/mainnet/UpgradeRewards.s.sol:UpgradeRewards --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://rpc.plume.org --verify --verifier blockscout --verifier-url https://explorer.plume.org/api
 
 deploy-rewards-testnet:
 	forge cache clean && forge clean
@@ -123,17 +133,18 @@ upgrade-rewards-testnet:
 
 deploy-restitution-mainnet:
 	forge cache clean && forge clean
-	forge script script/mainnet/DeployRestitution.s.sol:DeployRestitution --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	forge script script/mainnet/DeployRestitution.s.sol:DeployRestitution --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
 
 upgrade-restitution-mainnet:
 	forge cache clean && forge clean
 	forge compile
-	forge script script/mainnet/UpgradeRestitution.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	forge script script/mainnet/UpgradeRestitution.s.sol:DeployUUPSImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeRestitution.s.sol:ProposeUUPSUpgrade --broadcast --rpc-url https://ethereum-rpc.publicnode.com
 
 upgrade-restitution-mainnet-no-safe:
 	forge cache clean && forge clean
 	forge compile
-	forge script script/mainnet/UpgradeRestitution.s.sol:UpgradeRestitution --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	forge script script/mainnet/UpgradeRestitution.s.sol:UpgradeRestitution --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
 
 deploy-restitution-testnet:
 	forge cache clean && forge clean
@@ -147,17 +158,18 @@ upgrade-restitution-testnet:
 
 deploy-oracle-mainnet:
 	forge cache clean && forge clean
-	forge script script/mainnet/DeployOracle.s.sol:DeployOracle --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	forge script script/mainnet/DeployOracle.s.sol:DeployOracle --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
 
 upgrade-oracle-mainnet:
 	forge cache clean && forge clean
 	forge compile
-	forge script script/mainnet/UpgradeOracle.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	forge script script/mainnet/UpgradeOracle.s.sol:DeployUUPSImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeOracle.s.sol:ProposeUUPSUpgrade --broadcast --rpc-url https://ethereum-rpc.publicnode.com
 
 upgrade-oracle-mainnet-no-safe:
 	forge cache clean && forge clean
 	forge compile
-	forge script script/mainnet/UpgradeOracle.s.sol:UpgradeOracle --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	forge script script/mainnet/UpgradeOracle.s.sol:UpgradeOracle --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
 
 deploy-oracle-testnet:
 	forge cache clean && forge clean
@@ -171,17 +183,18 @@ upgrade-oracle-testnet:
 
 deploy-oplend-wallet-mainnet:
 	forge cache clean && forge clean
-	forge script script/mainnet/DeployOpLendWallet.s.sol:DeployOpLendWallet --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	forge script script/mainnet/DeployOpLendWallet.s.sol:DeployOpLendWallet --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
 
 upgrade-oplend-wallet-mainnet:
 	forge cache clean && forge clean
 	forge compile
-	forge script script/mainnet/UpgradeOpLendWallet.s.sol:ProposeUUPSUpgrade --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	forge script script/mainnet/UpgradeOpLendWallet.s.sol:DeployUUPSImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeOpLendWallet.s.sol:ProposeUUPSUpgrade --broadcast --rpc-url https://ethereum-rpc.publicnode.com
 
 upgrade-oplend-wallet-mainnet-no-safe:
 	forge cache clean && forge clean
 	forge compile
-	forge script script/mainnet/UpgradeOpLendWallet.s.sol:UpgradeOpLendWallet --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	forge script script/mainnet/UpgradeOpLendWallet.s.sol:UpgradeOpLendWallet --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
 
 deploy-oplend-wallet-testnet:
 	forge cache clean && forge clean
@@ -197,7 +210,7 @@ set-peer-factory:
 	forge script script/SetOpLendPeerFactory.s.sol:SetOpLendPeerFactory --slow --broadcast --private-key $(pk)
 
 set-peer-oft-mainnet:
-	forge script script/SetOpLendPeerOft.s.sol:SetOpLendPeerOft --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://rpc.plume.org
+	forge script script/SetOpLendPeerOft.s.sol:SetOpLendPeerOft --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://rpc.plume.org
 
 set-peer-oft:
 	forge script script/SetOpLendPeerOft.s.sol:SetOpLendPeerOft --slow --broadcast --private-key $(pk)
@@ -209,7 +222,7 @@ deploy-usdc:
 	forge script script/testnet/DeployDummyUSDC.s.sol:DeployDummyUSDC --slow --broadcast --private-key $(pk) --verify
 
 deploy-adapter-mainnet:
-	forge script script/mainnet/Deploy1InchAdapter.s.sol:Deploy1InchAdapter --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	forge script script/mainnet/Deploy1InchAdapter.s.sol:Deploy1InchAdapter --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
 
 deploy-adapter-testnet:
 	forge script script/testnet/Deploy1InchAdapter.s.sol:Deploy1InchAdapter --slow --broadcast --private-key $(pk) --verify

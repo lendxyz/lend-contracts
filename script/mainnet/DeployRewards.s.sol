@@ -21,7 +21,9 @@ contract DeployRewards is Script, Constants {
         bytes memory initData = abi.encodeCall(LendRewards.initialize, (aymAddress, usdcAddress));
 
         // Deploy the proxy and initialize
-        new ERC1967Proxy(address(implementation), initData);
+        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), initData);
+
+        LendRewards(payable(proxy)).transferOwnership(Constants.multisigAddress);
 
         vm.stopBroadcast();
     }

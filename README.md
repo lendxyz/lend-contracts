@@ -53,6 +53,13 @@ $ LEDGER_HD_PATH="m/44'/60'/0'/0/0" forge script [script] --sender [your_owner_a
 
 Without `--broadcast` the transaction is only logged. Scripts that also deploy contracts with the Ledger must do so in a separate run.
 
+The mainnet upgrades do both runs: the first deploys with the Ledger, the second proposes the upgrade from the first run's broadcast, signed by the same account. Pass your derivation path with `hd` (default `m/44'/60'/5'/0/0` - aym's multisig signer):
+
+```shell
+$ make deploy-facet-upgrade-mainnet hd="m/44'/60'/0'/0/0"
+$ make upgrade-rewards-mainnet hd="m/44'/60'/0'/0/0"   # also upgrade-restitution-mainnet, upgrade-oracle-mainnet, upgrade-oplend-wallet-mainnet
+```
+
 ### Sync dependencies
 
 ```shell

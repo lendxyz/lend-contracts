@@ -23,6 +23,8 @@ contract DeployRestitution is Script, Constants {
         // Deploy the proxy and initialize
         ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), initData);
 
+        LendRestitution(payable(proxy)).transferOwnership(Constants.multisigAddress);
+
         vm.stopBroadcast();
 
         console.log("Restitution implementation:", address(implementation));

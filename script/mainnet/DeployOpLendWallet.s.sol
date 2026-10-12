@@ -17,7 +17,9 @@ contract DeployOpLendWallet is Script, Constants {
         bytes memory initData = abi.encodeCall(OpLendWallet.initialize, (aymAddress, mnFactArgs.backendSigner));
 
         // Deploy the proxy and initialize
-        new ERC1967Proxy(address(implementation), initData);
+        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), initData);
+
+        OpLendWallet(payable(proxy)).transferOwnership(Constants.multisigAddress);
 
         vm.stopBroadcast();
     }

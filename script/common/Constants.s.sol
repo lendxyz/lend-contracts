@@ -207,4 +207,6 @@ contract Constants {
     }
 
     address internal constant MAINNET_FACTORY = address(0xbfbAff7afE2beA4fD130C4965B6eb28bd1DA4061);
+    address internal constant MAINNET_ORACLE = address(0xf67800302318D0B4f34dCAE98F3aAb129D76856C);
+    address internal constant MAINNET_OPLEND_WALLET = address(0x5Be7FF28AE03FD76e0765b758205A3fA20347424);
 }

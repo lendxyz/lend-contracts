@@ -1,48 +1,31 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-import {Script, console} from "forge-std/Script.sol";
-import {Upgrades, Options} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
+import {Script} from "forge-std/Script.sol";
+import {Upgrades} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
 import {Constants} from "script/common/Constants.s.sol";
+import {UUPSSafeUpgrade} from "script/common/UUPSSafeUpgrade.s.sol";
 
 contract UpgradeOracle is Script, Constants {
     function run() external {
         vm.startBroadcast();
 
-        address proxyAddress = address(0); // TODO: replace with actual deploy here
-        Upgrades.upgradeProxy(proxyAddress, "PriceOracle.sol:PriceOracle", "");
+        Upgrades.upgradeProxy(MAINNET_ORACLE, "PriceOracle.sol:PriceOracle", "");
 
         vm.stopBroadcast();
     }
 }
 
-contract ProposeUUPSUpgrade is Script, Constants {
+/// @notice Step 1 of the Safe upgrade: run with `--ledger`.
+contract DeployUUPSImplementation is UUPSSafeUpgrade {
     function run() external {
-        Options memory opts;
-        address proxyAddress = address(0); // TODO: replace with actual deploy here
+        _deployImplementation("PriceOracle.sol:PriceOracle");
+    }
+}
 
-        vm.startBroadcast();
-
-        // Deploy & Validate the new implementation
-        address newImplementation = Upgrades.prepareUpgrade("PriceOracle.sol:PriceOracle", opts);
-
-        vm.stopBroadcast();
-
-        console.log("--- DEPLOYMENT SUCCESSFUL ---");
-        console.log("New Implementation Address:", newImplementation);
-
-        // Encode the call for the Safe
-        // For UUPS, we call 'upgradeToAndCall' on the Proxy itself.
-        bytes memory data = abi.encodeWithSignature(
-            "upgradeToAndCall(address,bytes)",
-            newImplementation,
-            "" // migration/initializer call, empty ("") if none.
-        );
-
-        console.log("--- SAFE TRANSACTION DETAILS ---");
-        console.log("To (Target):", proxyAddress);
-        console.log("Value: 0");
-        console.log("Data (Hex):");
-        console.logBytes(data);
+/// @notice Step 2 of the Safe upgrade: run without `--ledger`, with `LEDGER_HD_PATH` set.
+contract ProposeUUPSUpgrade is UUPSSafeUpgrade, Constants {
+    function run() external {
+        _proposeUpgrade("UpgradeOracle.s.sol", "PriceOracle.sol:PriceOracle", MAINNET_ORACLE);
     }
 }

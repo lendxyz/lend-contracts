@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
-import {Script, console} from "forge-std/Script.sol";
-import {Upgrades, Options} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
+import {Script} from "forge-std/Script.sol";
+import {Upgrades} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
 import {Constants} from "script/common/Constants.s.sol";
+import {UUPSSafeUpgrade} from "script/common/UUPSSafeUpgrade.s.sol";
 
 abstract contract RestitutionProxyResolver is Script, Constants {
     function restitutionProxy() internal view returns (address) {
@@ -23,33 +24,16 @@ contract UpgradeRestitution is RestitutionProxyResolver {
     }
 }
 
-contract ProposeUUPSUpgrade is RestitutionProxyResolver {
+/// @notice Step 1 of the Safe upgrade: run with `--ledger`.
+contract DeployUUPSImplementation is UUPSSafeUpgrade {
     function run() external {
-        Options memory opts;
-        address proxyAddress = restitutionProxy();
+        _deployImplementation("Restitution.sol:LendRestitution");
+    }
+}
 
-        vm.startBroadcast();
-
-        // Deploy & Validate the new implementation
-        address newImplementation = Upgrades.prepareUpgrade("Restitution.sol:LendRestitution", opts);
-
-        vm.stopBroadcast();
-
-        console.log("--- DEPLOYMENT SUCCESSFUL ---");
-        console.log("New Implementation Address:", newImplementation);
-
-        // Encode the call for the Safe
-        // For UUPS, we call 'upgradeToAndCall' on the Proxy itself.
-        bytes memory data = abi.encodeWithSignature(
-            "upgradeToAndCall(address,bytes)",
-            newImplementation,
-            "" // migration/initializer call, empty ("") if none.
-        );
-
-        console.log("--- SAFE TRANSACTION DETAILS ---");
-        console.log("To (Target):", proxyAddress);
-        console.log("Value: 0");
-        console.log("Data (Hex):");
-        console.logBytes(data);
+/// @notice Step 2 of the Safe upgrade: run without `--ledger`, with `LEDGER_HD_PATH` set.
+contract ProposeUUPSUpgrade is UUPSSafeUpgrade, RestitutionProxyResolver {
+    function run() external {
+        _proposeUpgrade("UpgradeRestitution.s.sol", "Restitution.sol:LendRestitution", restitutionProxy());
     }
 }
