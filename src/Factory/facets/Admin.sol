@@ -94,6 +94,9 @@ contract Admin {
         LibDiamond.enforceIsContractOwner();
         AppStorage storage s = LibAppStorage.appStorage();
 
+        require(destination != address(0), "Cannot send USDC to address 0");
+        require(destination != address(this), "Cannot send USDC back to factory");
+
         if (id > s.operationCount) revert Events.OpNotExist();
         if (s.usdcWithdrawn[id]) revert Events.AlreadyWithdrawn();
 
