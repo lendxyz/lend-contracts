@@ -19,8 +19,9 @@ extract_map() {
   local layout=$1
   # Get the type key for the 's' variable
   type_key=$(echo "$layout" | jq -r '.storage[] | select(.label == "s").type')
-  # Create map
-  echo "$layout" | jq --arg key "$type_key" '.types[$key].members | reduce .[] as $m ({}; .[$m.label] = {"type": $m.type | sub("[0-9]+_(storage)"; ""), "slot": $m.slot})'
+  # Create map. AST ids (e.g. `t_contract(IERC20)77`, `t_struct(Operation)90_storage`) differ between
+  # compilation units, so they are stripped before comparing types.
+  echo "$layout" | jq --arg key "$type_key" '.types[$key].members | reduce .[] as $m ({}; .[$m.label] = {"type": $m.type | gsub("\\)[0-9]+"; ")"), "slot": $m.slot})'
 }
 
 old_map=$(extract_map "$layout1")

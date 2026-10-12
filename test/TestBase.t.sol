@@ -37,6 +37,7 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
     uint256 minEurUsdcRange = 10; // 1.0 USD per EUR
 
     USDC public usdc;
+    USDC public eurc;
     ILendFactory public factory;
     LendRewards public rewards;
     LendRestitution public restitution;
@@ -64,6 +65,12 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
         deal(address(usdc), address(user2), initialUsdcBalance);
 
         vm.stopPrank();
+    }
+
+    function mintEurc() public {
+        deal(address(eurc), address(admin), initialUsdcBalance);
+        deal(address(eurc), address(user), initialUsdcBalance);
+        deal(address(eurc), address(user2), initialUsdcBalance);
     }
 
     function getMintSignatureFiat(
@@ -182,6 +189,7 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
         diamond.diamondCut(cut, address(0), ""); // Perform cut
 
         factory = ILendFactory(address(diamond));
+        factory.setEurcAddress(address(eurc));
     }
 
     function setupContracts() public virtual {
@@ -195,6 +203,7 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
         backendSigner = _backendSigner;
         backendSignerPk = _backendSignerPk;
         usdc = USDC(getMainnetUsdcAddress());
+        eurc = USDC(mnFactArgs.eurc);
 
         deployDiamond();
         deployRewards();

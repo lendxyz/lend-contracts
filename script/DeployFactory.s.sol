@@ -50,6 +50,7 @@ contract DeployFactory is Script, Constants, FactoryDiamondCuts {
         diamond.diamondCut(cut, address(0), ""); // Perform cut
 
         ILendFactory factory = ILendFactory(address(diamond));
+        factory.setEurcAddress(factoryArgs.eurc);
         factory.transferOwnership(multisigAddress);
 
         vm.stopBroadcast();

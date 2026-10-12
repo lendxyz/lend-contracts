@@ -22,7 +22,7 @@ contract Invest {
         reentrancyStatus = 0;
     }
 
-    function _invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes calldata signature)
+    function _invest(uint256 id, uint256 sharesAmount, string calldata nonce, bytes calldata signature, bool payInEurc)
         internal
         returns (uint256)
     {
@@ -38,17 +38,35 @@ contract Invest {
         if (s.fundingPaused[id]) revert Events.OpPaused();
         if (sharesAmount == 0) revert Events.ZeroShares();
 
-        uint256 cost = this.getAmountIn(id, sharesAmount);
+        uint256 cost;
+        uint256 usdValue;
+        if (payInEurc) {
+            require(address(s.eurc) != address(0), "EURC not configured");
+            cost = _getAmountInEur(id, sharesAmount);
+            usdValue = Utils.eurToUsd(s.eurUsdOracle, cost);
+        } else {
+            cost = this.getAmountIn(id, sharesAmount);
+            usdValue = cost;
+        }
 
         bool isSignatureValid = _verifySignature(msg.sender, sharesAmount, id, nonce, signature);
         if (!isSignatureValid) revert Events.InvalidSignature();
 
         s.fundingProgress[id] += sharesAmount;
-        s.usdcRaised[id] += cost;
-        s.usdcRaisedPerClient[id][msg.sender] += cost;
 
-        require(s.usdc.transferFrom(msg.sender, address(this), cost), Events.TransferFailed());
-        emit Events.Invested(msg.sender, id, cost, sharesAmount);
+        if (payInEurc) {
+            s.eurcRaised[id] += cost;
+            s.eurcRaisedPerClient[id][msg.sender] += cost;
+
+            require(s.eurc.transferFrom(msg.sender, address(this), cost), Events.TransferFailed());
+        } else {
+            s.usdcRaised[id] += cost;
+            s.usdcRaisedPerClient[id][msg.sender] += cost;
+
+            require(s.usdc.transferFrom(msg.sender, address(this), cost), Events.TransferFailed());
+        }
+
+        emit Events.Invested(msg.sender, id, usdValue, sharesAmount);
 
         if (s.fundingProgress[id] >= s.operations[id].totalShares) {
             emit Events.OperationFinished(id, s.operations[id].totalShares * s.operations[id].eurPerShares);
@@ -61,11 +79,28 @@ contract Invest {
         external
         nonReentrant
     {
+        _investAndMint(id, sharesAmount, nonce, signature, false);
+    }
+
+    function investEur(uint256 id, uint256 sharesAmount, string calldata nonce, bytes calldata signature)
+        external
+        nonReentrant
+    {
+        _investAndMint(id, sharesAmount, nonce, signature, true);
+    }
+
+    function _investAndMint(
+        uint256 id,
+        uint256 sharesAmount,
+        string calldata nonce,
+        bytes calldata signature,
+        bool payInEurc
+    ) internal {
         AppStorage storage s = LibAppStorage.appStorage();
 
         if (s.blacklisted[msg.sender]) revert Events.UserBlacklisted();
 
-        _invest(id, sharesAmount, nonce, signature);
+        _invest(id, sharesAmount, nonce, signature, payInEurc);
         LendOperation(s.operations[id].opToken).mint(msg.sender, sharesAmount);
     }
 
@@ -189,8 +224,29 @@ contract Invest {
         bytes calldata signature,
         uint32 lzEndpointId
     ) external payable nonReentrant {
+        _investMintAndBridge(id, sharesAmount, nonce, signature, lzEndpointId, false);
+    }
+
+    function investEurAndBridge(
+        uint256 id,
+        uint256 sharesAmount,
+        string calldata nonce,
+        bytes calldata signature,
+        uint32 lzEndpointId
+    ) external payable nonReentrant {
+        _investMintAndBridge(id, sharesAmount, nonce, signature, lzEndpointId, true);
+    }
+
+    function _investMintAndBridge(
+        uint256 id,
+        uint256 sharesAmount,
+        string calldata nonce,
+        bytes calldata signature,
+        uint32 lzEndpointId,
+        bool payInEurc
+    ) internal {
         require(msg.value > 0, "Must include LZ fees in ethers");
-        _invest(id, sharesAmount, nonce, signature);
+        _invest(id, sharesAmount, nonce, signature, payInEurc);
         AppStorage storage s = LibAppStorage.appStorage();
 
         if (s.blacklisted[msg.sender]) revert Events.UserBlacklisted();
@@ -343,6 +399,25 @@ contract Invest {
 
         if (usdcCost <= 0) {
             usdcCost = 1;
+        }
+    }
+
+    function getAmountInEur(uint256 id, uint256 sharesAmount) external view returns (uint256 eurcCost) {
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
+        if (sharesAmount <= 0) revert Events.InputCannotBeZero();
+
+        eurcCost = _getAmountInEur(id, sharesAmount);
+    }
+
+    function _getAmountInEur(uint256 id, uint256 sharesAmount) internal view returns (uint256 eurcCost) {
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        eurcCost = (s.operations[id].eurPerShares * sharesAmount) / PRICE_PRECISION;
+
+        if (eurcCost <= 0) {
+            eurcCost = 1;
         }
     }
 

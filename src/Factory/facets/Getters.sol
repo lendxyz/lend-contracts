@@ -105,4 +105,23 @@ contract Getters {
         AppStorage storage s = LibAppStorage.appStorage();
         return s.blacklisted[user];
     }
+
+    function eurc() external view returns (address) {
+        AppStorage storage s = LibAppStorage.appStorage();
+        return address(s.eurc);
+    }
+
+    function eurcRaised(uint256 id) external view returns (uint256) {
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
+        return s.eurcRaised[id];
+    }
+
+    function eurcRaisedPerClient(uint256 id, address user) external view returns (uint256) {
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        if (id > s.operationCount) revert Events.OpNotExist();
+        return s.eurcRaisedPerClient[id][user];
+    }
 }

@@ -64,6 +64,7 @@ interface ILendFactory {
     function refundUser(uint256 id, address user) external;
     function batchRefundUsers(uint256 id, address[] calldata users, uint256 len) external;
     function updateOracleAddress(address newOracleAddress) external;
+    function setEurcAddress(address eurcAddress) external;
     function updateBackendSigner(address newBackendSigner) external;
     function setOpLendPeer(uint256 id, uint32 chainId, uint32 lzEndpointId, bytes32 peerAddress) external;
     function blacklist(address user, bool state) external;
@@ -95,6 +96,9 @@ interface ILendFactory {
     function claimableTotal(uint256 id, address user) external view returns (uint256);
     function predepositsOpen(uint256 id) external view returns (bool);
     function blacklisted(address user) external view returns (bool);
+    function eurc() external view returns (address);
+    function eurcRaised(uint256 id) external view returns (uint256);
+    function eurcRaisedPerClient(uint256 id, address user) external view returns (uint256);
 
     // Invest facet
 
@@ -106,9 +110,18 @@ interface ILendFactory {
         bytes calldata signature,
         uint32 lzEndpointId
     ) external payable;
+    function investEur(uint256 id, uint256 sharesAmount, string calldata nonce, bytes calldata signature) external;
+    function investEurAndBridge(
+        uint256 id,
+        uint256 sharesAmount,
+        string calldata nonce,
+        bytes calldata signature,
+        uint32 lzEndpointId
+    ) external payable;
     function predeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes calldata signature) external;
     function claimOpTokens(uint256 id, address user) external;
     function getAmountIn(uint256 id, uint256 sharesAmount) external view returns (uint256 usdcCost);
+    function getAmountInEur(uint256 id, uint256 sharesAmount) external view returns (uint256 eurcCost);
     function getAmountOut(uint256 id, uint256 usdcAmount) external view returns (uint256 sharesAmount);
     function giftOpTokens(uint256 id, uint256 sharesAmount, address user) external;
     function claimOpTokensAndBridge(uint256 id, uint32 lzEndpointId) external payable;

@@ -24,6 +24,10 @@ library Utils {
         eurUsd = uint256(scaled);
     }
 
+    function eurToUsd(address oracle, uint256 eurAmount) internal view returns (uint256) {
+        return eurAmount * getEurUsdOraclePrice(oracle) / 1e6;
+    }
+
     function uintToString(uint256 value) internal pure returns (string memory) {
         if (value == 0) return "0";
 

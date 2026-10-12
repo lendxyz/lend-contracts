@@ -19,7 +19,7 @@ help:
 	@echo 'make deploy-restitution-mainnet: deploy restitution contract'
 	@echo 'make deploy-restitution-testnet pk=[your_private_key]: deploy restitution contract on sepolia testnet'
 	@echo 'make abi: generate contract abis in the `abis` folder'
-	@echo 'make deploy-facet-upgrade-mainnet [hd=your_ledger_derivation_path]: deploy the Admin facet and propose the diamond cut to the Safe'
+	@echo 'make deploy-facet-upgrade-mainnet [hd=your_ledger_derivation_path]: deploy the Admin, Getters and Invest facets and propose the EURC diamond cut to the Safe'
 
 install:
 	forge install && npm i

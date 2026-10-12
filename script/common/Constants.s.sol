@@ -14,6 +14,7 @@ contract Constants {
         address usdc;
         address backendSigner;
         address admin;
+        address eurc;
     }
 
     FactoryConstructorArgs public mnFactArgs = FactoryConstructorArgs(
@@ -21,7 +22,8 @@ contract Constants {
         address(0x1a44076050125825900e736c501f859c50fE728c), // lzEndpoint - Ethereum mainnet
         address(0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48), // usdc - Ethereum mainnet address
         address(0x499603A70DC410c50A435D0Cd40C656bef4685FD), // backendSigner
-        aymAddress
+        aymAddress,
+        address(0x1aBaEA1f7C830bD89Acc67eC4af516284b1bC33c) // eurc - Ethereum mainnet address
     );
 
     FactoryConstructorArgs public tnFactArgs = FactoryConstructorArgs(
@@ -29,7 +31,8 @@ contract Constants {
         address(0x6EDCE65403992e310A62460808c4b910D972f10f), // lzEndpoint - Sepolia
         address(0x73DC60bb3f14852fF727C6C67B187e61A7BB26E8), // usdc - DummyUSDC address
         tnOwner, // backendSigner - Sepolia testnet deployer address
-        tnOwner // admin - Sepolia testnet deployer address
+        tnOwner, // admin - Sepolia testnet deployer address
+        address(0x08210F9170F89Ab7658F0B5E3fF39b0E03C594D4) // eurc - Circle EURC on Sepolia
     );
 
     function getLzEndpointMainnet() public view returns (address) {
@@ -192,7 +195,6 @@ contract Constants {
         revert("Unknown chain id");
     }
 
-    // TODO: change this once deployed
     address internal constant MAINNET_RESTITUTION = address(0x3F74caB9C259C8F7F797A3F50beCC913E86175B2);
     address internal constant TESTNET_RESTITUTION = address(0x47570B8b52c462e6D0b4Dc832A96268E95E36999);
 
