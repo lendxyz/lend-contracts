@@ -310,6 +310,38 @@ contract FactoryTest is Test, TestBase {
         assertEq(factory.usdcRaisedPerClient(1, address(user)), 0);
     }
 
+    function test_RefundOnlyFromUnwithdrawnUsdc() public {
+        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
+        bytes memory signature2 = getMintSignature(address(user2), 1, sharesToBuy, testNonce2);
+
+        vm.startPrank(user);
+        usdc.approve(address(factory), UINT256_MAX);
+        factory.invest(1, sharesToBuy, testNonce, signature);
+        vm.stopPrank();
+
+        vm.prank(admin);
+        factory.withdrawUsdc(1, admin);
+
+        vm.prank(admin);
+        vm.expectRevert(ILendFactory.InsufficientOpUsdc.selector);
+        factory.refundUser(1, address(user));
+
+        vm.startPrank(user2);
+        usdc.approve(address(factory), UINT256_MAX);
+        factory.invest(1, sharesToBuy, testNonce2, signature2);
+        vm.stopPrank();
+
+        vm.prank(admin);
+        factory.refundUser(1, address(user2));
+
+        assertEq(usdc.balanceOf(address(user2)), initialUsdcBalance);
+        assertEq(usdc.balanceOf(address(factory)), 0);
+
+        vm.prank(admin);
+        vm.expectRevert(ILendFactory.AlreadyWithdrawn.selector);
+        factory.withdrawUsdc(1, admin);
+    }
+
     function test_OpFinished() public {
         assertEq(factory.isOperationFinished(1), false);
 
@@ -325,6 +357,49 @@ contract FactoryTest is Test, TestBase {
         assertEq(factory.fundingProgress(1), totalSharesAmount);
         assertEq(factory.operationStarted(1), true);
         assertEq(factory.isOperationFinished(1), true);
+    }
+
+    function test_WithdrawUsdcBeforeAndAfterSaleEnd() public {
+        address treasury = makeAddr("treasury");
+        uint256 remainingShares = totalSharesAmount - sharesToBuy;
+        bytes memory firstSignature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
+        bytes memory secondSignature = getMintSignature(address(user), 1, remainingShares, testNonce2);
+
+        vm.startPrank(user);
+        usdc.approve(address(factory), UINT256_MAX);
+        factory.invest(1, sharesToBuy, testNonce, firstSignature);
+        vm.stopPrank();
+
+        uint256 firstRaise = factory.usdcRaised(1);
+        assertEq(factory.isOperationFinished(1), false);
+
+        vm.prank(admin);
+        factory.withdrawUsdc(1, treasury);
+
+        assertEq(usdc.balanceOf(treasury), firstRaise);
+        assertEq(usdc.balanceOf(address(factory)), 0);
+        assertEq(factory.usdcWithdrawn(1), false);
+
+        vm.prank(admin);
+        vm.expectRevert(ILendFactory.AlreadyWithdrawn.selector);
+        factory.withdrawUsdc(1, treasury);
+
+        vm.startPrank(user);
+        factory.invest(1, remainingShares, testNonce2, secondSignature);
+        vm.stopPrank();
+
+        assertEq(factory.isOperationFinished(1), true);
+
+        vm.prank(admin);
+        factory.withdrawUsdc(1, treasury);
+
+        assertEq(usdc.balanceOf(treasury), factory.usdcRaised(1));
+        assertEq(usdc.balanceOf(address(factory)), 0);
+        assertEq(factory.usdcWithdrawn(1), true);
+
+        vm.prank(admin);
+        vm.expectRevert(ILendFactory.AlreadyWithdrawn.selector);
+        factory.withdrawUsdc(1, treasury);
     }
 
     function test_AddLZPeer() public {

@@ -31,6 +31,8 @@ struct AppStorage {
     mapping(string => bool) usedNonces;
     mapping(uint256 => bool) predepositsOpen;
     mapping(address => bool) blacklisted;
+    // Appended for partial (pre-sale-end) USDC withdrawals. Must stay last to preserve the deployed layout.
+    mapping(uint256 => uint256) usdcWithdrawnAmount;
 }
 
 library LibAppStorage {

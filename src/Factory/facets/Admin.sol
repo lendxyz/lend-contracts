@@ -20,6 +20,9 @@ contract Admin {
         if (id > s.operationCount) revert Events.OpNotExist();
         if (userInvestAmount == 0) revert Events.UserNotParticipated();
         if (opLendBalance == 0) revert Events.NoOpLendBalance();
+        if (s.usdcWithdrawn[id] || s.usdcRaised[id] - s.usdcWithdrawnAmount[id] < userInvestAmount) {
+            revert Events.InsufficientOpUsdc();
+        }
 
         s.fundingProgress[id] -= opLendBalance;
         s.usdcRaised[id] -= userInvestAmount;
@@ -92,14 +95,17 @@ contract Admin {
         AppStorage storage s = LibAppStorage.appStorage();
 
         if (id > s.operationCount) revert Events.OpNotExist();
-
-        bool isOpFinished = s.operationStarted[id] && s.fundingProgress[id] >= s.operations[id].totalShares;
-
-        if (!isOpFinished) revert Events.OpNotFinished();
         if (s.usdcWithdrawn[id]) revert Events.AlreadyWithdrawn();
 
-        s.usdcWithdrawn[id] = true;
-        require(s.usdc.transfer(destination, s.usdcRaised[id]), Events.TransferFailed());
+        uint256 amount = s.usdcRaised[id] - s.usdcWithdrawnAmount[id];
+        if (amount == 0) revert Events.AlreadyWithdrawn();
+
+        s.usdcWithdrawnAmount[id] += amount;
+        if (s.operationStarted[id] && s.fundingProgress[id] >= s.operations[id].totalShares) {
+            s.usdcWithdrawn[id] = true;
+        }
+
+        require(s.usdc.transfer(destination, amount), Events.TransferFailed());
     }
 
     function blacklist(address user, bool state) external {

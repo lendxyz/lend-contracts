@@ -48,6 +48,7 @@ contract LendRestitution is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         usdc = IERC20(_usdc);
     }
 
+    // TODO: make it so that you can specify the amount of oplend or USDC to withdraw
     function withdrawRestitution(uint256 _id, address _destination) public onlyOwner {
         Restitution storage restitution = restitutions[_id];
         require(!isFinished(_id), "Already claimed all");
