@@ -19,6 +19,7 @@ help:
 	@echo 'make deploy-restitution-mainnet: deploy restitution contract'
 	@echo 'make deploy-restitution-testnet pk=[your_private_key]: deploy restitution contract on sepolia testnet'
 	@echo 'make abi: generate contract abis in the `abis` folder'
+	@echo 'make deploy-facet-upgrade-mainnet [hd=your_ledger_derivation_path]: deploy the Admin facet and propose the diamond cut to the Safe'
 
 install:
 	forge install && npm i
@@ -56,8 +57,10 @@ deploy-factory-mainnet:
 deploy-factory-testnet:
 	forge script script/DeployFactory.s.sol:DeployFactory -vvvv --slow --broadcast --private-key $(pk) --rpc-url https://ethereum-sepolia-rpc.publicnode.com --verify
 
+deploy-facet-upgrade-mainnet: hd ?= m/44'/60'/5'/0/0
 deploy-facet-upgrade-mainnet:
-	forge script script/mainnet/DeployFacetUpgrade.s.sol:DeployFacetUpgrade -vvvv --slow --broadcast --ledger --hd-paths "m/44'/60'/5'/0/0" --rpc-url https://ethereum-rpc.publicnode.com --verify --ffi
+	forge script script/mainnet/DeployFacetUpgrade.s.sol:DeployFacetUpgrade -vvvv --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	LEDGER_HD_PATH="$(hd)" forge script script/mainnet/DeployFacetUpgrade.s.sol:ProposeFacetUpgrade -vvvv --broadcast --rpc-url https://ethereum-rpc.publicnode.com
 
 upgrade-factory-testnet:
 	forge script script/testnet/UpgradeFactory.s.sol:UpgradeFactoryTestnet -vvvv --slow --broadcast --private-key $(pk) --rpc-url https://ethereum-sepolia-rpc.publicnode.com --verify

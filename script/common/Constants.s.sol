@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.27;
 
+import {LendMultisig} from "./LendMultisig.s.sol";
+
 contract Constants {
     address public tnOwner = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283);
-    address public multisigAddress = address(0xC11f4C91a201461a22EEE735E7EF6f07cdecEcbF);
+    address public multisigAddress = LendMultisig.SAFE;
     address public aymAddress = address(0xa036e0f94689B7Bbe514527482EA3D9B412Db9Cf);
 
     struct FactoryConstructorArgs {
@@ -201,4 +203,6 @@ contract Constants {
     function getTestnetRestitutionAddress() public pure returns (address) {
         return TESTNET_RESTITUTION;
     }
+
+    address internal constant MAINNET_FACTORY = address(0xbfbAff7afE2beA4fD130C4965B6eb28bd1DA4061);
 }
