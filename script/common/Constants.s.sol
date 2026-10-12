@@ -2,6 +2,7 @@
 pragma solidity ^0.8.27;
 
 import {LendMultisig} from "script/common/LendMultisig.s.sol";
+import {ILendFactory} from "src/Factory/interfaces/IFactory.sol";
 
 contract Constants {
     address public tnOwner = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283);
@@ -209,4 +210,24 @@ contract Constants {
     address internal constant MAINNET_FACTORY = address(0xbfbAff7afE2beA4fD130C4965B6eb28bd1DA4061);
     address internal constant MAINNET_ORACLE = address(0xf67800302318D0B4f34dCAE98F3aAb129D76856C);
     address internal constant MAINNET_OPLEND_WALLET = address(0x5Be7FF28AE03FD76e0765b758205A3fA20347424);
+
+    /// @dev OZ upgrades validation of the opLEND implementation, LayerZero upgradeable OApp by-design exceptions:
+    ///      - its constructor sets the endpoint and decimal conversion rate as implementation immutables.
+    ///      - `__OFTCore_init` initializes OAppSender/OAppReceiver through their `_unchained` initializers, which the
+    ///        validator reports as missing and out of order.
+    string internal constant OPLEND_UNSAFE_ALLOW =
+        "constructor,state-variable-immutable,missing-initializer-call,incorrect-initializer-order";
+
+    /// @notice Beacon of the upgradeable opLEND: owned by the factory on Ethereum, by the Lend Safe elsewhere.
+    function getOpLendBeaconAddress() public view returns (address) {
+        // Ethereum: created by the factory on its first `updateOpLendImplementation`.
+        if (block.chainid == 1) {
+            address beacon = ILendFactory(MAINNET_FACTORY).opLendBeacon();
+            require(beacon != address(0), "Factory opLEND implementation not set");
+            return beacon;
+        }
+
+        // Other chains: deployed by `DeployOpLendBeacon`, add them here.
+        revert("No opLEND beacon on this chain: run DeployOpLendBeacon and add it to Constants");
+    }
 }

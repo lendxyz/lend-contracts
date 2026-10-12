@@ -29,6 +29,7 @@ library Events {
     );
     event PredepositsOpen(uint256 indexed operationId);
     event PredepositsClosed(uint256 indexed operationId);
+    event OpLendImplementationUpdated(address indexed implementation);
 
     error UserBlacklisted();
     error OpNotExist();
@@ -50,4 +51,5 @@ library Events {
     error InvalidSignatureLength();
     error PredepositsNotOpen();
     error InsufficientOpUsdc();
+    error OpLendImplementationNotSet();
 }

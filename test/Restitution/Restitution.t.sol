@@ -47,8 +47,8 @@ contract RestitutionTest is Test, TestBase {
     }
 
     function newOpLend(uint256 _maxSupply) public returns (LendOperation op) {
+        op = deployOpLend(admin, "Standalone op", "SOP", _maxSupply);
         vm.startPrank(admin);
-        op = new LendOperation(admin, "Standalone op", "SOP", _maxSupply, mnFactArgs.lzEndpoint, admin, backendSigner);
         op.whitelistUserAdmin(address(restitution), true);
         vm.stopPrank();
     }

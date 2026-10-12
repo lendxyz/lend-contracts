@@ -46,6 +46,17 @@ library LendMultisig {
     /// @notice Proposes `SAFE` calling `_target` with `_callData` (CALL, no value) at the next free Safe nonce.
     /// @return safeTxHash Hash of the proposed SafeTx.
     function proposeTransaction(address _target, bytes memory _callData) internal returns (bytes32 safeTxHash) {
+        return proposeTransaction(_target, _callData, nextNonce());
+    }
+
+    /// @notice Proposes `SAFE` calling `_target` with `_callData` (CALL, no value) at `_nonce`. Chained proposals of a
+    ///         run take consecutive nonces from one `nextNonce()`: the Transaction Service may not list the previous
+    ///         ones yet.
+    /// @return safeTxHash Hash of the proposed SafeTx.
+    function proposeTransaction(address _target, bytes memory _callData, uint256 _nonce)
+        internal
+        returns (bytes32 safeTxHash)
+    {
         (VmSafe.CallerMode callerMode, address sender,) = vm.readCallers();
         require(
             callerMode == VmSafe.CallerMode.Broadcast || callerMode == VmSafe.CallerMode.RecurrentBroadcast,
@@ -57,9 +68,9 @@ library LendMultisig {
             string.concat("LendMultisig: broadcaster ", vm.toString(sender), " is not a Safe owner (check --sender)")
         );
 
-        string memory transactionsUrl =
-            string.concat(_txServiceUrl(), "/api/v2/safes/", vm.toString(SAFE), "/multisig-transactions/");
-        uint256 nonce = _nextNonce(transactionsUrl);
+        string memory transactionsUrl = _transactionsUrl();
+        uint256 nonce = _nonce;
+        require(nonce >= ISafe(SAFE).nonce(), "LendMultisig: nonce already executed");
 
         bytes32 domainSeparator = ISafe(SAFE).domainSeparator();
         bytes32 messageHash = keccak256(
@@ -124,7 +135,15 @@ library LendMultisig {
         console.log("Proposed: other owners can now confirm it in the Safe app queue.");
     }
 
-    /// @dev Next nonce after the Safe's executed and queued (proposed, not yet executed) transactions.
+    /// @notice Next nonce after the Safe's executed and queued (proposed, not yet executed) transactions.
+    function nextNonce() internal returns (uint256) {
+        return _nextNonce(_transactionsUrl());
+    }
+
+    function _transactionsUrl() private view returns (string memory) {
+        return string.concat(_txServiceUrl(), "/api/v2/safes/", vm.toString(SAFE), "/multisig-transactions/");
+    }
+
     function _nextNonce(string memory transactionsUrl) private returns (uint256 nonce) {
         nonce = ISafe(SAFE).nonce();
 

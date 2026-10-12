@@ -5,7 +5,7 @@ import {LibDiamond} from "src/legacy/Factory/FactoryV2/lib/LibDiamond.sol";
 import {Operation, AppStorage, LibAppStorage} from "src/legacy/Factory/FactoryV2/lib/Storage.sol";
 import {Utils} from "src/legacy/Factory/FactoryV2/lib/Utils.sol";
 import {Events} from "src/legacy/Factory/FactoryV2/lib/Utils.sol";
-import {LendOperation} from "src/opLend.sol";
+import {LendOperationV1 as LendOperation} from "src/legacy/opLend/LendOperationV1.sol";
 
 contract Admin {
     function refundUser(uint256 id, address user) external {

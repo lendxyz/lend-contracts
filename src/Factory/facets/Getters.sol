@@ -3,9 +3,7 @@ pragma solidity 0.8.30;
 
 import {LibDiamond} from "src/Factory/lib/LibDiamond.sol";
 import {Operation, AppStorage, LibAppStorage} from "src/Factory/lib/Storage.sol";
-import {Utils} from "src/Factory/lib/Utils.sol";
 import {Events} from "src/Factory/lib/Utils.sol";
-import {LendOperation} from "src/opLend.sol";
 
 contract Getters {
     function usdc() external view returns (address) {
@@ -123,5 +121,10 @@ contract Getters {
 
         if (id > s.operationCount) revert Events.OpNotExist();
         return s.eurcRaisedPerClient[id][user];
+    }
+
+    function opLendBeacon() external view returns (address) {
+        AppStorage storage s = LibAppStorage.appStorage();
+        return s.opLendBeacon;
     }
 }

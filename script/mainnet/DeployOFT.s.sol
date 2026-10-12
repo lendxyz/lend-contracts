@@ -2,9 +2,11 @@
 pragma solidity ^0.8.27;
 
 import {Script} from "forge-std/Script.sol";
+import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {LendOperation} from "src/opLend.sol";
 import {Constants} from "script/common/Constants.s.sol";
 
+/// @notice Deploys an opLEND on a chain without the factory, behind the chain's opLEND beacon (`DeployOpLendBeacon`).
 contract DeployOFT is Script, Constants {
     LendOperation public oft;
 
@@ -17,14 +19,19 @@ contract DeployOFT is Script, Constants {
     function run() public {
         vm.startBroadcast();
 
-        new LendOperation(
-            multisigAddress, // admin - should be Lend multisig after setup
-            name,
-            symbol,
-            maxSupply,
-            getLzEndpointMainnet(),
-            multisigAddress, // lz delegate - should be Lend multisig
-            address(0x499603A70DC410c50A435D0Cd40C656bef4685FD)
+        new BeaconProxy(
+            getOpLendBeaconAddress(),
+            abi.encodeCall(
+                LendOperation.initialize,
+                (
+                    multisigAddress, // admin - should be Lend multisig after setup
+                    name,
+                    symbol,
+                    maxSupply,
+                    multisigAddress, // lz delegate - should be Lend multisig
+                    address(0x499603A70DC410c50A435D0Cd40C656bef4685FD)
+                )
+            )
         );
 
         // (bytes32 peerEth, uint32 lzEidEth) =

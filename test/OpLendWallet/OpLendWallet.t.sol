@@ -72,10 +72,7 @@ contract OpLendWalletTest is Test, TestBase {
 
     /// @dev opLend living outside the factory: lets the wallet hold shares it is not whitelisted for.
     function standaloneOpLend() public returns (LendOperation op) {
-        vm.prank(admin);
-        op = new LendOperation(
-            admin, "Standalone op", "SOP", totalSharesAmount, mnFactArgs.lzEndpoint, admin, backendSigner
-        );
+        op = deployOpLend(admin, "Standalone op", "SOP", totalSharesAmount);
     }
 
     //********** Signatures **********

@@ -2,6 +2,7 @@
 pragma solidity 0.8.30;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
 import {LibDiamond} from "src/Factory/lib/LibDiamond.sol";
 import {Operation, AppStorage, LibAppStorage} from "src/Factory/lib/Storage.sol";
 import {Utils} from "src/Factory/lib/Utils.sol";
@@ -69,7 +70,6 @@ contract Admin {
         s.eurUsdOracle = newOracleAddress;
     }
 
-    /// @notice Sets the EURC token accepted by `investEur`. Set once: raised EURC is accounted against this token.
     function setEurcAddress(address eurcAddress) external {
         LibDiamond.enforceIsContractOwner();
 
@@ -87,6 +87,25 @@ contract Admin {
 
         AppStorage storage s = LibAppStorage.appStorage();
         s.backendSigner = newBackendSigner;
+    }
+
+    function updateOpLendImplementation(address newImplementation) external {
+        LibDiamond.enforceIsContractOwner();
+
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        // The endpoint is an implementation immutable: rejects implementations built for another chain.
+        require(
+            address(LendOperation(newImplementation).endpoint()) == s.lzEndpoint, "Implementation LZ endpoint mismatch"
+        );
+
+        if (s.opLendBeacon == address(0)) {
+            s.opLendBeacon = address(new UpgradeableBeacon(newImplementation, address(this)));
+        } else {
+            UpgradeableBeacon(s.opLendBeacon).upgradeTo(newImplementation);
+        }
+
+        emit Events.OpLendImplementationUpdated(newImplementation);
     }
 
     function batchSetOpLendPeers(

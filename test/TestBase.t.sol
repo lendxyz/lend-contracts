@@ -3,6 +3,7 @@ pragma solidity ^0.8.27;
 
 import {Test} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 
 // Helpers
 import {Constants} from "script/common/Constants.s.sol";
@@ -138,6 +139,17 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
         return op;
     }
 
+    /// @dev opLEND living outside the factory, sharing the factory beacon.
+    function deployOpLend(address owner, string memory name, string memory symbol, uint256 maxSupply)
+        public
+        returns (LendOperation)
+    {
+        bytes memory initData =
+            abi.encodeCall(LendOperation.initialize, (owner, name, symbol, maxSupply, owner, backendSigner));
+
+        return LendOperation(address(new BeaconProxy(factory.opLendBeacon(), initData)));
+    }
+
     function deployOpLendWallet() public {
         OpLendWallet implementation = new OpLendWallet();
         ERC1967Proxy opLendWalletProxy = new ERC1967Proxy(
@@ -192,6 +204,10 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
         factory.setEurcAddress(address(eurc));
     }
 
+    function deployOpLendImplementation() public {
+        factory.updateOpLendImplementation(address(new LendOperation(mnFactArgs.lzEndpoint)));
+    }
+
     function setupContracts() public virtual {
         vm.deal(admin, 10 ether);
         vm.deal(user, 10 ether);
@@ -206,6 +222,7 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
         eurc = USDC(mnFactArgs.eurc);
 
         deployDiamond();
+        deployOpLendImplementation();
         deployRewards();
         deployRestitution();
         deployOpLendWallet();

@@ -57,8 +57,16 @@ The mainnet upgrades do both runs: the first deploys with the Ledger, the second
 
 ```shell
 $ make deploy-facet-upgrade-mainnet hd="m/44'/60'/0'/0/0"
-$ make upgrade-rewards-mainnet hd="m/44'/60'/0'/0/0"   # also upgrade-restitution-mainnet, upgrade-oracle-mainnet, upgrade-oplend-wallet-mainnet
+$ make upgrade-rewards-mainnet hd="m/44'/60'/0'/0/0"   # also upgrade-restitution-mainnet, upgrade-oracle-mainnet, upgrade-oplend-wallet-mainnet, upgrade-oplend-mainnet
 ```
+
+### Upgradeable opLEND
+
+opLEND are `BeaconProxy`s: upgrading a chain's beacon upgrades every opLEND of that chain at once. opLEND deployed before the beacons are standalone contracts (`src/legacy/opLend/LendOperationV1.sol`) and stay non-upgradeable.
+
+- Ethereum: the factory owns the beacon. `createOperation` deploys a proxy, and `updateOpLendImplementation` (factory owner) deploys the beacon on its first call and upgrades it afterwards. `make deploy-facet-upgrade-mainnet` proposes both.
+- Other chains: the LayerZero endpoint is an implementation immutable, so each chain has its own implementation and Safe-owned beacon. Deploy them once per chain with `make deploy-oplend-beacon-mainnet rpc=[your_rpc_url]`, add the beacon to `Constants.getOpLendBeaconAddress`, then `make deploy-oft-mainnet` deploys proxies behind it.
+- Upgrade: give the new `LendOperation` an `@custom:oz-upgrades-from` annotation pointing at a copy of the current version in `src/legacy/opLend`, then run `make upgrade-oplend-mainnet` for each chain.
 
 ### Sync dependencies
 

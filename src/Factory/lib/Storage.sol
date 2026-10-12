@@ -36,6 +36,7 @@ struct AppStorage {
     mapping(uint256 => uint256) eurcRaised;
     mapping(uint256 => mapping(address => uint256)) eurcRaisedPerClient;
     mapping(uint256 => uint256) eurcWithdrawnAmount;
+    address opLendBeacon;
 }
 
 library LibAppStorage {

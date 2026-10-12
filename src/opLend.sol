@@ -4,37 +4,68 @@ pragma solidity ^0.8.27;
 import {
     SendParam, MessagingFee, MessagingReceipt, OFTReceipt
 } from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
-import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import {IOFT, OFTCore} from "@layerzerolabs/oft-evm/contracts/OFTCore.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
+import {OFTCoreUpgradeable} from "@layerzerolabs/oft-evm-upgradeable/contracts/oft/OFTCoreUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract LendOperation is Ownable, ERC20, OFTCore {
-    uint256 public immutable MAX_SUPPLY;
-    uint8 private immutable DECIMALS = 6;
-    address internal backendSigner;
+contract LendOperation is OwnableUpgradeable, ERC20Upgradeable, OFTCoreUpgradeable {
+    uint8 private constant DECIMALS = 6;
 
-    mapping(string => bool) private usedNonces;
-    mapping(address => bool) public whitelisted;
+    /// @custom:storage-location erc7201:lend.storage.LendOperation
+    struct LendOperationStorage {
+        uint256 maxSupply;
+        address backendSigner;
+        mapping(string => bool) usedNonces;
+        mapping(address => bool) whitelisted;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("lend.storage.LendOperation")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant LEND_OPERATION_STORAGE_LOCATION =
+        0xc34f5a0174f65612ecad8374f23d6226eaf8247e0215f8f0a2fd11007837a100;
 
     error InvalidSignature();
     error InvalidSignatureLength();
 
-    constructor(
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor(address lzEndpoint) OFTCoreUpgradeable(DECIMALS, lzEndpoint) {
+        _disableInitializers();
+    }
+
+    function initialize(
         address initialOwner,
         string memory name,
         string memory symbol,
         uint256 maxSupply,
-        address lzEndpoint,
         address lzDelegate,
         address signer
-    ) OFTCore(DECIMALS, lzEndpoint, lzDelegate) ERC20(name, symbol) Ownable(initialOwner) {
-        backendSigner = signer;
-        MAX_SUPPLY = maxSupply;
+    ) external initializer {
+        __Ownable_init(initialOwner);
+        __ERC20_init(name, symbol);
+        __OFTCore_init(lzDelegate);
+
+        LendOperationStorage storage $ = _getLendOperationStorage();
+        $.maxSupply = maxSupply;
+        $.backendSigner = signer;
+    }
+
+    function _getLendOperationStorage() private pure returns (LendOperationStorage storage $) {
+        assembly {
+            $.slot := LEND_OPERATION_STORAGE_LOCATION
+        }
+    }
+
+    function MAX_SUPPLY() external view returns (uint256) {
+        return _getLendOperationStorage().maxSupply;
+    }
+
+    function whitelisted(address user) public view returns (bool) {
+        return _getLendOperationStorage().whitelisted[user];
     }
 
     function mint(address to, uint256 amount) public onlyOwner {
-        require(totalSupply() + amount <= MAX_SUPPLY, "Total supply cap exceeded");
-        whitelisted[to] = true;
+        LendOperationStorage storage $ = _getLendOperationStorage();
+        require(totalSupply() + amount <= $.maxSupply, "Total supply cap exceeded");
+        $.whitelisted[to] = true;
         _mint(to, amount);
     }
 
@@ -47,31 +78,33 @@ contract LendOperation is Ownable, ERC20, OFTCore {
     }
 
     function updateBackendSigner(address newSigner) public onlyOwner {
-        backendSigner = newSigner;
+        _getLendOperationStorage().backendSigner = newSigner;
     }
 
     function whitelistUser(address user, string calldata nonce, bytes memory signature) public {
         bool isSignatureValid = verifySignature(user, nonce, signature);
         if (!isSignatureValid) revert InvalidSignature();
-        whitelisted[user] = true;
+        _getLendOperationStorage().whitelisted[user] = true;
     }
 
     function whitelistUserAdmin(address user, bool state) public onlyOwner {
-        whitelisted[user] = state;
+        _getLendOperationStorage().whitelisted[user] = state;
     }
 
     function verifySignature(address _user, string calldata _nonce, bytes memory _signature) internal returns (bool) {
-        if (usedNonces[_nonce]) {
+        LendOperationStorage storage $ = _getLendOperationStorage();
+
+        if ($.usedNonces[_nonce]) {
             return false;
         }
 
         bytes32 messageHash = keccak256(abi.encodePacked(address(this), block.chainid, _user, _nonce));
         bytes32 ethSignedMessageHash = computeEthSignedHash(messageHash);
         address recovered = recoverSigner(ethSignedMessageHash, _signature);
-        bool isValid = recovered == backendSigner;
+        bool isValid = recovered == $.backendSigner;
 
         if (isValid) {
-            usedNonces[_nonce] = true;
+            $.usedNonces[_nonce] = true;
         }
 
         return isValid;
@@ -98,16 +131,16 @@ contract LendOperation is Ownable, ERC20, OFTCore {
     function transfer(address to, uint256 value) public override returns (bool) {
         address owner = _msgSender();
 
-        require(whitelisted[owner] == true, "Source address is not whitelisted");
-        require(whitelisted[to] == true, "Destination address is not whitelisted");
+        require(whitelisted(owner), "Source address is not whitelisted");
+        require(whitelisted(to), "Destination address is not whitelisted");
 
         _transfer(owner, to, value);
         return true;
     }
 
     function transferFrom(address from, address to, uint256 value) public override returns (bool) {
-        require(whitelisted[from] == true, "Source address is not whitelisted");
-        require(whitelisted[to] == true, "Destination address is not whitelisted");
+        require(whitelisted(from), "Source address is not whitelisted");
+        require(whitelisted(to), "Destination address is not whitelisted");
 
         address spender = _msgSender();
         _spendAllowance(from, spender, value);
@@ -161,8 +194,16 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         returns (MessagingReceipt memory msgReceipt, OFTReceipt memory oftReceipt)
     {
         address to = address(uint160(uint256(_sendParam.to)));
-        require(whitelisted[to], "Destination user is not whitelisted");
-        return _send(_sendParam, _fee, _refundAddress);
+        require(whitelisted(to), "Destination user is not whitelisted");
+
+        (uint256 amountSentLd, uint256 amountReceivedLd) =
+            _debit(_msgSender(), _sendParam.amountLD, _sendParam.minAmountLD, _sendParam.dstEid);
+
+        (bytes memory message, bytes memory options) = _buildMsgAndOptions(_sendParam, amountReceivedLd);
+
+        msgReceipt = _lzSend(_sendParam.dstEid, message, options, _fee, _refundAddress);
+        oftReceipt = OFTReceipt(amountSentLd, amountReceivedLd);
+        emit OFTSent(msgReceipt.guid, _sendParam.dstEid, _msgSender(), amountSentLd, amountReceivedLd);
     }
 
     /**
@@ -180,7 +221,7 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         override
         returns (uint256 amountSentLd, uint256 amountReceivedLd)
     {
-        require(whitelisted[_from] == true, "User is not whitelisted");
+        require(whitelisted(_from), "User is not whitelisted");
         (amountSentLd, amountReceivedLd) = _debitView(_amountLd, _minAmountLd, _dstEid);
 
         // @dev In NON-default OFT, amountSentLD could be 100, with a 10% fee, the amountReceivedLD amount is 90,
@@ -204,7 +245,7 @@ contract LendOperation is Ownable, ERC20, OFTCore {
         returns (uint256 amountReceivedLd)
     {
         if (_to == address(0x0)) _to = address(0xdead); // _mint(...) does not support address(0x0)
-        whitelisted[_to] = true;
+        _getLendOperationStorage().whitelisted[_to] = true;
         // @dev Default OFT mints on dst.
         _mint(_to, _amountLd);
         // @dev In the case of NON-default OFT, the _amountLD MIGHT not be == amountReceivedLD.

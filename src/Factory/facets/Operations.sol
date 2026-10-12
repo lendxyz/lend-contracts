@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
+import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
 import {LibDiamond} from "src/Factory/lib/LibDiamond.sol";
 import {Operation, AppStorage, LibAppStorage} from "src/Factory/lib/Storage.sol";
 import {Utils} from "src/Factory/lib/Utils.sol";
@@ -15,6 +16,7 @@ contract Operations {
         LibDiamond.enforceIsContractOwner();
 
         AppStorage storage s = LibAppStorage.appStorage();
+        if (s.opLendBeacon == address(0)) revert Events.OpLendImplementationNotSet();
 
         unchecked {
             s.operationCount++;
@@ -23,15 +25,21 @@ contract Operations {
         string memory name = string(abi.encodePacked("Lend Operation - ", opName));
         string memory symbol = string(abi.encodePacked("opLEND-", Utils.uintToString(s.operationCount)));
 
-        LendOperation newOp = new LendOperation(
-            address(this), name, symbol, totalShares, s.lzEndpoint, LibDiamond.contractOwner(), s.backendSigner
+        address newOp = address(
+            new BeaconProxy(
+                s.opLendBeacon,
+                abi.encodeCall(
+                    LendOperation.initialize,
+                    (address(this), name, symbol, totalShares, LibDiamond.contractOwner(), s.backendSigner)
+                )
+            )
         );
 
-        s.operations[s.operationCount] = Operation(address(newOp), totalShares, eurPerShares, opName);
+        s.operations[s.operationCount] = Operation(newOp, totalShares, eurPerShares, opName);
 
-        emit Events.OperationCreated(address(newOp), s.operationCount, totalShares);
+        emit Events.OperationCreated(newOp, s.operationCount, totalShares);
 
-        return address(newOp);
+        return newOp;
     }
 
     function getOperation(uint256 id) external view returns (Operation memory) {

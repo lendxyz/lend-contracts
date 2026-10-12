@@ -3,37 +3,7 @@
     "type": "constructor",
     "inputs": [
       {
-        "name": "initialOwner",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "name",
-        "type": "string",
-        "internalType": "string"
-      },
-      {
-        "name": "symbol",
-        "type": "string",
-        "internalType": "string"
-      },
-      {
-        "name": "maxSupply",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
         "name": "lzEndpoint",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "lzDelegate",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "signer",
         "type": "address",
         "internalType": "address"
       }
@@ -304,24 +274,62 @@
     "name": "enforcedOptions",
     "inputs": [
       {
-        "name": "eid",
+        "name": "_eid",
         "type": "uint32",
         "internalType": "uint32"
       },
       {
-        "name": "msgType",
+        "name": "_msgType",
         "type": "uint16",
         "internalType": "uint16"
       }
     ],
     "outputs": [
       {
-        "name": "enforcedOption",
+        "name": "",
         "type": "bytes",
         "internalType": "bytes"
       }
     ],
     "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "initialize",
+    "inputs": [
+      {
+        "name": "initialOwner",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "symbol",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "maxSupply",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "lzDelegate",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "signer",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -700,14 +708,14 @@
     "name": "peers",
     "inputs": [
       {
-        "name": "eid",
+        "name": "_eid",
         "type": "uint32",
         "internalType": "uint32"
       }
     ],
     "outputs": [
       {
-        "name": "peer",
+        "name": "",
         "type": "bytes32",
         "internalType": "bytes32"
       }
@@ -1297,7 +1305,7 @@
     "name": "whitelisted",
     "inputs": [
       {
-        "name": "",
+        "name": "user",
         "type": "address",
         "internalType": "address"
       }
@@ -1362,6 +1370,19 @@
             "internalType": "bytes"
           }
         ]
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Initialized",
+    "inputs": [
+      {
+        "name": "version",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
       }
     ],
     "anonymous": false
@@ -1621,6 +1642,11 @@
   },
   {
     "type": "error",
+    "name": "InvalidInitialization",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidLocalDecimals",
     "inputs": []
   },
@@ -1671,6 +1697,11 @@
         "internalType": "uint256"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "NotInitializing",
+    "inputs": []
   },
   {
     "type": "error",

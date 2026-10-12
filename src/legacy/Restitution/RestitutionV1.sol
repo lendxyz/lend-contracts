@@ -5,7 +5,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {LendOperation} from "src/opLend.sol";
+import {LendOperationV1 as LendOperation} from "src/legacy/opLend/LendOperationV1.sol";
 
 contract LendRestitutionV1 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     IERC20 public usdc;

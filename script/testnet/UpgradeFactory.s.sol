@@ -12,6 +12,7 @@ import {Getters} from "src/Factory/facets/Getters.sol";
 import {Invest} from "src/Factory/facets/Invest.sol";
 import {Operations} from "src/Factory/facets/Operations.sol";
 import {Ownership} from "src/Factory/facets/Ownership.sol";
+import {LendOperation} from "src/opLend.sol";
 
 contract UpgradeFactoryTestnet is Script, Constants, FactoryDiamondCuts {
     function setUp() public {}
@@ -26,14 +27,20 @@ contract UpgradeFactoryTestnet is Script, Constants, FactoryDiamondCuts {
         Admin adminFacet = new Admin();
         Getters gettersFacet = new Getters();
         Invest investFacet = new Invest();
-        // Operations operationsFacet = new Operations();
+        Operations operationsFacet = new Operations();
+        LendOperation opLendImplementation = new LendOperation(tnFactArgs.lzEndpoint);
 
         // get cuts
-        IDiamondCut.FacetCut[] memory cut =
-            getEurcUpgradeFacets(address(adminFacet), address(gettersFacet), address(investFacet));
+        IDiamondCut.FacetCut[] memory cut = _concatCuts(
+            getEurcUpgradeFacets(address(adminFacet), address(gettersFacet), address(investFacet)),
+            getOpLendBeaconUpgradeFacets(address(adminFacet), address(gettersFacet), address(operationsFacet))
+        );
 
         // Perform cut and configure EURC in the same transaction
         diamond.diamondCut(cut, address(adminFacet), abi.encodeCall(Admin.setEurcAddress, (tnFactArgs.eurc)));
+
+        // Deploy the opLEND beacon: the next operations are upgradeable
+        Admin(address(diamond)).updateOpLendImplementation(address(opLendImplementation));
 
         vm.stopBroadcast();
     }

@@ -13,6 +13,7 @@ import {Getters} from "src/Factory/facets/Getters.sol";
 import {Invest} from "src/Factory/facets/Invest.sol";
 import {Operations} from "src/Factory/facets/Operations.sol";
 import {Ownership} from "src/Factory/facets/Ownership.sol";
+import {LendOperation} from "src/opLend.sol";
 
 contract DeployFactory is Script, Constants, FactoryDiamondCuts {
     function setUp() public {}
@@ -20,10 +21,17 @@ contract DeployFactory is Script, Constants, FactoryDiamondCuts {
     function run() public {
         vm.startBroadcast();
 
+        require(
+            block.chainid == 1 || block.chainid == 11155111, "Factory can either be deployed to ETH mainnet or sepolia"
+        );
+
         // tnFactArgs => testnet
-        // FactoryConstructorArgs memory factoryArgs = tnFactArgs;
         // mnFactArgs => mainnet
         FactoryConstructorArgs memory factoryArgs = mnFactArgs;
+
+        if (block.chainid == 11155111) {
+            factoryArgs = tnFactArgs;
+        }
 
         Admin adminFacet = new Admin();
         Getters gettersFacet = new Getters();
@@ -51,7 +59,10 @@ contract DeployFactory is Script, Constants, FactoryDiamondCuts {
 
         ILendFactory factory = ILendFactory(address(diamond));
         factory.setEurcAddress(factoryArgs.eurc);
-        factory.transferOwnership(multisigAddress);
+        factory.updateOpLendImplementation(address(new LendOperation(factoryArgs.lzEndpoint)));
+        if (block.chainid == 1) {
+            factory.transferOwnership(multisigAddress);
+        }
 
         vm.stopBroadcast();
     }

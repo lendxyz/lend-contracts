@@ -47,9 +47,7 @@ contract OpLendOftTest is TestHelperOz5, TestBase {
     }
 
     function test_TransferOFT() public {
-        LendOperation opLend = new LendOperation(
-            address(admin), "LendOpTest", "opLend-0", 1_000_000, mnFactArgs.lzEndpoint, address(admin), backendSigner
-        );
+        LendOperation opLend = deployOpLend(address(admin), "LendOpTest", "opLend-0", 1_000_000);
 
         deal(address(opLend), address(user), 500e6);
 

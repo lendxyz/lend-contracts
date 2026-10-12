@@ -6,7 +6,7 @@ import {LibDiamond} from "src/legacy/Factory/FactoryV1/lib/LibDiamond.sol";
 import {Operation, AppStorage, LibAppStorage} from "src/legacy/Factory/FactoryV1/lib/Storage.sol";
 import {Utils} from "src/legacy/Factory/FactoryV1/lib/Utils.sol";
 import {Events} from "src/legacy/Factory/FactoryV1/lib/Utils.sol";
-import {LendOperation} from "src/opLend.sol";
+import {LendOperationV1 as LendOperation} from "src/legacy/opLend/LendOperationV1.sol";
 
 contract Invest {
     uint256 private reentrancyStatus;

@@ -23,7 +23,9 @@ help:
 	@echo 'make deploy-restitution-testnet pk=[your_private_key]: deploy restitution contract on sepolia testnet'
 	@echo 'make abi: generate contract abis in the `abis` folder'
 	@echo "Ledger targets: pass hd=[your_ledger_derivation_path] (default: $(hd))"
-	@echo 'make deploy-facet-upgrade-mainnet: deploy the Admin, Getters and Invest facets and propose the EURC diamond cut to the Safe'
+	@echo 'make deploy-facet-upgrade-mainnet: deploy the Admin, Getters, Invest and Operations facets and the opLEND implementation, propose the EURC + opLEND beacon diamond cut and the opLEND beacon deployment to the Safe'
+	@echo 'make deploy-oplend-beacon-mainnet rpc=[your_rpc_url]: deploy the opLEND implementation and its Safe-owned beacon on a chain without the factory (before deploy-oft-mainnet)'
+	@echo 'make upgrade-oplend-mainnet: deploy a new opLEND implementation and propose the upgrade of every upgradeable opLEND of the chain to the Safe'
 
 install:
 	forge install && npm i
@@ -62,6 +64,8 @@ deploy-factory-testnet:
 	forge script script/DeployFactory.s.sol:DeployFactory -vvvv --slow --broadcast --private-key $(pk) --rpc-url https://ethereum-sepolia-rpc.publicnode.com --verify
 
 deploy-facet-upgrade-mainnet:
+	forge cache clean && forge clean
+	forge compile
 	forge script script/mainnet/DeployFacetUpgrade.s.sol:DeployFacetUpgrade -vvvv --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
 	LEDGER_HD_PATH="$(hd)" forge script script/mainnet/DeployFacetUpgrade.s.sol:ProposeFacetUpgrade -vvvv --broadcast --rpc-url https://ethereum-rpc.publicnode.com
 
@@ -72,6 +76,37 @@ deploy-oft-mainnet:
 	forge script script/mainnet/DeployOFT.s.sol:DeployOFT --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://polygon-bor-rpc.publicnode.com --verify
   # If deploying on plume/blockscout setup
 	# forge script script/mainnet/DeployOFT.s.sol:DeployOFT --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://rpc.plume.org --verify --verifier blockscout --verifier-url https://explorer.plume.org/api
+
+deploy-oplend-beacon-mainnet:
+	forge cache clean && forge clean
+	forge compile
+	forge script script/mainnet/DeployOpLendBeacon.s.sol:DeployOpLendBeacon --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url $(rpc) --verify
+
+upgrade-oplend-mainnet:
+	forge cache clean && forge clean
+	forge compile
+	# Ethereum: proposes `updateOpLendImplementation` on the factory
+	forge script script/mainnet/UpgradeOpLend.s.sol:DeployOpLendImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeOpLend.s.sol:ProposeOpLendUpgrade --broadcast --rpc-url https://ethereum-rpc.publicnode.com
+	# Other chains: proposes `upgradeTo` on the chain's beacon
+	# Arbitrum
+	# forge script script/mainnet/UpgradeOpLend.s.sol:DeployOpLendImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://arbitrum-one-rpc.publicnode.com --verify
+	# LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeOpLend.s.sol:ProposeOpLendUpgrade --broadcast --rpc-url https://arbitrum-one-rpc.publicnode.com
+	# Base
+	# forge script script/mainnet/UpgradeOpLend.s.sol:DeployOpLendImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://base-rpc.publicnode.com --verify
+	# LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeOpLend.s.sol:ProposeOpLendUpgrade --broadcast --rpc-url https://base-rpc.publicnode.com
+	# BSC
+	# forge script script/mainnet/UpgradeOpLend.s.sol:DeployOpLendImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://bsc-rpc.publicnode.com --verify
+	# LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeOpLend.s.sol:ProposeOpLendUpgrade --broadcast --rpc-url https://bsc-rpc.publicnode.com
+	# Polygon
+	# forge script script/mainnet/UpgradeOpLend.s.sol:DeployOpLendImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://polygon-bor-rpc.publicnode.com --verify
+	# LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeOpLend.s.sol:ProposeOpLendUpgrade --broadcast --rpc-url https://polygon-bor-rpc.publicnode.com
+	# Sonic
+	# forge script script/mainnet/UpgradeOpLend.s.sol:DeployOpLendImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://sonic-rpc.publicnode.com:443 --verify
+	# LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeOpLend.s.sol:ProposeOpLendUpgrade --broadcast --rpc-url https://sonic-rpc.publicnode.com:443
+	# Linea
+	# forge script script/mainnet/UpgradeOpLend.s.sol:DeployOpLendImplementation --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://linea-rpc.publicnode.com --verify
+	# LEDGER_HD_PATH="$(hd)" forge script script/mainnet/UpgradeOpLend.s.sol:ProposeOpLendUpgrade --broadcast --rpc-url https://linea-rpc.publicnode.com
 
 deploy-oft-testnet:
 	forge script script/testnet/DeployOFT.s.sol:DeployOFTTestnet --slow --broadcast --private-key $(pk) --verify

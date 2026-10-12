@@ -30,6 +30,7 @@ interface ILendFactory {
     );
     event PredepositsOpen(uint256 indexed operationId);
     event PredepositsClosed(uint256 indexed operationId);
+    event OpLendImplementationUpdated(address indexed implementation);
 
     error UserBlacklisted();
     error OpNotExist();
@@ -51,6 +52,7 @@ interface ILendFactory {
     error InvalidSignatureLength();
     error PredepositsNotOpen();
     error InsufficientOpUsdc();
+    error OpLendImplementationNotSet();
 
     struct Operation {
         address opToken;
@@ -66,6 +68,7 @@ interface ILendFactory {
     function updateOracleAddress(address newOracleAddress) external;
     function setEurcAddress(address eurcAddress) external;
     function updateBackendSigner(address newBackendSigner) external;
+    function updateOpLendImplementation(address newImplementation) external;
     function setOpLendPeer(uint256 id, uint32 chainId, uint32 lzEndpointId, bytes32 peerAddress) external;
     function blacklist(address user, bool state) external;
     function withdrawUsdc(uint256 id, address destination) external;
@@ -99,6 +102,7 @@ interface ILendFactory {
     function eurc() external view returns (address);
     function eurcRaised(uint256 id) external view returns (uint256);
     function eurcRaisedPerClient(uint256 id, address user) external view returns (uint256);
+    function opLendBeacon() external view returns (address);
 
     // Invest facet
 
