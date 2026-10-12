@@ -163,6 +163,8 @@ contract Admin {
         if (eurcAmount > 0) {
             require(s.eurc.transfer(destination, eurcAmount), Events.TransferFailed());
         }
+
+        emit Events.FundingWithdrawn(id, usdcAmount, eurcAmount);
     }
 
     function blacklist(address user, bool state) external {

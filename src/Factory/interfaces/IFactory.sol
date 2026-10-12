@@ -31,6 +31,7 @@ interface ILendFactory {
     event PredepositsOpen(uint256 indexed operationId);
     event PredepositsClosed(uint256 indexed operationId);
     event OpLendImplementationUpdated(address indexed implementation);
+    event FundingWithdrawn(uint256 indexed operationId, uint256 usdcAmount, uint256 eurcAmount);
 
     error UserBlacklisted();
     error OpNotExist();
