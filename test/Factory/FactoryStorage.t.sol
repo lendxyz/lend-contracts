@@ -2,8 +2,8 @@
 pragma solidity ^0.8.27;
 
 import {Test} from "forge-std/Test.sol";
-import {LibAppStorage} from "../../src/Factory/lib/Storage.sol";
-import {TestBase} from "../TestBase.t.sol";
+import {LibAppStorage} from "src/Factory/lib/Storage.sol";
+import {TestBase} from "test/TestBase.t.sol";
 
 contract FactoryStorageTest is Test, TestBase {
     function test_StorageNamespaceIntegrity() public pure {

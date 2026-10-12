@@ -5,7 +5,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
-import {LendOperation} from "../../opLend.sol";
+import {LendOperation} from "src/opLend.sol";
 
 contract OpLendWalletV1 is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address internal backendSigner;

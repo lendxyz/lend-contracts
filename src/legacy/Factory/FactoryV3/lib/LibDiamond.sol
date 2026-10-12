@@ -7,7 +7,7 @@ pragma solidity 0.8.30;
  * EIP-2535 Diamonds: https://eips.ethereum.org/EIPS/eip-2535
  * /*****************************************************************************
  */
-import {IDiamondCut} from "../interfaces/IDiamondCut.sol";
+import {IDiamondCut} from "src/legacy/Factory/FactoryV3/interfaces/IDiamondCut.sol";
 
 error InitializationFunctionReverted(address _initializationContractAddress, bytes _calldata);
 

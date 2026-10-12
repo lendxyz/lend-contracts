@@ -21,11 +21,11 @@
 pragma solidity 0.8.30;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {IERC165} from "./interfaces/IERC165.sol";
-import {IDiamondCut} from "./interfaces/IDiamondCut.sol";
-import {IDiamondLoupe} from "./interfaces/IDiamondLoupe.sol";
-import {LibDiamond} from "./lib/LibDiamond.sol";
-import {AppStorage, LibAppStorage} from "./lib/Storage.sol";
+import {IERC165} from "src/legacy/Factory/FactoryV2/interfaces/IERC165.sol";
+import {IDiamondCut} from "src/legacy/Factory/FactoryV2/interfaces/IDiamondCut.sol";
+import {IDiamondLoupe} from "src/legacy/Factory/FactoryV2/interfaces/IDiamondLoupe.sol";
+import {LibDiamond} from "src/legacy/Factory/FactoryV2/lib/LibDiamond.sol";
+import {AppStorage, LibAppStorage} from "src/legacy/Factory/FactoryV2/lib/Storage.sol";
 
 contract LendFactory is IDiamondCut, IDiamondLoupe, IERC165 {
     error UnsupportedOperation();

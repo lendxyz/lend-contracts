@@ -5,10 +5,10 @@ pragma solidity ^0.8.27;
 import {Test} from "forge-std/Test.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {LendRestitution} from "../../src/Restitution.sol";
-import {LendOperation} from "../../src/opLend.sol";
-import {USDC} from "../../src/testnet/DummyUSDC.sol";
-import {RestitutionTest} from "./Restitution.t.sol";
+import {LendRestitution} from "src/Restitution.sol";
+import {LendOperation} from "src/opLend.sol";
+import {USDC} from "src/testnet/DummyUSDC.sol";
+import {RestitutionTest} from "test/Restitution/Restitution.t.sol";
 
 /// @dev Payable-less contract, used to force the ETH branch of `emergencyWithdraw` to fail.
 contract EtherRejector {}

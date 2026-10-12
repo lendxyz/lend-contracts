@@ -2,11 +2,11 @@
 pragma solidity 0.8.30;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import {LibDiamond} from "../lib/LibDiamond.sol";
-import {Operation, AppStorage, LibAppStorage} from "../lib/Storage.sol";
-import {Utils} from "../lib/Utils.sol";
-import {Events} from "../lib/Utils.sol";
-import {LendOperation} from "../../opLend.sol";
+import {LibDiamond} from "src/Factory/lib/LibDiamond.sol";
+import {Operation, AppStorage, LibAppStorage} from "src/Factory/lib/Storage.sol";
+import {Utils} from "src/Factory/lib/Utils.sol";
+import {Events} from "src/Factory/lib/Utils.sol";
+import {LendOperation} from "src/opLend.sol";
 
 contract Admin {
     function refundUser(uint256 id, address user) external {

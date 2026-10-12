@@ -6,8 +6,8 @@ import {Test} from "forge-std/Test.sol";
 import {Options, Upgrades} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {LendRestitution} from "../../src/Restitution.sol";
-import {RestitutionTest} from "./Restitution.t.sol";
+import {LendRestitution} from "src/Restitution.sol";
+import {RestitutionTest} from "test/Restitution/Restitution.t.sol";
 
 contract RestitutionProxyTest is Test, RestitutionTest {
     function test_UpgradeProxy() public {

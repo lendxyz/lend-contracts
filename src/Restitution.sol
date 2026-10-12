@@ -5,7 +5,7 @@ import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {LendOperation} from "./opLend.sol";
+import {LendOperation} from "src/opLend.sol";
 
 /// @custom:oz-upgrades-from src/legacy/Restitution/RestitutionV1.sol:LendRestitutionV1
 contract LendRestitution is Initializable, OwnableUpgradeable, UUPSUpgradeable {

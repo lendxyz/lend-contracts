@@ -2,14 +2,16 @@
 pragma solidity ^0.8.27;
 
 import {Script, console} from "forge-std/Script.sol";
-import {Constants} from "../common/Constants.s.sol";
-import {FactoryDiamondCuts} from "../common/FactoryDiamondCuts.s.sol";
-import {LendMultisig} from "../common/LendMultisig.s.sol";
-import {IDiamondCut} from "../../src/Factory/interfaces/IDiamondCut.sol";
+import {Constants} from "script/common/Constants.s.sol";
+import {FactoryDiamondCuts} from "script/common/FactoryDiamondCuts.s.sol";
+import {LendMultisig} from "script/common/LendMultisig.s.sol";
+import {IDiamondCut} from "src/Factory/interfaces/IDiamondCut.sol";
 
-import {Admin} from "../../src/Factory/facets/Admin.sol";
-import {Getters} from "../../src/Factory/facets/Getters.sol";
-import {Invest} from "../../src/Factory/facets/Invest.sol";
+import {Admin} from "src/Factory/facets/Admin.sol";
+import {Getters} from "src/Factory/facets/Getters.sol";
+import {Invest} from "src/Factory/facets/Invest.sol";
+import {Operations} from "src/Factory/facets/Operations.sol";
+import {Ownership} from "src/Factory/facets/Ownership.sol";
 
 contract DeployFacetUpgrade is Script {
     function run() public {
@@ -34,7 +36,7 @@ contract ProposeFacetUpgrade is Script, Constants, FactoryDiamondCuts {
                 vm.projectRoot(), "/broadcast/DeployFacetUpgrade.s.sol/", vm.toString(block.chainid), "/run-latest.json"
             )
         );
-        // Looked up by name: linked libraries (Utils) may be deployed in the same broadcast.
+
         address adminFacet = _deployedAddress(deployment, "Admin");
         address gettersFacet = _deployedAddress(deployment, "Getters");
         address investFacet = _deployedAddress(deployment, "Invest");
@@ -53,6 +55,7 @@ contract ProposeFacetUpgrade is Script, Constants, FactoryDiamondCuts {
             keccak256(investFacet.code) == keccak256(type(Invest).runtimeCode),
             "Deployed Invest facet does not match the current build: rerun DeployFacetUpgrade"
         );
+
         console.log("New admin facet:", adminFacet);
         console.log("New getters facet:", gettersFacet);
         console.log("New invest facet:", investFacet);

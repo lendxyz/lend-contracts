@@ -4,9 +4,9 @@ pragma solidity ^0.8.27;
 
 import {Test} from "forge-std/Test.sol";
 import {IERC20Errors} from "@openzeppelin/contracts/interfaces/draft-IERC6093.sol";
-import {LendRestitution} from "../../src/Restitution.sol";
-import {LendOperation} from "../../src/opLend.sol";
-import {RestitutionTest} from "./Restitution.t.sol";
+import {LendRestitution} from "src/Restitution.sol";
+import {LendOperation} from "src/opLend.sol";
+import {RestitutionTest} from "test/Restitution/Restitution.t.sol";
 
 contract RestitutionClaimTest is Test, RestitutionTest {
     uint256 otherId = 42;

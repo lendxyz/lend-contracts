@@ -3,9 +3,9 @@
 pragma solidity ^0.8.27;
 
 import {Test} from "forge-std/Test.sol";
-import {OpLendWallet} from "../../src/OpLendWallet.sol";
-import {LendOperation} from "../../src/opLend.sol";
-import {OpLendWalletTest} from "./OpLendWallet.t.sol";
+import {OpLendWallet} from "src/OpLendWallet.sol";
+import {LendOperation} from "src/opLend.sol";
+import {OpLendWalletTest} from "test/OpLendWallet/OpLendWallet.t.sol";
 
 contract OpLendWalletRedeemTest is Test, OpLendWalletTest {
     string redeemNonce = "rN-6Vv2qP";

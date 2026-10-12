@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {LibDiamond} from "../lib/LibDiamond.sol";
-import {Operation, AppStorage, LibAppStorage} from "../lib/Storage.sol";
-import {Utils} from "../lib/Utils.sol";
-import {Events} from "../lib/Events.sol";
-import {LendOperation} from "../../opLend.sol";
+import {LibDiamond} from "src/Factory/lib/LibDiamond.sol";
+import {Operation, AppStorage, LibAppStorage} from "src/Factory/lib/Storage.sol";
+import {Utils} from "src/Factory/lib/Utils.sol";
+import {Events} from "src/Factory/lib/Events.sol";
+import {LendOperation} from "src/opLend.sol";
 
 contract Operations {
     function createOperation(string calldata opName, uint256 totalShares, uint256 eurPerShares)

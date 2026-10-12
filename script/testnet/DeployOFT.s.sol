@@ -2,8 +2,8 @@
 pragma solidity ^0.8.27;
 
 import {Script} from "forge-std/Script.sol";
-import {LendOperation} from "../../src/opLend.sol";
-import {Constants} from "../common/Constants.s.sol";
+import {LendOperation} from "src/opLend.sol";
+import {Constants} from "script/common/Constants.s.sol";
 
 contract DeployOFTTestnet is Script, Constants {
     LendOperation public oft;

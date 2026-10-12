@@ -3,8 +3,8 @@ pragma solidity ^0.8.27;
 
 import {Script, console} from "forge-std/Script.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {Constants} from "../common/Constants.s.sol";
-import {LendRestitution} from "../../src/Restitution.sol";
+import {Constants} from "script/common/Constants.s.sol";
+import {LendRestitution} from "src/Restitution.sol";
 
 contract DeployRestitution is Script, Constants {
     function run() external {

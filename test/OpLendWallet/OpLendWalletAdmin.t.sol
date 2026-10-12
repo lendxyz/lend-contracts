@@ -6,9 +6,9 @@ import {Test} from "forge-std/Test.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {OpLendWallet} from "../../src/OpLendWallet.sol";
-import {LendOperation} from "../../src/opLend.sol";
-import {OpLendWalletTest} from "./OpLendWallet.t.sol";
+import {OpLendWallet} from "src/OpLendWallet.sol";
+import {LendOperation} from "src/opLend.sol";
+import {OpLendWalletTest} from "test/OpLendWallet/OpLendWallet.t.sol";
 
 contract OpLendWalletAdminTest is Test, OpLendWalletTest {
     function unauthorized(address _caller) internal pure returns (bytes memory) {

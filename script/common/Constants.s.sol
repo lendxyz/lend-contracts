@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.27;
 
-import {LendMultisig} from "./LendMultisig.s.sol";
+import {LendMultisig} from "script/common/LendMultisig.s.sol";
 
 contract Constants {
     address public tnOwner = address(0x5Ea84Ad53887CFc467D27e14B6F9EEb5a1C8a283);

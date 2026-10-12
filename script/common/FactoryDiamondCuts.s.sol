@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.27;
 
-import {IDiamondCut} from "../../src/Factory/interfaces/IDiamondCut.sol";
+import {IDiamondCut} from "src/Factory/interfaces/IDiamondCut.sol";
 
-import {Admin} from "../../src/Factory/facets/Admin.sol";
-import {Getters} from "../../src/Factory/facets/Getters.sol";
-import {Invest} from "../../src/Factory/facets/Invest.sol";
-import {Operations} from "../../src/Factory/facets/Operations.sol";
-import {Ownership} from "../../src/Factory/facets/Ownership.sol";
+import {Admin} from "src/Factory/facets/Admin.sol";
+import {Getters} from "src/Factory/facets/Getters.sol";
+import {Invest} from "src/Factory/facets/Invest.sol";
+import {Operations} from "src/Factory/facets/Operations.sol";
+import {Ownership} from "src/Factory/facets/Ownership.sol";
 
 contract FactoryDiamondCuts {
     // Selectors already registered on deployed diamonds (pre-EURC). Upgrades must Replace them.

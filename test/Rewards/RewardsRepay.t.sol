@@ -4,8 +4,8 @@ pragma solidity ^0.8.27;
 
 import {Test} from "forge-std/Test.sol";
 import {Options, Upgrades} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
-import {LendRewards} from "../../src/Rewards.sol";
-import {RewardsTest} from "./Rewards.t.sol";
+import {LendRewards} from "src/Rewards.sol";
+import {RewardsTest} from "test/Rewards/Rewards.t.sol";
 
 contract RewardsRepayTest is Test, RewardsTest {
     function test_AaveRepayNotInitialized() public {

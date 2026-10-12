@@ -5,25 +5,25 @@ import {Test} from "forge-std/Test.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 
 // Helpers
-import {Constants} from "../script/common/Constants.s.sol";
-import {FactoryDiamondCuts} from "../script/common/FactoryDiamondCuts.s.sol";
+import {Constants} from "script/common/Constants.s.sol";
+import {FactoryDiamondCuts} from "script/common/FactoryDiamondCuts.s.sol";
 
 // Periphery contracts
-import {USDC} from "../src/testnet/DummyUSDC.sol";
-import {LendOperation} from "../src/opLend.sol";
-import {LendRewards} from "../src/Rewards.sol";
-import {LendRestitution} from "../src/Restitution.sol";
-import {OpLendWallet} from "../src/OpLendWallet.sol";
+import {USDC} from "src/testnet/DummyUSDC.sol";
+import {LendOperation} from "src/opLend.sol";
+import {LendRewards} from "src/Rewards.sol";
+import {LendRestitution} from "src/Restitution.sol";
+import {OpLendWallet} from "src/OpLendWallet.sol";
 
 // Factory contracts
-import {ILendFactory} from "../src/Factory/interfaces/IFactory.sol";
-import {IDiamondCut} from "../src/Factory/interfaces/IDiamondCut.sol";
-import {LendFactory} from "../src/Factory/DiamondProxy.sol";
-import {Admin} from "../src/Factory/facets/Admin.sol";
-import {Getters} from "../src/Factory/facets/Getters.sol";
-import {Invest} from "../src/Factory/facets/Invest.sol";
-import {Operations} from "../src/Factory/facets/Operations.sol";
-import {Ownership} from "../src/Factory/facets/Ownership.sol";
+import {ILendFactory} from "src/Factory/interfaces/IFactory.sol";
+import {IDiamondCut} from "src/Factory/interfaces/IDiamondCut.sol";
+import {LendFactory} from "src/Factory/DiamondProxy.sol";
+import {Admin} from "src/Factory/facets/Admin.sol";
+import {Getters} from "src/Factory/facets/Getters.sol";
+import {Invest} from "src/Factory/facets/Invest.sol";
+import {Operations} from "src/Factory/facets/Operations.sol";
+import {Ownership} from "src/Factory/facets/Ownership.sol";
 
 contract TestBase is Test, FactoryDiamondCuts, Constants {
     uint256 initialUsdcBalance = 1_000_000_000e6;

@@ -3,9 +3,9 @@
 pragma solidity ^0.8.27;
 
 import {Test} from "forge-std/Test.sol";
-import {TestBase} from "../TestBase.t.sol";
-import {MerkleHelper} from "./MerkleHelper.sol";
-import {IPoolAddressesProvider, IPool} from "../../src/utils/AaveInterfaces.sol";
+import {TestBase} from "test/TestBase.t.sol";
+import {MerkleHelper} from "test/Rewards/MerkleHelper.sol";
+import {IPoolAddressesProvider, IPool} from "src/utils/AaveInterfaces.sol";
 
 contract RewardsTest is Test, TestBase, MerkleHelper {
     address aaveAddressProvider = address(0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e);

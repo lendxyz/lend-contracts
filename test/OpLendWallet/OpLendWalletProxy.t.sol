@@ -6,9 +6,9 @@ import {Test} from "forge-std/Test.sol";
 import {Options, Upgrades} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import {OpLendWallet} from "../../src/OpLendWallet.sol";
-import {LendOperation} from "../../src/opLend.sol";
-import {OpLendWalletTest} from "./OpLendWallet.t.sol";
+import {OpLendWallet} from "src/OpLendWallet.sol";
+import {LendOperation} from "src/opLend.sol";
+import {OpLendWalletTest} from "test/OpLendWallet/OpLendWallet.t.sol";
 
 contract OpLendWalletProxyTest is Test, OpLendWalletTest {
     string upgradeNonce = "uN-8Hs21c";

@@ -2,8 +2,8 @@
 pragma solidity ^0.8.27;
 
 import {Script} from "forge-std/Script.sol";
-import {Constants} from "../common/Constants.s.sol";
-import {USDC} from "../../src/testnet/DummyUSDC.sol";
+import {Constants} from "script/common/Constants.s.sol";
+import {USDC} from "src/testnet/DummyUSDC.sol";
 
 contract DeployDummyUSDC is Script, Constants {
     function setUp() public {}

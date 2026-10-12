@@ -3,7 +3,7 @@ pragma solidity ^0.8.27;
 
 import {Script, console} from "forge-std/Script.sol";
 import {Upgrades, Options} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
-import {Constants} from "../common/Constants.s.sol";
+import {Constants} from "script/common/Constants.s.sol";
 
 contract UpgradeOracle is Script, Constants {
     function run() external {
