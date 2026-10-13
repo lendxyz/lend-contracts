@@ -69,8 +69,10 @@ deploy-facet-upgrade-mainnet:
 	forge script script/mainnet/DeployFacetUpgrade.s.sol:DeployFacetUpgrade -vvvv --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
 	LEDGER_HD_PATH="$(hd)" forge script script/mainnet/DeployFacetUpgrade.s.sol:ProposeFacetUpgrade -vvvv --broadcast --rpc-url https://ethereum-rpc.publicnode.com
 
+# Sepolia runs Glamsterdam (state-gas repricing); forge simulates Prague gas and under-limits every tx.
+# --skip-simulation makes forge use the node's eth_estimateGas per tx instead.
 upgrade-factory-testnet:
-	forge script script/testnet/UpgradeFactory.s.sol:UpgradeFactoryTestnet -vvvv --slow --broadcast --private-key $(pk) --rpc-url https://ethereum-sepolia-rpc.publicnode.com --verify
+	forge script script/testnet/UpgradeFactory.s.sol:UpgradeFactoryTestnet -vvvv --slow --skip-simulation --broadcast --private-key $(pk) --rpc-url https://ethereum-sepolia-rpc.publicnode.com --verify
 
 deploy-oft-mainnet:
 	forge script script/mainnet/DeployOFT.s.sol:DeployOFT --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://polygon-bor-rpc.publicnode.com --verify

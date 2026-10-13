@@ -1,0 +1,26 @@
+{
+  "lib/chainlink-brownie-contracts": {
+    "rev": "5cb41fbc9b525338b6098da5ea7dd0b7e92f89e4"
+  },
+  "lib/devtools": {
+    "rev": "7392d5fc978f7c5b28f3f86c5dba8806ef46db4f"
+  },
+  "lib/forge-std": {
+    "rev": "3b20d60d14b343ee4f908cb8079495c07f5e8981"
+  },
+  "lib/layerzero-v2": {
+    "rev": "88428755be6caa71cb1d2926141d73c8989296b5"
+  },
+  "lib/murky": {
+    "rev": "5feccd1253d7da820f7cccccdedf64471025455d"
+  },
+  "lib/openzeppelin-contracts-upgradeable": {
+    "rev": "60b305a8f3ff0c7688f02ac470417b6bbf1c4d27"
+  },
+  "lib/openzeppelin-foundry-upgrades": {
+    "rev": "cbce1e00305e943aa1661d43f41e5ac72c662b07"
+  },
+  "lib/solidity-bytes-utils": {
+    "rev": "b66afa93c6ba12bb91bac100fc35e8c8c1abae78"
+  }
+}
