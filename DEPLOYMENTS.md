@@ -39,8 +39,32 @@
 | [BSC Testnet](https://testnet.bscscan.com/address/0x9291075065379d044A99306028Db70f0A24C9706)       | 0x9291075065379d044A99306028Db70f0A24C9706 |
 | [Polygon Amoy](https://amoy.polygonscan.com/address/0x8cE18070660B07e5392E6072463710BFEd16f92f)     | 0x8cE18070660B07e5392E6072463710BFEd16f92f |
 
-## Restitution
 
+## OpLend Beacon proxy
+
+### Mainnet
+
+| Network                                                                              | Address                                    |
+| ------------------------------------------------------------------------------------ | ------------------------------------------ |
+| [Ethereum](https://etherscan.io/address/0x65c0cb309467C4D964Cb30f21C4869106BC41980)     | 0x65c0cb309467C4D964Cb30f21C4869106BC41980 |
+| [Arbitrum](https://arbiscan.io/address/0x3Aac1DB1683E68115EB586691bC8Fd033535e3fA)      | 0x3Aac1DB1683E68115EB586691bC8Fd033535e3fA |
+| [Base](https://basescan.org/address/0x65B2fF557c84B555acEd50a4bAa7cF011C7ad682)         | 0x65B2fF557c84B555acEd50a4bAa7cF011C7ad682 |
+| [BSC](https://bscscan.com/address/0x389DD16eBd2788601aF3e56C4CB382e066E5f551)           | 0x389DD16eBd2788601aF3e56C4CB382e066E5f551 |
+| [Polygon](https://polygonscan.com/address/0x678B42A61223bAe39b531B3f61d54b7Ecbd4Ab45)   | 0x678B42A61223bAe39b531B3f61d54b7Ecbd4Ab45 |
+| [Sonic](https://sonicscan.org/address/0xA5e01F032E309B7dF53745f87176AC352B76f90d)       | 0xA5e01F032E309B7dF53745f87176AC352B76f90d |
+| [Linea](https://lineascan.build/address/0x389DD16eBd2788601aF3e56C4CB382e066E5f551)     | 0x389DD16eBd2788601aF3e56C4CB382e066E5f551 |
+
+### Testnet
+
+| Network                                                                                          | Address                                    |
+| ------------------------------------------------------------------------------------------------ | ------------------------------------------ |
+| [Ethereum Sepolia](https://sepolia.etherscan.io/address/0xafAE3c5E679e9E8E904d0b5065b3984f3410E235) | 0xafAE3c5E679e9E8E904d0b5065b3984f3410E235 |
+| [Arbitrum Sepolia](https://sepolia.arbiscan.io/address/0x1bdF013470Da7bFAfDecF46BD03c3825291852F7) | 0x1bdF013470Da7bFAfDecF46BD03c3825291852F7 |
+| [Base Sepolia](https://sepolia.basescan.org/address/0xfdFB888F604A4cAa2B33a7B441ec6A63daD5E00D)     | 0xfdFB888F604A4cAa2B33a7B441ec6A63daD5E00D |
+| [BSC Testnet](https://testnet.bscscan.com/address/0x889C6f70b7DFd9186e47800A1b2302429eE5640f)       | 0x889C6f70b7DFd9186e47800A1b2302429eE5640f |
+| [Polygon Amoy](https://amoy.polygonscan.com/address/0x1886d482CB570CcB59Fb3FDC83499cBBF806c371)     | 0x1886d482CB570CcB59Fb3FDC83499cBBF806c371 |
+
+## Restitution
 
 | Network          | Address    |
 | ---------------- | ---------- |

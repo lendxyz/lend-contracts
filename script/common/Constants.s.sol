@@ -208,6 +208,8 @@ contract Constants {
     }
 
     address internal constant MAINNET_FACTORY = address(0xbfbAff7afE2beA4fD130C4965B6eb28bd1DA4061);
+    address internal constant TESTNET_FACTORY = address(0x2d5B2288b0Ec1A817ACb9DEe318A9089aAF26511);
+
     address internal constant MAINNET_ORACLE = address(0xf67800302318D0B4f34dCAE98F3aAb129D76856C);
     address internal constant MAINNET_OPLEND_WALLET = address(0x5Be7FF28AE03FD76e0765b758205A3fA20347424);
 
@@ -225,6 +227,66 @@ contract Constants {
             address beacon = ILendFactory(MAINNET_FACTORY).opLendBeacon();
             require(beacon != address(0), "Factory opLEND implementation not set");
             return beacon;
+        }
+
+        if (block.chainid == 11155111) {
+            address beacon = ILendFactory(TESTNET_FACTORY).opLendBeacon();
+            require(beacon != address(0), "Factory opLEND implementation not set");
+            return beacon;
+        }
+
+        // ************ TESTNET ************
+
+        // Arbitrum Sepolia
+        if (block.chainid == 421614) {
+            return address(0x1bdF013470Da7bFAfDecF46BD03c3825291852F7);
+        }
+
+        // Base Sepolia
+        if (block.chainid == 84532) {
+            return address(0xfdFB888F604A4cAa2B33a7B441ec6A63daD5E00D);
+        }
+
+        // BSC Testnet
+        if (block.chainid == 97) {
+            return address(0x889C6f70b7DFd9186e47800A1b2302429eE5640f);
+        }
+
+        // Amoy
+        if (block.chainid == 80002) {
+            return address(0x1886d482CB570CcB59Fb3FDC83499cBBF806c371);
+        }
+
+        // ************ MAINNET ************
+
+        // Arbitrum
+        if (block.chainid == 42161) {
+            return address(0x3Aac1DB1683E68115EB586691bC8Fd033535e3fA);
+        }
+
+        // Base
+        if (block.chainid == 8453) {
+            return address(0x65B2fF557c84B555acEd50a4bAa7cF011C7ad682);
+        }
+
+        // BSC
+        if (block.chainid == 56) {
+            return address(0x389DD16eBd2788601aF3e56C4CB382e066E5f551);
+        }
+
+        // Polygon
+        if (block.chainid == 137) {
+            return address(0x678B42A61223bAe39b531B3f61d54b7Ecbd4Ab45);
+        }
+
+        // Sonic
+        if (block.chainid == 146) {
+            return address(0xA5e01F032E309B7dF53745f87176AC352B76f90d);
+        }
+
+        // Linea
+        if (block.chainid == 59144) {
+            return address(0x389DD16eBd2788601aF3e56C4CB382e066E5f551);
         }
 
         // Other chains: deployed by `DeployOpLendBeacon`, add them here.

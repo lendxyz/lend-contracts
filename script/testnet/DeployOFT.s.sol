@@ -27,16 +27,10 @@ contract DeployOFTTestnet is Script, Constants {
         // vm.createSelectFork("monad-testnet");
         vm.startBroadcast();
 
-        address beacon = vm.envOr("OPLEND_BEACON", address(0));
-        if (beacon == address(0)) {
-            beacon = address(new UpgradeableBeacon(address(new LendOperation(tnFactArgs.lzEndpoint)), tnFactArgs.admin));
-            console.log("New opLEND beacon:", beacon);
-        }
-
         oft = LendOperation(
             address(
                 new BeaconProxy(
-                    beacon,
+                    getOpLendBeaconAddress(),
                     abi.encodeCall(
                         LendOperation.initialize,
                         (tnFactArgs.admin, name, symbol, maxSupply, tnFactArgs.admin, tnFactArgs.backendSigner)
