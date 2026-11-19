@@ -24,8 +24,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {IERC165} from "src/Factory/interfaces/IERC165.sol";
 import {IDiamondCut} from "src/Factory/interfaces/IDiamondCut.sol";
 import {IDiamondLoupe} from "src/Factory/interfaces/IDiamondLoupe.sol";
-import {LibDiamond} from "src/Factory/lib/LibDiamond.sol";
-import {AppStorage, LibAppStorage} from "src/Factory/lib/Storage.sol";
+import {LibDiamond} from "src/legacy/Factory/FactoryV3/lib/LibDiamond.sol";
+import {AppStorage, LibAppStorage} from "src/legacy/Factory/FactoryV3/lib/Storage.sol";
 
 contract LendFactory is IDiamondCut, IDiamondLoupe, IERC165 {
     error UnsupportedOperation();

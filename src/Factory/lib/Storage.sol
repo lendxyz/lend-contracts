@@ -19,7 +19,9 @@ struct AppStorage {
     uint256 reentrancyStatus;
     mapping(uint256 => Operation) operations;
     mapping(uint256 => uint256) fundingProgress;
+    // Deprecated: predeposit/gift feature removed, slot kept for layout compatibility.
     mapping(uint256 => mapping(address => uint256)) predeposits;
+    // Deprecated: predeposit/gift feature removed, slot kept for layout compatibility.
     mapping(uint256 => mapping(address => uint256)) gifted;
     mapping(uint256 => uint256) usdcRaised;
     mapping(uint256 => bool) operationCanceled;
@@ -29,6 +31,7 @@ struct AppStorage {
     mapping(uint256 => bool) operationStarted;
     mapping(uint256 => mapping(address => uint256)) mintAllowance;
     mapping(string => bool) usedNonces;
+    // Deprecated: predeposit/gift feature removed, slot kept for layout compatibility.
     mapping(uint256 => bool) predepositsOpen;
     mapping(address => bool) blacklisted;
     mapping(uint256 => uint256) usdcWithdrawnAmount;

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {LibDiamond} from "src/Factory/lib/LibDiamond.sol";
+import {LibDiamond} from "src/legacy/Factory/FactoryV3/lib/LibDiamond.sol";
 import {IERC173} from "src/Factory/interfaces/IERC173.sol";
 
 contract Ownership is IERC173 {

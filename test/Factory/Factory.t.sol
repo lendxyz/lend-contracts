@@ -11,18 +11,9 @@ import {TestBase} from "test/TestBase.t.sol";
 contract FactoryTest is Test, TestBase {
     function beforeTestSetup(bytes4 testSelector) public pure returns (bytes[] memory beforeTestCalldata) {
         if (testSelector != this.test_CreateOperation.selector) {
-            if (
-                testSelector != this.test_ClaimPredeposit.selector
-                    && testSelector != this.test_ClaimPredepositAndBridge.selector
-                    && testSelector != this.test_Predeposit.selector
-            ) {
-                beforeTestCalldata = new bytes[](2);
-                beforeTestCalldata[0] = abi.encodePacked(this.mintUsdc.selector);
-                beforeTestCalldata[1] = abi.encodePacked(this.createOperation.selector);
-            } else {
-                beforeTestCalldata = new bytes[](1);
-                beforeTestCalldata[0] = abi.encodePacked(this.mintUsdc.selector);
-            }
+            beforeTestCalldata = new bytes[](2);
+            beforeTestCalldata[0] = abi.encodePacked(this.mintUsdc.selector);
+            beforeTestCalldata[1] = abi.encodePacked(this.createOperation.selector);
         }
     }
 
@@ -53,138 +44,6 @@ contract FactoryTest is Test, TestBase {
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
         uint256 calculatedSharesAmount = factory.getAmountOut(1, cost);
         assertEq(sharesToBuy, calculatedSharesAmount);
-    }
-
-    function test_Predeposit() public {
-        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
-
-        vm.startPrank(admin);
-        factory.createOperation("Test operation", totalSharesAmount, sharePriceEur);
-        factory.setPredeposits(1, true);
-        vm.stopPrank();
-
-        vm.startPrank(user);
-        uint256 cost = factory.getAmountIn(1, sharesToBuy);
-        usdc.approve(address(factory), cost);
-        factory.predeposit(1, sharesToBuy, testNonce, signature);
-        vm.stopPrank();
-
-        assertEq(usdc.balanceOf(address(user)), initialUsdcBalance - cost);
-        assertEq(usdc.balanceOf(address(factory)), cost);
-        assertEq(factory.fundingProgress(1), sharesToBuy);
-        assertEq(factory.operationStarted(1), false);
-        assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
-        assertEq(factory.predeposits(1, address(user)), sharesToBuy);
-    }
-
-    function test_ClaimPredeposit() public {
-        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
-
-        vm.startPrank(admin);
-        factory.createOperation("Test operation", totalSharesAmount, sharePriceEur);
-        factory.setPredeposits(1, true);
-        vm.stopPrank();
-
-        vm.startPrank(user);
-        uint256 cost = factory.getAmountIn(1, sharesToBuy);
-        usdc.approve(address(factory), cost);
-        factory.predeposit(1, sharesToBuy, testNonce, signature);
-        vm.stopPrank();
-
-        assertEq(factory.operationStarted(1), false);
-        assertEq(factory.predeposits(1, address(user)), sharesToBuy);
-
-        vm.prank(admin);
-        factory.startOperation(1);
-
-        vm.prank(user);
-        factory.claimOpTokens(1, address(user));
-
-        LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
-
-        assertEq(opLend.balanceOf(address(user)), sharesToBuy);
-        assertEq(factory.operationStarted(1), true);
-        assertEq(factory.predeposits(1, address(user)), 0);
-    }
-
-    function test_ClaimPredepositAndBridge() public {
-        vm.deal(user, 10 ether);
-        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
-
-        vm.startPrank(admin);
-        factory.createOperation("Test operation", totalSharesAmount, sharePriceEur);
-        factory.setPredeposits(1, true);
-        vm.stopPrank();
-
-        uint256 cost = factory.getAmountIn(1, sharesToBuy);
-
-        vm.startPrank(user);
-        usdc.approve(address(factory), cost);
-        factory.predeposit(1, sharesToBuy, testNonce, signature);
-        vm.stopPrank();
-
-        assertEq(factory.operationStarted(1), false);
-        assertEq(factory.predeposits(1, address(user)), sharesToBuy);
-
-        LendOperation opToken = LendOperation(factory.getOperation(1).opToken);
-
-        vm.startPrank(admin);
-        factory.startOperation(1);
-        factory.setOpLendPeer(1, 42161, 30110, bytes32(uint256(uint160(address(opToken)))));
-        vm.stopPrank();
-
-        SendParam memory sendParam = SendParam(
-            30110,
-            bytes32(uint256(uint160(msg.sender))),
-            sharesToBuy,
-            sharesToBuy,
-            hex"00030100110100000000000000000000000000013880", // 80k gas for lzReceive
-            new bytes(0),
-            new bytes(0)
-        );
-
-        MessagingFee memory fees = opToken.quoteSend(sendParam, false);
-
-        vm.prank(user);
-        factory.claimOpTokensAndBridge{value: fees.nativeFee}(1, 30110);
-
-        assertEq(usdc.balanceOf(address(user)), initialUsdcBalance - cost);
-        assertEq(usdc.balanceOf(address(factory)), cost);
-        assertEq(factory.fundingProgress(1), sharesToBuy);
-        assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
-    }
-
-    function test_GiftAdmin() public {
-        vm.startPrank(admin);
-        uint256 cost = factory.getAmountIn(1, sharesToBuy);
-        usdc.approve(address(factory), cost);
-        factory.giftOpTokens(1, sharesToBuy, address(user));
-        vm.stopPrank();
-
-        assertEq(usdc.balanceOf(address(admin)), initialUsdcBalance - cost);
-        assertEq(usdc.balanceOf(address(factory)), cost);
-        assertEq(factory.fundingProgress(1), sharesToBuy);
-        assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
-        assertEq(factory.gifted(1, address(user)), sharesToBuy);
-    }
-
-    function test_ClaimGift() public {
-        vm.startPrank(admin);
-        uint256 cost = factory.getAmountIn(1, sharesToBuy);
-        usdc.approve(address(factory), cost);
-        factory.giftOpTokens(1, sharesToBuy, address(user));
-        vm.stopPrank();
-
-        assertEq(factory.gifted(1, address(user)), sharesToBuy);
-
-        vm.prank(user);
-        factory.claimOpTokens(1, address(user));
-
-        LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
-
-        assertEq(opLend.balanceOf(address(user)), sharesToBuy);
-        assertEq(factory.operationStarted(1), true);
-        assertEq(factory.gifted(1, address(user)), 0);
     }
 
     function test_Invest() public {

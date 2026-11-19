@@ -3,7 +3,6 @@ pragma solidity 0.8.30;
 
 // Interface for ABI generation and testing only
 interface ILendFactory {
-    event ClaimedOpToken(address indexed investor, uint256 indexed operationId, uint256 indexed amount);
     event OperationStarted(uint256 indexed operationId);
     event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
     event OperationPaused(uint256 indexed operationId);
@@ -22,21 +21,12 @@ interface ILendFactory {
     event Invested(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
     );
-    event Gifted(
-        address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
-    );
-    event Predeposit(
-        address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
-    );
-    event PredepositsOpen(uint256 indexed operationId);
-    event PredepositsClosed(uint256 indexed operationId);
     event OpLendImplementationUpdated(address indexed implementation);
     event FundingWithdrawn(uint256 indexed operationId, uint256 usdcAmount, uint256 eurcAmount);
 
     error UserBlacklisted();
     error OpNotExist();
     error OpNotStarted();
-    error OpAlreadyStarted();
     error OpFinished();
     error OpNotFinished();
     error OpPaused();
@@ -51,7 +41,6 @@ interface ILendFactory {
     error NoOpLendBalance();
     error AlreadyWithdrawn();
     error InvalidSignatureLength();
-    error PredepositsNotOpen();
     error InsufficientOpUsdc();
     error OpLendImplementationNotSet();
 
@@ -95,10 +84,6 @@ interface ILendFactory {
     function usdcWithdrawn(uint256 id) external view returns (bool);
     function operationCanceled(uint256 id) external view returns (bool);
     function usdcRaisedPerClient(uint256 id, address user) external view returns (uint256);
-    function predeposits(uint256 id, address user) external view returns (uint256);
-    function gifted(uint256 id, address user) external view returns (uint256);
-    function claimableTotal(uint256 id, address user) external view returns (uint256);
-    function predepositsOpen(uint256 id) external view returns (bool);
     function blacklisted(address user) external view returns (bool);
     function eurc() external view returns (address);
     function eurcRaised(uint256 id) external view returns (uint256);
@@ -123,14 +108,9 @@ interface ILendFactory {
         bytes calldata signature,
         uint32 lzEndpointId
     ) external payable;
-    function predeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes calldata signature) external;
-    function claimOpTokens(uint256 id, address user) external;
     function getAmountIn(uint256 id, uint256 sharesAmount) external view returns (uint256 usdcCost);
     function getAmountInEur(uint256 id, uint256 sharesAmount) external view returns (uint256 eurcCost);
     function getAmountOut(uint256 id, uint256 usdcAmount) external view returns (uint256 sharesAmount);
-    function giftOpTokens(uint256 id, uint256 sharesAmount, address user) external;
-    function claimOpTokensAndBridge(uint256 id, uint32 lzEndpointId) external payable;
-    function claimOpTokensBatch(uint256 id, address[] memory users) external;
     function fiatInvest(
         uint256 id,
         uint256 sharesAmount,
@@ -150,7 +130,6 @@ interface ILendFactory {
     function cancelOperation(uint256 id) external;
     function startOperation(uint256 id) external;
     function pauseFunding(uint256 id, bool state) external;
-    function setPredeposits(uint256 id, bool state) external;
 
     // Ownership facet
 

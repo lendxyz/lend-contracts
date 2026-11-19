@@ -72,33 +72,6 @@ contract Getters {
         return s.usdcRaisedPerClient[id][user];
     }
 
-    function predeposits(uint256 id, address user) external view returns (uint256) {
-        AppStorage storage s = LibAppStorage.appStorage();
-
-        if (id > s.operationCount) revert Events.OpNotExist();
-        return s.predeposits[id][user];
-    }
-
-    function gifted(uint256 id, address user) external view returns (uint256) {
-        AppStorage storage s = LibAppStorage.appStorage();
-
-        if (id > s.operationCount) revert Events.OpNotExist();
-        return s.gifted[id][user];
-    }
-
-    function claimableTotal(uint256 id, address user) external view returns (uint256) {
-        AppStorage storage s = LibAppStorage.appStorage();
-
-        if (id > s.operationCount) revert Events.OpNotExist();
-        return s.gifted[id][user] + s.predeposits[id][user];
-    }
-
-    function predepositsOpen(uint256 id) external view returns (bool) {
-        AppStorage storage s = LibAppStorage.appStorage();
-        if (id > s.operationCount) revert Events.OpNotExist();
-        return s.predepositsOpen[id];
-    }
-
     function blacklisted(address user) external view returns (bool) {
         AppStorage storage s = LibAppStorage.appStorage();
         return s.blacklisted[user];

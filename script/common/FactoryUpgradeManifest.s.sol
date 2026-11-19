@@ -19,5 +19,19 @@ import {FactoryUpgrade} from "script/common/FactoryUpgrade.s.sol";
 ///
 ///         Empty it once the upgrade is executed: a stale declaration aborts the next upgrade (it is not in the diff).
 abstract contract FactoryUpgradeManifest is Constants {
-    function manifest() internal view returns (FactoryUpgrade.Manifest memory m) {}
+    function manifest() internal pure returns (FactoryUpgrade.Manifest memory m) {
+        m.redeployedFacets = FactoryUpgrade.list("Getters", "Invest", "Operations");
+
+        m.removedFunctions = new string[](10);
+        m.removedFunctions[0] = "predeposits(uint256,address)";
+        m.removedFunctions[1] = "gifted(uint256,address)";
+        m.removedFunctions[2] = "claimableTotal(uint256,address)";
+        m.removedFunctions[3] = "predepositsOpen(uint256)";
+        m.removedFunctions[4] = "predeposit(uint256,uint256,string,bytes)";
+        m.removedFunctions[5] = "giftOpTokens(uint256,uint256,address)";
+        m.removedFunctions[6] = "claimOpTokens(uint256,address)";
+        m.removedFunctions[7] = "claimOpTokensAndBridge(uint256,uint32)";
+        m.removedFunctions[8] = "claimOpTokensBatch(uint256,address[])";
+        m.removedFunctions[9] = "setPredeposits(uint256,bool)";
+    }
 }

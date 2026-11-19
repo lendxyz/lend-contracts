@@ -2,7 +2,6 @@
 pragma solidity 0.8.30;
 
 library Events {
-    event ClaimedOpToken(address indexed investor, uint256 indexed operationId, uint256 indexed amount);
     event OperationStarted(uint256 indexed operationId);
     event OperationCreated(address indexed opToken, uint256 indexed operationId, uint256 totalShares);
     event OperationPaused(uint256 indexed operationId);
@@ -21,21 +20,12 @@ library Events {
     event Invested(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
     );
-    event Gifted(
-        address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
-    );
-    event Predeposit(
-        address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
-    );
-    event PredepositsOpen(uint256 indexed operationId);
-    event PredepositsClosed(uint256 indexed operationId);
     event OpLendImplementationUpdated(address indexed implementation);
     event FundingWithdrawn(uint256 indexed operationId, uint256 usdcAmount, uint256 eurcAmount);
 
     error UserBlacklisted();
     error OpNotExist();
     error OpNotStarted();
-    error OpAlreadyStarted();
     error OpFinished();
     error OpNotFinished();
     error OpPaused();
@@ -50,7 +40,6 @@ library Events {
     error NoOpLendBalance();
     error AlreadyWithdrawn();
     error InvalidSignatureLength();
-    error PredepositsNotOpen();
     error InsufficientOpUsdc();
     error OpLendImplementationNotSet();
 }

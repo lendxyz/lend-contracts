@@ -3,10 +3,10 @@ pragma solidity 0.8.30;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {UpgradeableBeacon} from "@openzeppelin/contracts/proxy/beacon/UpgradeableBeacon.sol";
-import {LibDiamond} from "src/Factory/lib/LibDiamond.sol";
-import {Operation, AppStorage, LibAppStorage} from "src/Factory/lib/Storage.sol";
-import {Utils} from "src/Factory/lib/Utils.sol";
-import {Events} from "src/Factory/lib/Utils.sol";
+import {LibDiamond} from "src/legacy/Factory/FactoryV3/lib/LibDiamond.sol";
+import {Operation, AppStorage, LibAppStorage} from "src/legacy/Factory/FactoryV3/lib/Storage.sol";
+import {Utils} from "src/legacy/Factory/FactoryV3/lib/Utils.sol";
+import {Events} from "src/legacy/Factory/FactoryV3/lib/Utils.sol";
 import {LendOperation} from "src/opLend.sol";
 
 contract Admin {

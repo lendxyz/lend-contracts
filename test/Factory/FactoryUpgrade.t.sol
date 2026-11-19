@@ -2,8 +2,8 @@
 pragma solidity ^0.8.27;
 
 import {Test} from "forge-std/Test.sol";
-import {Constants} from "script/common/Constants.s.sol";
 import {FactoryUpgrade} from "script/common/FactoryUpgrade.s.sol";
+import {FactoryUpgradeManifest} from "script/common/FactoryUpgradeManifest.s.sol";
 import {LendFactory} from "src/Factory/DiamondProxy.sol";
 import {IDiamondCut} from "src/Factory/interfaces/IDiamondCut.sol";
 import {IDiamondLoupe} from "src/Factory/interfaces/IDiamondLoupe.sol";
@@ -19,8 +19,9 @@ import {
 } from "test/mocks/FactoryUpgradeMocks.sol";
 
 /// @notice Upgrades of the live factories (Ethereum and Sepolia forks) with mock builds: every cut action, the manifest
-///         checks and the simulation guards.
-contract FactoryUpgradeTest is Test, Constants {
+///         checks and the simulation guards. The mock scenarios start from the live factory with the pending upgrade
+///         (`FactoryUpgradeManifest`) applied, i.e. from the build.
+contract FactoryUpgradeTest is Test, FactoryUpgradeManifest {
     string constant MOCKS = "test/mocks/FactoryUpgradeMocks.sol";
 
     address diamond;
@@ -30,16 +31,20 @@ contract FactoryUpgradeTest is Test, Constants {
         vm.createSelectFork("mainnet");
         diamond = MAINNET_FACTORY;
         owner = IERC173(diamond).owner();
+        _applyPendingUpgrade();
     }
 
     // ------------------------------------------------------------------------------------------------------------
     // Live factories
     // ------------------------------------------------------------------------------------------------------------
 
-    function test_MainnetFactoryMatchesBuild() public view {
+    /// @dev Fails while the upgrade declared in `FactoryUpgradeManifest` is not executed.
+    function test_MainnetFactoryMatchesBuild() public {
+        vm.createSelectFork("mainnet");
         assertTrue(FactoryUpgrade.isEmpty(FactoryUpgrade.plan(diamond, FactoryUpgrade.facets(), _empty())));
     }
 
+    /// @dev Fails while the upgrade declared in `FactoryUpgradeManifest` is not executed.
     function test_SepoliaFactoryMatchesBuild() public {
         _forkSepolia();
         assertTrue(FactoryUpgrade.isEmpty(FactoryUpgrade.plan(TESTNET_FACTORY, FactoryUpgrade.facets(), _empty())));
@@ -60,7 +65,7 @@ contract FactoryUpgradeTest is Test, Constants {
         assertEq(p.cut.length, 1);
         assertEq(uint8(p.cut[0].action), uint8(IDiamondCut.FacetCutAction.Replace));
         assertEq(p.cut[0].facetAddress, target);
-        assertEq(p.cut[0].functionSelectors.length, 19);
+        assertEq(p.cut[0].functionSelectors.length, 15);
 
         address usdcBefore = address(Getters(diamond).usdc());
         _execute(p);
@@ -127,6 +132,7 @@ contract FactoryUpgradeTest is Test, Constants {
         _forkSepolia();
         diamond = TESTNET_FACTORY;
         owner = IERC173(diamond).owner();
+        _applyPendingUpgrade();
 
         _upgradeAllActions();
     }
@@ -283,6 +289,13 @@ contract FactoryUpgradeTest is Test, Constants {
         p = FactoryUpgrade.plan(_diamond, specs, m);
         FactoryUpgrade.checkManifest(p, m);
         FactoryUpgrade.simulate(p, m, specs);
+    }
+
+    /// @dev Checks, simulates and executes the upgrade declared in `FactoryUpgradeManifest`, if any.
+    function _applyPendingUpgrade() internal {
+        FactoryUpgrade.Manifest memory m = manifest();
+        if (FactoryUpgrade.isEmpty(FactoryUpgrade.plan(diamond, FactoryUpgrade.facets(), m))) return;
+        _execute(this.simulateUpgrade(diamond, FactoryUpgrade.facets(), m));
     }
 
     function _upgradeAllActions() internal {

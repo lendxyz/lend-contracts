@@ -2,10 +2,10 @@
 pragma solidity 0.8.30;
 
 import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol";
-import {LibDiamond} from "src/Factory/lib/LibDiamond.sol";
-import {Operation, AppStorage, LibAppStorage} from "src/Factory/lib/Storage.sol";
-import {Utils} from "src/Factory/lib/Utils.sol";
-import {Events} from "src/Factory/lib/Events.sol";
+import {LibDiamond} from "src/legacy/Factory/FactoryV3/lib/LibDiamond.sol";
+import {Operation, AppStorage, LibAppStorage} from "src/legacy/Factory/FactoryV3/lib/Storage.sol";
+import {Utils} from "src/legacy/Factory/FactoryV3/lib/Utils.sol";
+import {Events} from "src/legacy/Factory/FactoryV3/lib/Events.sol";
 import {LendOperation} from "src/opLend.sol";
 
 contract Operations {

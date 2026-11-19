@@ -2,7 +2,6 @@
 pragma solidity 0.8.30;
 
 import {SendParam, MessagingFee} from "@layerzerolabs/oft-evm/contracts/interfaces/IOFT.sol";
-import {LibDiamond} from "src/Factory/lib/LibDiamond.sol";
 import {Operation, AppStorage, LibAppStorage} from "src/Factory/lib/Storage.sol";
 import {Utils} from "src/Factory/lib/Utils.sol";
 import {Events} from "src/Factory/lib/Utils.sol";
@@ -11,7 +10,6 @@ import {LendOperation} from "src/opLend.sol";
 contract Invest {
     uint256 private reentrancyStatus;
 
-    uint256 private constant MAX_BATCH = 200;
     uint256 private constant PRICE_PRECISION = 1e6;
     uint256 private constant SHARE_PRECISION = 1e12;
 
@@ -254,138 +252,6 @@ contract Invest {
         LendOperation(s.operations[id].opToken).mint(address(this), sharesAmount);
 
         _bridge(id, sharesAmount, lzEndpointId);
-    }
-
-    function giftOpTokens(uint256 id, uint256 sharesAmount, address user) external {
-        LibDiamond.enforceIsContractOwner();
-
-        AppStorage storage s = LibAppStorage.appStorage();
-
-        bool isOpFinished = s.operationStarted[id] && s.fundingProgress[id] >= s.operations[id].totalShares;
-
-        if (s.blacklisted[user]) revert Events.UserBlacklisted();
-        if (isOpFinished) revert Events.OpFinished();
-        if (id > s.operationCount) revert Events.OpNotExist();
-        if (s.fundingProgress[id] + sharesAmount > s.operations[id].totalShares) revert Events.TooManyShares();
-        if (s.operationCanceled[id]) revert Events.OpCanceled();
-        if (s.fundingPaused[id]) revert Events.OpPaused();
-        if (sharesAmount <= 0) revert Events.ZeroShares();
-
-        uint256 cost = this.getAmountIn(id, sharesAmount);
-
-        s.fundingProgress[id] += sharesAmount;
-        s.usdcRaised[id] += cost;
-        s.usdcRaisedPerClient[id][user] += cost;
-        s.gifted[id][user] += sharesAmount;
-
-        require(s.usdc.transferFrom(msg.sender, address(this), cost), Events.TransferFailed());
-
-        emit Events.Invested(user, id, cost, sharesAmount);
-        emit Events.Gifted(user, id, cost, sharesAmount);
-
-        if (s.fundingProgress[id] >= s.operations[id].totalShares) {
-            s.operationStarted[id] = true;
-            emit Events.OperationFinished(id, s.operations[id].totalShares * s.operations[id].eurPerShares);
-        }
-    }
-
-    function predeposit(uint256 id, uint256 sharesAmount, string calldata nonce, bytes calldata signature)
-        external
-        nonReentrant
-    {
-        AppStorage storage s = LibAppStorage.appStorage();
-
-        bool isOpFinished = s.operationStarted[id] && s.fundingProgress[id] >= s.operations[id].totalShares;
-
-        if (isOpFinished) revert Events.OpFinished();
-        if (s.blacklisted[msg.sender]) revert Events.UserBlacklisted();
-        if (id > s.operationCount) revert Events.OpNotExist();
-        if (s.operationStarted[id]) revert Events.OpAlreadyStarted();
-        if (!s.predepositsOpen[id]) revert Events.PredepositsNotOpen();
-        if (s.fundingProgress[id] + sharesAmount > s.operations[id].totalShares) revert Events.TooManyShares();
-        if (s.operationCanceled[id]) revert Events.OpCanceled();
-        if (s.fundingPaused[id]) revert Events.OpPaused();
-        if (sharesAmount <= 0) revert Events.ZeroShares();
-
-        uint256 cost = this.getAmountIn(id, sharesAmount);
-
-        bool isSignatureValid = _verifySignature(msg.sender, sharesAmount, id, nonce, signature);
-        if (!isSignatureValid) revert Events.InvalidSignature();
-
-        s.fundingProgress[id] += sharesAmount;
-        s.usdcRaised[id] += cost;
-        s.usdcRaisedPerClient[id][msg.sender] += cost;
-        s.predeposits[id][msg.sender] += sharesAmount;
-
-        require(s.usdc.transferFrom(msg.sender, address(this), cost), Events.TransferFailed());
-
-        emit Events.Invested(msg.sender, id, cost, sharesAmount);
-        emit Events.Predeposit(msg.sender, id, cost, sharesAmount);
-
-        if (s.fundingProgress[id] >= s.operations[id].totalShares) {
-            s.operationStarted[id] = true;
-            emit Events.OperationFinished(id, s.operations[id].totalShares * s.operations[id].eurPerShares);
-        }
-    }
-
-    function _claimToken(uint256 id, address user, address dest) internal {
-        AppStorage storage s = LibAppStorage.appStorage();
-
-        if (s.blacklisted[user]) revert Events.UserBlacklisted();
-
-        uint256 amount = s.gifted[id][user] + s.predeposits[id][user];
-
-        if (s.predeposits[id][user] > 0) {
-            s.predeposits[id][user] = 0;
-        }
-
-        if (s.gifted[id][user] > 0) {
-            s.gifted[id][user] = 0;
-        }
-
-        if (amount > 0) {
-            LendOperation(s.operations[id].opToken).mint(dest, amount);
-            emit Events.ClaimedOpToken(user, id, amount);
-        }
-    }
-
-    function claimOpTokens(uint256 id, address user) external {
-        AppStorage storage s = LibAppStorage.appStorage();
-
-        if (id > s.operationCount) revert Events.OpNotExist();
-        if (!s.operationStarted[id]) revert Events.OpNotStarted();
-        if (s.operationCanceled[id]) revert Events.OpCanceled();
-
-        _claimToken(id, user, user);
-    }
-
-    function claimOpTokensAndBridge(uint256 id, uint32 lzEndpointId) external payable nonReentrant {
-        AppStorage storage s = LibAppStorage.appStorage();
-
-        if (id > s.operationCount) revert Events.OpNotExist();
-        if (!s.operationStarted[id]) revert Events.OpNotStarted();
-        if (s.operationCanceled[id]) revert Events.OpCanceled();
-
-        uint256 amount = s.gifted[id][msg.sender] + s.predeposits[id][msg.sender];
-
-        if (amount > 0) {
-            _claimToken(id, msg.sender, address(this));
-            _bridge(id, amount, lzEndpointId);
-        }
-    }
-
-    function claimOpTokensBatch(uint256 id, address[] memory users) external {
-        AppStorage storage s = LibAppStorage.appStorage();
-
-        require(users.length <= MAX_BATCH, "Batch too large");
-
-        if (id > s.operationCount) revert Events.OpNotExist();
-        if (!s.operationStarted[id]) revert Events.OpNotStarted();
-        if (s.operationCanceled[id]) revert Events.OpCanceled();
-
-        for (uint256 i = 0; i < users.length; i++) {
-            _claimToken(id, users[i], users[i]);
-        }
     }
 
     function getAmountIn(uint256 id, uint256 sharesAmount) external view returns (uint256 usdcCost) {

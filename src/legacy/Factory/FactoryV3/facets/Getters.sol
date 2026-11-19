@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.30;
 
-import {LibDiamond} from "src/Factory/lib/LibDiamond.sol";
-import {Operation, AppStorage, LibAppStorage} from "src/Factory/lib/Storage.sol";
-import {Events} from "src/Factory/lib/Utils.sol";
+import {LibDiamond} from "src/legacy/Factory/FactoryV3/lib/LibDiamond.sol";
+import {Operation, AppStorage, LibAppStorage} from "src/legacy/Factory/FactoryV3/lib/Storage.sol";
+import {Events} from "src/legacy/Factory/FactoryV3/lib/Utils.sol";
 
 contract Getters {
     function usdc() external view returns (address) {
