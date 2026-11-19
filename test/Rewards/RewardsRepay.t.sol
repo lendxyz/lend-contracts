@@ -3,11 +3,26 @@
 pragma solidity ^0.8.27;
 
 import {Test} from "forge-std/Test.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {Options, Upgrades} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
 import {LendRewards} from "src/Rewards.sol";
 import {RewardsTest} from "test/Rewards/Rewards.t.sol";
 
 contract RewardsRepayTest is Test, RewardsTest {
+    /// @dev Aave v3 Ethereum collateral: USDC has a 0 LTV, it cannot back a borrow.
+    address constant WETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+
+    /// @dev Borrows `amount` USDC against WETH as `ru` (prank active), then spends it.
+    function borrowUsdc(uint256 amount) internal {
+        deal(WETH, ru, 1 ether);
+        IERC20(WETH).approve(address(aavePool), 1 ether);
+
+        aavePool.supply(WETH, 1 ether, ru, 0);
+        aavePool.borrow(address(usdc), amount, 2, 0, ru);
+
+        require(usdc.transfer(address(admin), amount), "transfer failed"); // simulate invest
+    }
+
     function test_AaveRepayNotInitialized() public {
         createOpDistribution();
 
@@ -41,15 +56,8 @@ contract RewardsRepayTest is Test, RewardsTest {
 
         bytes32[] memory proof = getProof(rewardUsers, rewardAmounts, rewIndex);
 
-        deal(address(usdc), ru, 500e6);
-
         vm.startPrank(ru);
-        usdc.approve(address(aavePool), 500e6);
-
-        aavePool.supply(address(usdc), 500e6, ru, 0);
-        aavePool.borrow(address(usdc), ra, 2, 0, ru);
-
-        require(usdc.transfer(address(admin), ra), "transfer failed"); // simulate invest
+        borrowUsdc(ra);
 
         vm.expectEmit(address(rewards));
         emit LendRewards.Claimed(opId, ru, ra);
@@ -72,15 +80,8 @@ contract RewardsRepayTest is Test, RewardsTest {
 
         bytes32[] memory proof = getProof(rewardUsers, rewardAmounts, rewIndex);
 
-        deal(address(usdc), ru, 500e6);
-
         vm.startPrank(ru);
-        usdc.approve(address(aavePool), 500e6);
-
-        aavePool.supply(address(usdc), 500e6, ru, 0);
-        aavePool.borrow(address(usdc), ra / 2, 2, 0, ru);
-
-        require(usdc.transfer(address(admin), ra / 2), "transfer failed"); // simulate invest
+        borrowUsdc(ra / 2);
 
         vm.expectEmit(address(rewards));
         emit LendRewards.Claimed(opId, ru, ra);
