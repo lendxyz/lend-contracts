@@ -7,7 +7,7 @@ import {BeaconProxy} from "@openzeppelin/contracts/proxy/beacon/BeaconProxy.sol"
 
 // Helpers
 import {Constants} from "script/common/Constants.s.sol";
-import {FactoryDiamondCuts} from "script/common/FactoryDiamondCuts.s.sol";
+import {FactoryUpgrade} from "script/common/FactoryUpgrade.s.sol";
 
 // Periphery contracts
 import {USDC} from "src/testnet/DummyUSDC.sol";
@@ -18,15 +18,9 @@ import {OpLendWallet} from "src/OpLendWallet.sol";
 
 // Factory contracts
 import {ILendFactory} from "src/Factory/interfaces/IFactory.sol";
-import {IDiamondCut} from "src/Factory/interfaces/IDiamondCut.sol";
 import {LendFactory} from "src/Factory/DiamondProxy.sol";
-import {Admin} from "src/Factory/facets/Admin.sol";
-import {Getters} from "src/Factory/facets/Getters.sol";
-import {Invest} from "src/Factory/facets/Invest.sol";
-import {Operations} from "src/Factory/facets/Operations.sol";
-import {Ownership} from "src/Factory/facets/Ownership.sol";
 
-contract TestBase is Test, FactoryDiamondCuts, Constants {
+contract TestBase is Test, Constants {
     uint256 initialUsdcBalance = 1_000_000_000e6;
     uint8 sharesDecimal = 6;
     uint256 totalSharesAmount = 1_000_000 * 10 ** sharesDecimal;
@@ -180,25 +174,14 @@ contract TestBase is Test, FactoryDiamondCuts, Constants {
     }
 
     function deployDiamond() public {
-        Admin adminFacet = new Admin();
-        Getters gettersFacet = new Getters();
-        Invest investFacet = new Invest();
-        Operations operationsFacet = new Operations();
-        Ownership ownershipFacet = new Ownership();
-
         LendFactory diamond = new LendFactory(
             address(admin), address(usdc), mnFactArgs.eurUsdOracle, mnFactArgs.lzEndpoint, address(backendSigner)
         );
 
-        IDiamondCut.FacetCut[] memory cut = getAllFacets(
-            address(adminFacet),
-            address(gettersFacet),
-            address(investFacet),
-            address(operationsFacet),
-            address(ownershipFacet)
-        );
-
-        diamond.diamondCut(cut, address(0), ""); // Perform cut
+        FactoryUpgrade.Plan memory p =
+            FactoryUpgrade.plan(address(diamond), FactoryUpgrade.facets(), FactoryUpgrade.emptyManifest());
+        FactoryUpgrade.deploy(p);
+        diamond.diamondCut(p.cut, address(0), ""); // Perform cut
 
         factory = ILendFactory(address(diamond));
         factory.setEurcAddress(address(eurc));

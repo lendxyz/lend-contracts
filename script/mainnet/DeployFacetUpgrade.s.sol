@@ -2,141 +2,69 @@
 pragma solidity ^0.8.27;
 
 import {Script, console} from "forge-std/Script.sol";
-import {Upgrades, Options} from "@openzeppelin/foundry-upgrades/Upgrades.sol";
-import {Constants} from "script/common/Constants.s.sol";
-import {FactoryDiamondCuts} from "script/common/FactoryDiamondCuts.s.sol";
+import {FactoryUpgrade} from "script/common/FactoryUpgrade.s.sol";
+import {FactoryUpgradeManifest} from "script/common/FactoryUpgradeManifest.s.sol";
 import {LendMultisig} from "script/common/LendMultisig.s.sol";
 import {IDiamondCut} from "src/Factory/interfaces/IDiamondCut.sol";
+import {IERC173} from "src/Factory/interfaces/IERC173.sol";
 
-import {Admin} from "src/Factory/facets/Admin.sol";
-import {Getters} from "src/Factory/facets/Getters.sol";
-import {Invest} from "src/Factory/facets/Invest.sol";
-import {Operations} from "src/Factory/facets/Operations.sol";
-import {Ownership} from "src/Factory/facets/Ownership.sol";
-import {LendOperation} from "src/opLend.sol";
+/// @notice Upgrades the mainnet factory through the Lend Safe, one forge run each:
+///         1. `DeployFacetUpgrade` (run with `--ledger`) deploys the facets and the init contract of the upgrade.
+///         2. `ProposeFacetUpgrade` (run WITHOUT `--ledger`, `LEDGER_HD_PATH` set, `--sender` the Safe owner) proposes
+///            the diamond cut, init included, as a single Safe transaction.
+///         The cut is computed from the build (`FactoryUpgrade`); both runs abort before broadcasting unless it matches
+///         `FactoryUpgradeManifest` and passes the fork simulation.
+abstract contract MainnetFactoryUpgrade is Script, FactoryUpgradeManifest {
+    /// @dev Plan of the upgrade, checked against the manifest, the storage layout and the fork simulation.
+    function _checkedPlan()
+        internal
+        returns (FactoryUpgrade.Plan memory p, FactoryUpgrade.Manifest memory m, bool empty)
+    {
+        require(block.chainid == 1, "Run on Ethereum mainnet");
 
-contract DeployFacetUpgrade is Script, Constants {
-    function run() public {
-        Options memory opts;
-        opts.constructorData = abi.encode(mnFactArgs.lzEndpoint);
-        opts.unsafeAllow = OPLEND_UNSAFE_ALLOW;
-        Upgrades.validateImplementation("opLend.sol:LendOperation", opts);
+        FactoryUpgrade.Facet[] memory facets = FactoryUpgrade.facets();
+        m = manifest();
+        p = FactoryUpgrade.plan(MAINNET_FACTORY, facets, m);
+        FactoryUpgrade.describe(p, m);
+        if (FactoryUpgrade.isEmpty(p)) return (p, m, true);
 
-        vm.startBroadcast();
-
-        Admin adminFacet = new Admin();
-        Getters gettersFacet = new Getters();
-        Invest investFacet = new Invest();
-        Operations operationsFacet = new Operations();
-        LendOperation opLendImplementation = new LendOperation(mnFactArgs.lzEndpoint);
-
-        vm.stopBroadcast();
-
-        console.log("New admin facet deploy:", address(adminFacet));
-        console.log("New getters facet deploy:", address(gettersFacet));
-        console.log("New invest facet deploy:", address(investFacet));
-        console.log("New operations facet deploy:", address(operationsFacet));
-        console.log("New opLEND implementation deploy:", address(opLendImplementation));
+        FactoryUpgrade.checkManifest(p, m);
+        FactoryUpgrade.checkStorageLayout();
+        if (!vm.envOr("SKIP_TESTNET_CHECK", false)) {
+            FactoryUpgrade.requireMatchesBuild("sepolia", TESTNET_FACTORY, facets);
+        }
+        FactoryUpgrade.simulate(p, m, facets);
     }
 }
 
-contract ProposeFacetUpgrade is Script, Constants, FactoryDiamondCuts {
+contract DeployFacetUpgrade is MainnetFactoryUpgrade {
     function run() public {
-        string memory deployment = vm.readFile(
-            string.concat(
-                vm.projectRoot(), "/broadcast/DeployFacetUpgrade.s.sol/", vm.toString(block.chainid), "/run-latest.json"
-            )
-        );
+        (FactoryUpgrade.Plan memory p,, bool empty) = _checkedPlan();
+        if (empty) return;
 
-        address adminFacet = _deployedAddress(deployment, "Admin");
-        address gettersFacet = _deployedAddress(deployment, "Getters");
-        address investFacet = _deployedAddress(deployment, "Invest");
-        address operationsFacet = _deployedAddress(deployment, "Operations");
-        address opLendImplementation = _deployedAddress(deployment, "LendOperation");
-        address deployer = vm.parseJsonAddress(deployment, ".transactions[0].transaction.from");
+        if (!FactoryUpgrade.hasPendingDeployments(p)) {
+            console.log("Nothing to deploy: run ProposeFacetUpgrade");
+            return;
+        }
 
-        // Guards against proposing a stale deployment from an older build.
-        require(
-            keccak256(adminFacet.code) == keccak256(type(Admin).runtimeCode),
-            "Deployed Admin facet does not match the current build: rerun DeployFacetUpgrade"
-        );
-        require(
-            keccak256(gettersFacet.code) == keccak256(type(Getters).runtimeCode),
-            "Deployed Getters facet does not match the current build: rerun DeployFacetUpgrade"
-        );
-        require(
-            keccak256(investFacet.code) == keccak256(type(Invest).runtimeCode),
-            "Deployed Invest facet does not match the current build: rerun DeployFacetUpgrade"
-        );
-        require(
-            keccak256(operationsFacet.code) == keccak256(type(Operations).runtimeCode),
-            "Deployed Operations facet does not match the current build: rerun DeployFacetUpgrade"
-        );
-        // Immutables (the LZ endpoint) keep runtimeCode out of reach: compares the deployment input instead.
-        require(
-            keccak256(_deployedInput(deployment, "LendOperation"))
-                == keccak256(abi.encodePacked(type(LendOperation).creationCode, abi.encode(mnFactArgs.lzEndpoint))),
-            "Deployed opLEND implementation does not match the current build: rerun DeployFacetUpgrade"
-        );
-        require(opLendImplementation.code.length != 0, "opLEND implementation from the broadcast is not deployed");
-
-        console.log("New admin facet:", adminFacet);
-        console.log("New getters facet:", gettersFacet);
-        console.log("New invest facet:", investFacet);
-        console.log("New operations facet:", operationsFacet);
-        console.log("New opLEND implementation:", opLendImplementation);
-
-        IDiamondCut.FacetCut[] memory cut = _concatCuts(
-            getEurcUpgradeFacets(adminFacet, gettersFacet, investFacet),
-            getOpLendBeaconUpgradeFacets(adminFacet, gettersFacet, operationsFacet)
-        );
-
-        vm.startBroadcast(deployer);
-
-        uint256 nonce = LendMultisig.nextNonce();
-
-        // Configures EURC in the same call as the cut (delegatecalled from the diamond, so the Safe is the caller).
-        LendMultisig.proposeTransaction(
-            MAINNET_FACTORY,
-            abi.encodeCall(
-                IDiamondCut.diamondCut, (cut, adminFacet, abi.encodeCall(Admin.setEurcAddress, (mnFactArgs.eurc)))
-            ),
-            nonce
-        );
-
-        // Deploys the opLEND beacon, owned by the factory: `createOperation` reverts until this one is executed.
-        LendMultisig.proposeTransaction(
-            MAINNET_FACTORY, abi.encodeCall(Admin.updateOpLendImplementation, (opLendImplementation)), nonce + 1
-        );
-
+        vm.startBroadcast();
+        FactoryUpgrade.deploy(p);
         vm.stopBroadcast();
     }
+}
 
-    /// @dev Reverts unless exactly one CREATE of `contractName` is in the broadcast.
-    function _deployedAddress(string memory deployment, string memory contractName) internal pure returns (address) {
-        return vm.parseJsonAddress(
-            deployment,
-            string.concat(
-                "$.transactions[?(@.contractName == '",
-                contractName,
-                "' && @.transactionType == 'CREATE')].contractAddress"
-            )
-        );
-    }
+contract ProposeFacetUpgrade is MainnetFactoryUpgrade {
+    function run() public {
+        (FactoryUpgrade.Plan memory p,, bool empty) = _checkedPlan();
+        if (empty) return;
 
-    /// @dev Creation input of the single CREATE of `contractName` in the broadcast.
-    function _deployedInput(string memory deployment, string memory contractName)
-        internal
-        pure
-        returns (bytes memory)
-    {
-        return vm.parseJsonBytes(
-            deployment,
-            string.concat(
-                "$.transactions[?(@.contractName == '",
-                contractName,
-                "' && @.transactionType == 'CREATE')].transaction.input"
-            )
+        require(!FactoryUpgrade.hasPendingDeployments(p), "Facets or init not deployed: run DeployFacetUpgrade first");
+        require(IERC173(MAINNET_FACTORY).owner() == LendMultisig.SAFE, "Factory is not owned by the Lend Safe");
+
+        vm.startBroadcast();
+        LendMultisig.proposeTransaction(
+            MAINNET_FACTORY, abi.encodeCall(IDiamondCut.diamondCut, (p.cut, p.init, p.initCalldata))
         );
+        vm.stopBroadcast();
     }
 }

@@ -14,7 +14,7 @@ help:
 	@echo 'forge cache clean && forge clean: clean build cache and forge cache'
 	@echo 'make remappings: generate remappings links for dependencies'
 	@echo 'make deploy-factory rpc=[your_rpc_url] pk=[your_private_key]: deploy factory'
-	@echo 'make upgrade-factory rpc=[your_rpc_url] pk=[your_private_key]: upgrade factory'
+	@echo 'make upgrade-factory-testnet pk=[your_private_key]: upgrade the Sepolia factory to the build (aborts unless the fork simulation passes)'
 	@echo 'make deploy-oft-mainnet pk=[your_private_key]: deploy opLend OFT'
 	@echo 'make deploy-oft-testnet pk=[your_private_key]: deploy opLend OFT on sepolia testnet'
 	@echo 'make deploy-rewards-mainnet pk=[your_private_key]: deploy rewards contract'
@@ -23,7 +23,7 @@ help:
 	@echo 'make deploy-restitution-testnet pk=[your_private_key]: deploy restitution contract on sepolia testnet'
 	@echo 'make abi: generate contract abis in the `abis` folder'
 	@echo "Ledger targets: pass hd=[your_ledger_derivation_path] (default: $(hd))"
-	@echo 'make deploy-facet-upgrade-mainnet: deploy the Admin, Getters, Invest and Operations facets and the opLEND implementation, propose the EURC + opLEND beacon diamond cut and the opLEND beacon deployment to the Safe'
+	@echo 'make deploy-facet-upgrade-mainnet: deploy the facets and init of the upgrade declared in FactoryUpgradeManifest, propose the diamond cut to the Safe (both runs abort unless the fork simulation passes)'
 	@echo 'make deploy-oplend-beacon-mainnet rpc=[your_rpc_url]: deploy the opLEND implementation and its Safe-owned beacon on a chain without the factory (before deploy-oft-mainnet)'
 	@echo 'make upgrade-oplend-mainnet: deploy a new opLEND implementation and propose the upgrade of every upgradeable opLEND of the chain to the Safe'
 
@@ -66,13 +66,13 @@ deploy-factory-testnet:
 deploy-facet-upgrade-mainnet:
 	forge cache clean && forge clean
 	forge compile
-	forge script script/mainnet/DeployFacetUpgrade.s.sol:DeployFacetUpgrade -vvvv --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
-	LEDGER_HD_PATH="$(hd)" forge script script/mainnet/DeployFacetUpgrade.s.sol:ProposeFacetUpgrade -vvvv --broadcast --rpc-url https://ethereum-rpc.publicnode.com
+	forge script script/mainnet/DeployFacetUpgrade.s.sol:DeployFacetUpgrade -vvv --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://ethereum-rpc.publicnode.com --verify
+	LEDGER_HD_PATH="$(hd)" forge script script/mainnet/DeployFacetUpgrade.s.sol:ProposeFacetUpgrade -vvv --broadcast --rpc-url https://ethereum-rpc.publicnode.com --sender $$(cast wallet address --ledger --mnemonic-derivation-path "$(hd)")
 
 # Sepolia runs Glamsterdam (state-gas repricing); forge simulates Prague gas and under-limits every tx.
 # --skip-simulation makes forge use the node's eth_estimateGas per tx instead.
 upgrade-factory-testnet:
-	forge script script/testnet/UpgradeFactory.s.sol:UpgradeFactoryTestnet -vvvv --slow --skip-simulation --broadcast --private-key $(pk) --rpc-url https://ethereum-sepolia-rpc.publicnode.com --verify
+	forge script script/testnet/UpgradeFactory.s.sol:UpgradeFactoryTestnet -vvv --slow --skip-simulation --broadcast --private-key $(pk) --rpc-url https://ethereum-sepolia-rpc.publicnode.com --verify
 
 deploy-oft-mainnet:
 	forge script script/mainnet/DeployOFT.s.sol:DeployOFT --slow --broadcast --ledger --hd-paths "$(hd)" --rpc-url https://polygon-bor-rpc.publicnode.com --verify
