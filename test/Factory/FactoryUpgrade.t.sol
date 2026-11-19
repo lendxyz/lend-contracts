@@ -38,16 +38,21 @@ contract FactoryUpgradeTest is Test, FactoryUpgradeManifest {
     // Live factories
     // ------------------------------------------------------------------------------------------------------------
 
-    /// @dev Fails while the upgrade declared in `FactoryUpgradeManifest` is not executed.
-    function test_MainnetFactoryMatchesBuild() public {
+    /// @dev The live diff is exactly the upgrade declared in `FactoryUpgradeManifest` (none once it is executed and the
+    ///      manifest emptied): fails on an undeclared facet change and on a stale declaration.
+    function test_MainnetDiffMatchesManifest() public {
         vm.createSelectFork("mainnet");
-        assertTrue(FactoryUpgrade.isEmpty(FactoryUpgrade.plan(diamond, FactoryUpgrade.facets(), _empty())));
+        FactoryUpgrade.Manifest memory m = manifest();
+        FactoryUpgrade.checkManifest(FactoryUpgrade.plan(diamond, FactoryUpgrade.facets(), m), m);
     }
 
-    /// @dev Fails while the upgrade declared in `FactoryUpgradeManifest` is not executed.
-    function test_SepoliaFactoryMatchesBuild() public {
+    /// @dev Sepolia is upgraded before mainnet: its diff is either empty (declared upgrade already executed there) or
+    ///      exactly the declared one.
+    function test_SepoliaDiffEmptyOrMatchesManifest() public {
         _forkSepolia();
-        assertTrue(FactoryUpgrade.isEmpty(FactoryUpgrade.plan(TESTNET_FACTORY, FactoryUpgrade.facets(), _empty())));
+        FactoryUpgrade.Manifest memory m = manifest();
+        FactoryUpgrade.Plan memory p = FactoryUpgrade.plan(TESTNET_FACTORY, FactoryUpgrade.facets(), m);
+        if (p.cut.length != 0) FactoryUpgrade.checkManifest(p, m);
     }
 
     // ------------------------------------------------------------------------------------------------------------
