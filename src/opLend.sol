@@ -25,6 +25,9 @@ contract LendOperation is OwnableUpgradeable, ERC20Upgradeable, OFTCoreUpgradeab
 
     error InvalidSignature();
     error InvalidSignatureLength();
+    error NonceAlreadyUsed();
+
+    event NonceVoided(string nonce);
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor(address lzEndpoint) OFTCoreUpgradeable(DECIMALS, lzEndpoint) {
@@ -89,6 +92,28 @@ contract LendOperation is OwnableUpgradeable, ERC20Upgradeable, OFTCoreUpgradeab
 
     function whitelistUserAdmin(address user, bool state) public onlyOwner {
         _getLendOperationStorage().whitelisted[user] = state;
+    }
+
+    /// @notice Burns an unspent `nonce` so the whitelist signature carrying it can never be used.
+    /// @dev With a `signature`, callable by anyone: it must be the backend signer's over
+    ///      `"VOID_NONCE" ‖ token ‖ chainid ‖ nonce` (the original signature cannot be checked here: it binds the user,
+    ///      which this call does not take). With an empty `signature`, the caller must be the owner (the factory:
+    ///      `opLendVoidNonce`).
+    function voidNonce(string calldata nonce, bytes calldata signature) external {
+        LendOperationStorage storage $ = _getLendOperationStorage();
+
+        if (signature.length == 0) {
+            _checkOwner();
+        } else {
+            bytes32 messageHash = keccak256(abi.encodePacked("VOID_NONCE", address(this), block.chainid, nonce));
+            address recovered = recoverSigner(computeEthSignedHash(messageHash), signature);
+            if (recovered == address(0) || recovered != $.backendSigner) revert InvalidSignature();
+        }
+
+        if ($.usedNonces[nonce]) revert NonceAlreadyUsed();
+        $.usedNonces[nonce] = true;
+
+        emit NonceVoided(nonce);
     }
 
     function verifySignature(address _user, string calldata _nonce, bytes memory _signature) internal returns (bool) {

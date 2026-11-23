@@ -233,6 +233,24 @@
   },
   {
     "type": "function",
+    "name": "voidNonce",
+    "inputs": [
+      {
+        "name": "nonce",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "signature",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "whitelistAndRedeem",
     "inputs": [
       {
@@ -308,6 +326,19 @@
         "type": "uint64",
         "indexed": false,
         "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "NonceVoided",
+    "inputs": [
+      {
+        "name": "nonce",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
       }
     ],
     "anonymous": false
@@ -409,6 +440,11 @@
   {
     "type": "error",
     "name": "InvalidSignature",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NonceAlreadyUsed",
     "inputs": []
   },
   {

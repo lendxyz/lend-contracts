@@ -26,6 +26,7 @@ interface ILendFactory {
     );
     event OpLendImplementationUpdated(address indexed implementation);
     event FundingWithdrawn(uint256 indexed operationId, uint256 usdcAmount, uint256 eurcAmount);
+    event NonceVoided(string nonce);
 
     error UserBlacklisted();
     error OpNotExist();
@@ -42,6 +43,7 @@ interface ILendFactory {
     error TransferFailed();
     error AlreadyWithdrawn();
     error InvalidSignatureLength();
+    error NonceAlreadyUsed();
     error InsufficientEscrow();
     error InsufficientShareBalance();
     error OpLendImplementationNotSet();
@@ -74,6 +76,8 @@ interface ILendFactory {
     function blacklist(address user, bool state) external;
     function withdrawUsdc(uint256 id, address destination) external;
     function opLendWhitelistUser(uint256 opId, address user, bool state) external;
+    function opLendVoidNonce(uint256 opId, string calldata nonce) external;
+    function voidNonce(string calldata nonce, bytes calldata signature) external;
     function opLendUpdateBackendSigner(uint256 opId, address newSigner) external;
     function opLendAdminBurn(uint256 opId, address user, uint256 value) external;
     function batchSetOpLendPeers(

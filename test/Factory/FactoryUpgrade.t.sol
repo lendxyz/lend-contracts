@@ -93,7 +93,7 @@ contract FactoryUpgradeTest is Test, FactoryUpgradeManifest {
         assertEq(p.cut[0].functionSelectors.length, 1);
         assertEq(p.cut[0].functionSelectors[0], AdminAddMock.upgradeProbe.selector);
         assertEq(uint8(p.cut[1].action), uint8(IDiamondCut.FacetCutAction.Replace));
-        assertEq(p.cut[1].functionSelectors.length, 14);
+        assertEq(p.cut[1].functionSelectors.length, 16);
 
         vm.expectRevert(LendFactory.UnsupportedOperation.selector);
         AdminAddMock(diamond).upgradeProbe();

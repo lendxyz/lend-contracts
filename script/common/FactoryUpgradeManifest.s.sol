@@ -26,11 +26,12 @@ abstract contract FactoryUpgradeManifest is Constants {
         m.redeployedFacets[2] = "Invest";
         m.redeployedFacets[3] = "Operations";
 
-        m.addedFunctions = FactoryUpgrade.list(
-            "refundUser(uint256,address,uint256,uint256,uint256)",
-            "batchRefundUsers(uint256,(address,uint256,uint256,uint256)[])",
-            "fiatRefund(uint256,address,address,uint256)"
-        );
+        m.addedFunctions = new string[](5);
+        m.addedFunctions[0] = "refundUser(uint256,address,uint256,uint256,uint256)";
+        m.addedFunctions[1] = "batchRefundUsers(uint256,(address,uint256,uint256,uint256)[])";
+        m.addedFunctions[2] = "fiatRefund(uint256,address,address,uint256)";
+        m.addedFunctions[3] = "voidNonce(string,bytes)";
+        m.addedFunctions[4] = "opLendVoidNonce(uint256,string)";
 
         m.removedFunctions = new string[](12);
         m.removedFunctions[0] = "predeposits(uint256,address)";

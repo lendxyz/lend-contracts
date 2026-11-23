@@ -69,6 +69,34 @@ contract OpLendWalletRedeemTest is Test, OpLendWalletTest {
         assertEq(op.balanceOf(address(opLendWallet)), 0);
     }
 
+    function test_VoidNonce() public {
+        fundedWallet();
+        bytes memory signature = getRedeemSignature(opId, user, redeemAmount, redeemNonce);
+
+        vm.prank(user);
+        vm.expectRevert();
+        opLendWallet.voidNonce(redeemNonce, "");
+
+        vm.prank(admin);
+        vm.expectEmit(address(opLendWallet));
+        emit OpLendWallet.NonceVoided(redeemNonce);
+        opLendWallet.voidNonce(redeemNonce, "");
+
+        vm.prank(user);
+        vm.expectRevert("Invalid signature");
+        opLendWallet.redeem(opId, user, redeemAmount, redeemNonce, signature);
+
+        // Signed by the backend over the wallet's address: anyone can relay it, once.
+        bytes memory voidSignature = getVoidNonceSignature(address(opLendWallet), redeemNonce2);
+        vm.prank(user2);
+        opLendWallet.voidNonce(redeemNonce2, voidSignature);
+        vm.expectRevert(OpLendWallet.NonceAlreadyUsed.selector);
+        opLendWallet.voidNonce(redeemNonce2, voidSignature);
+
+        vm.expectRevert(OpLendWallet.InvalidSignature.selector);
+        opLendWallet.voidNonce("other", getVoidNonceSignature(address(factory), "other"));
+    }
+
     function test_RedeemWholeBalance() public {
         LendOperation op = fundedWallet();
         bytes memory signature = getRedeemSignature(opId, user, walletShares, redeemNonce);

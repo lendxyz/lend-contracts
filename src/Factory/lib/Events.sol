@@ -25,6 +25,7 @@ library Events {
     );
     event OpLendImplementationUpdated(address indexed implementation);
     event FundingWithdrawn(uint256 indexed operationId, uint256 usdcAmount, uint256 eurcAmount);
+    event NonceVoided(string nonce);
 
     error UserBlacklisted();
     error OpNotExist();
@@ -41,6 +42,7 @@ library Events {
     error TransferFailed();
     error AlreadyWithdrawn();
     error InvalidSignatureLength();
+    error NonceAlreadyUsed();
     error InsufficientEscrow();
     error InsufficientShareBalance();
     error OpLendImplementationNotSet();

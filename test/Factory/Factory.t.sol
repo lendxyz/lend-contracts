@@ -392,6 +392,97 @@ contract FactoryTest is Test, TestBase {
         assertEq(factory.isOperationFinished(1), true);
     }
 
+    function test_VoidNonce() public {
+        bytes memory voidSignature = getVoidNonceSignature(address(factory), testNonce);
+
+        // Signed by the backend: anyone can relay it.
+        vm.prank(user2);
+        vm.expectEmit(address(factory));
+        emit ILendFactory.NonceVoided(testNonce);
+        factory.voidNonce(testNonce, voidSignature);
+
+        vm.prank(user2);
+        vm.expectRevert(ILendFactory.NonceAlreadyUsed.selector);
+        factory.voidNonce(testNonce, voidSignature);
+
+        // The invest signature carrying the voided nonce is refused.
+        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
+        vm.startPrank(user);
+        usdc.approve(address(factory), UINT256_MAX);
+        vm.expectRevert(ILendFactory.InvalidSignature.selector);
+        factory.invest(1, sharesToBuy, testNonce, signature);
+        vm.stopPrank();
+
+        // Without a signature, only the owner; it voids fiat-invest nonces too.
+        vm.prank(user);
+        vm.expectRevert();
+        factory.voidNonce(testNonce2, "");
+
+        vm.prank(admin);
+        factory.voidNonce(testNonce2, "");
+
+        bytes memory fiatSignature = getMintSignatureFiat(address(user2), address(user3), 1, sharesToBuy, testNonce2);
+        vm.expectRevert(ILendFactory.InvalidSignature.selector);
+        factory.fiatInvest(1, sharesToBuy, address(user2), address(user3), testNonce2, fiatSignature);
+    }
+
+    function test_VoidNonceRejectsWrongSignatureAndSpentNonce() public {
+        (, uint256 otherPk) = makeAddrAndKey("other-signer");
+        bytes32 digest = keccak256(abi.encodePacked("VOID_NONCE", address(factory), block.chainid, testNonce2));
+        (uint8 v, bytes32 r, bytes32 s) =
+            vm.sign(otherPk, keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", digest)));
+
+        vm.expectRevert(ILendFactory.InvalidSignature.selector);
+        factory.voidNonce(testNonce2, abi.encodePacked(r, s, v));
+
+        // A void signature for another contract does not apply to the factory.
+        vm.expectRevert(ILendFactory.InvalidSignature.selector);
+        factory.voidNonce(testNonce2, getVoidNonceSignature(address(opLendWallet), testNonce2));
+
+        // A nonce already spent by an investment cannot be voided.
+        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
+        vm.startPrank(user);
+        usdc.approve(address(factory), UINT256_MAX);
+        factory.invest(1, sharesToBuy, testNonce, signature);
+        vm.stopPrank();
+
+        vm.prank(admin);
+        vm.expectRevert(ILendFactory.NonceAlreadyUsed.selector);
+        factory.voidNonce(testNonce, "");
+    }
+
+    function test_OpLendVoidNonce() public {
+        LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
+
+        // The token's owner is the factory: the admin voids through `opLendVoidNonce`.
+        vm.prank(admin);
+        vm.expectRevert();
+        opLend.voidNonce(testNonce, "");
+
+        vm.prank(user);
+        vm.expectRevert();
+        factory.opLendVoidNonce(1, testNonce);
+
+        vm.prank(admin);
+        vm.expectEmit(address(opLend));
+        emit LendOperation.NonceVoided(testNonce);
+        factory.opLendVoidNonce(1, testNonce);
+
+        bytes memory whitelistSignature = getTransferSignature(address(opLend), address(user2), testNonce);
+        vm.expectRevert(LendOperation.InvalidSignature.selector);
+        opLend.whitelistUser(address(user2), testNonce, whitelistSignature);
+
+        // Signed by the backend over the token's address: anyone can relay it, once.
+        bytes memory voidSignature = getVoidNonceSignature(address(opLend), testNonce2);
+        vm.prank(user2);
+        opLend.voidNonce(testNonce2, voidSignature);
+        vm.expectRevert(LendOperation.NonceAlreadyUsed.selector);
+        opLend.voidNonce(testNonce2, voidSignature);
+
+        vm.expectRevert(LendOperation.InvalidSignature.selector);
+        opLend.voidNonce("other", getVoidNonceSignature(address(factory), "other"));
+    }
+
     function test_WithdrawUsdcBeforeAndAfterSaleEnd() public {
         address treasury = makeAddr("treasury");
         uint256 remainingShares = totalSharesAmount - sharesToBuy;

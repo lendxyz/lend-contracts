@@ -1261,6 +1261,24 @@
   },
   {
     "type": "function",
+    "name": "voidNonce",
+    "inputs": [
+      {
+        "name": "nonce",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "signature",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "whitelistUser",
     "inputs": [
       {
@@ -1396,6 +1414,19 @@
         "type": "address",
         "indexed": false,
         "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "NonceVoided",
+    "inputs": [
+      {
+        "name": "nonce",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
       }
     ],
     "anonymous": false
@@ -1686,6 +1717,11 @@
         "internalType": "uint32"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "NonceAlreadyUsed",
+    "inputs": []
   },
   {
     "type": "error",

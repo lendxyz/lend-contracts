@@ -122,6 +122,14 @@ contract TestBase is Test, Constants {
         return signature;
     }
 
+    /// @dev Backend signature voiding `_nonce` on `_target` (factory, opLend or opLend wallet).
+    function getVoidNonceSignature(address _target, string memory _nonce) public view returns (bytes memory) {
+        bytes32 digest = keccak256(abi.encodePacked("VOID_NONCE", _target, block.chainid, _nonce));
+        bytes32 hash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", digest));
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(backendSignerPk, hash);
+        return abi.encodePacked(r, s, v);
+    }
+
     function createOperation() public returns (address) {
         vm.startPrank(admin);
 

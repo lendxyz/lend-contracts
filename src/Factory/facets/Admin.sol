@@ -245,6 +245,37 @@ contract Admin {
         opLend.whitelistUserAdmin(user, state);
     }
 
+    /// @notice Burns an unspent `nonce` so the invest / fiat-invest signature carrying it can never be used.
+    /// @dev With a `signature`, callable by anyone: it must be the backend signer's over
+    ///      `"VOID_NONCE" ‖ factory ‖ chainid ‖ nonce` (the original signature cannot be checked here: it binds fields
+    ///      this call does not take). With an empty `signature`, the caller must be the owner.
+    function voidNonce(string calldata nonce, bytes calldata signature) external {
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        if (signature.length == 0) {
+            LibDiamond.enforceIsContractOwner();
+        } else {
+            bytes32 messageHash = keccak256(abi.encodePacked("VOID_NONCE", address(this), block.chainid, nonce));
+            address recovered = Utils.recoverSigner(Utils.computeEthSignedHash(messageHash), signature);
+            if (recovered == address(0) || recovered != s.backendSigner) revert Events.InvalidSignature();
+        }
+
+        if (s.usedNonces[nonce]) revert Events.NonceAlreadyUsed();
+        s.usedNonces[nonce] = true;
+
+        emit Events.NonceVoided(nonce);
+    }
+
+    /// @notice Voids an unspent whitelist nonce on an operation's token, of which the factory is the owner.
+    function opLendVoidNonce(uint256 opId, string calldata nonce) external {
+        LibDiamond.enforceIsContractOwner();
+        AppStorage storage s = LibAppStorage.appStorage();
+
+        if (opId > s.operationCount) revert Events.OpNotExist();
+
+        LendOperation(s.operations[opId].opToken).voidNonce(nonce, "");
+    }
+
     function opLendUpdateBackendSigner(uint256 opId, address newSigner) external {
         LibDiamond.enforceIsContractOwner();
         AppStorage storage s = LibAppStorage.appStorage();

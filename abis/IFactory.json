@@ -616,6 +616,24 @@
   },
   {
     "type": "function",
+    "name": "opLendVoidNonce",
+    "inputs": [
+      {
+        "name": "opId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "nonce",
+        "type": "string",
+        "internalType": "string"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "opLendWhitelistUser",
     "inputs": [
       {
@@ -976,6 +994,24 @@
   },
   {
     "type": "function",
+    "name": "voidNonce",
+    "inputs": [
+      {
+        "name": "nonce",
+        "type": "string",
+        "internalType": "string"
+      },
+      {
+        "name": "signature",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "withdrawUsdc",
     "inputs": [
       {
@@ -1075,6 +1111,19 @@
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "NonceVoided",
+    "inputs": [
+      {
+        "name": "nonce",
+        "type": "string",
+        "indexed": false,
+        "internalType": "string"
       }
     ],
     "anonymous": false
@@ -1314,6 +1363,11 @@
   {
     "type": "error",
     "name": "InvalidSignatureLength",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "NonceAlreadyUsed",
     "inputs": []
   },
   {

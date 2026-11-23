@@ -12,9 +12,11 @@ contract OpLendWallet is Initializable, OwnableUpgradeable, UUPSUpgradeable {
     address internal backendSigner;
 
     error InvalidSignature();
+    error NonceAlreadyUsed();
 
     event Redeemed(uint256 indexed opId, address indexed user, uint256 opLendAmount);
     event AdminRedeemed(uint256 indexed opId, address indexed user, uint256 opLendAmount);
+    event NonceVoided(string nonce);
 
     mapping(string => bool) private usedNonces;
     mapping(uint256 => address) public opIdToAddress;
@@ -68,6 +70,26 @@ contract OpLendWallet is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         require(opLend.transfer(destination, amount), "Failed to transfer opLend");
 
         emit AdminRedeemed(opId, destination, amount);
+    }
+
+    /// @notice Burns an unspent `nonce` so the redeem signature carrying it can never be used.
+    /// @dev With a `signature`, callable by anyone: it must be the backend signer's over
+    ///      `"VOID_NONCE" ‖ wallet ‖ chainid ‖ nonce` (the original signature cannot be checked here: it binds fields
+    ///      this call does not take). With an empty `signature`, the caller must be the owner.
+    function voidNonce(string calldata nonce, bytes calldata signature) external {
+        if (signature.length == 0) {
+            _checkOwner();
+        } else {
+            bytes32 messageHash = keccak256(abi.encodePacked("VOID_NONCE", address(this), block.chainid, nonce));
+            bytes32 ethSignedMessageHash = keccak256(abi.encodePacked("\x19Ethereum Signed Message:\n32", messageHash));
+            address recovered = recoverSigner(ethSignedMessageHash, signature);
+            if (recovered == address(0) || recovered != backendSigner) revert InvalidSignature();
+        }
+
+        if (usedNonces[nonce]) revert NonceAlreadyUsed();
+        usedNonces[nonce] = true;
+
+        emit NonceVoided(nonce);
     }
 
     /**
