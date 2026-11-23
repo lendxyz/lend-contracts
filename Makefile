@@ -271,7 +271,6 @@ abi:
 	mkdir -p abis
 	forge inspect src/Factory/interfaces/IFactory.sol:ILendFactory abi --json > ./abis/IFactory.json
 	forge inspect src/opLend.sol:LendOperation abi --json > ./abis/opLend.json
-	forge inspect src/opLend.sol:LendOperation bytecode > ./abis/opLend-bytecode.txt
 	forge inspect src/Rewards.sol:LendRewards abi --json > ./abis/Rewards.json
 	forge inspect src/Restitution.sol:LendRestitution abi --json > ./abis/Restitution.json
 	forge inspect src/PriceOracle.sol:PriceOracle abi --json > ./abis/PriceOracle.json
