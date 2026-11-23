@@ -171,11 +171,6 @@ contract LendRewards is Initializable, OwnableUpgradeable, UUPSUpgradeable {
         emit RefRewardsDistributed(_epoch, _totalAllocation);
     }
 
-    function setRewardToken(address _newTokenAddress) public onlyOwner {
-        rewardToken = IERC20(_newTokenAddress);
-        emit RewardTokenUpdated(_newTokenAddress);
-    }
-
     function setAaveAddressProvider(address _newAddress) public onlyOwner {
         aaveAddressProvider = IPoolAddressesProvider(_newAddress);
     }
