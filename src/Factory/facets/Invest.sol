@@ -67,7 +67,7 @@ contract Invest {
         emit Events.Invested(msg.sender, id, usdValue, sharesAmount);
 
         if (s.fundingProgress[id] >= s.operations[id].totalShares) {
-            emit Events.OperationFinished(id, s.operations[id].totalShares * s.operations[id].eurPerShares);
+            emit Events.OperationFinished(id, (s.operations[id].totalShares * s.operations[id].eurPerShares) / 1e6);
         }
 
         return cost;
@@ -137,7 +137,7 @@ contract Invest {
         emit Events.InvestedFiat(user, opLendHolder, id, sharesAmount);
 
         if (s.fundingProgress[id] >= s.operations[id].totalShares) {
-            emit Events.OperationFinished(id, s.operations[id].totalShares * s.operations[id].eurPerShares);
+            emit Events.OperationFinished(id, (s.operations[id].totalShares * s.operations[id].eurPerShares) / 1e6);
         }
     }
 
