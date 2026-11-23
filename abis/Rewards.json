@@ -626,19 +626,6 @@
   },
   {
     "type": "function",
-    "name": "setRewardToken",
-    "inputs": [
-      {
-        "name": "_newTokenAddress",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "transferOwnership",
     "inputs": [
       {

@@ -18,6 +18,9 @@ interface ILendFactory {
     event InvestedFiat(
         address indexed investor, address indexed opLendDestination, uint256 indexed operationId, uint256 sharesBought
     );
+    event RefundedFiat(
+        address indexed investor, address indexed opLendHolder, uint256 indexed operationId, uint256 sharesRefunded
+    );
     event Invested(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
     );
@@ -37,11 +40,10 @@ interface ILendFactory {
     error InsufficientAllowance();
     error InvalidSignature();
     error TransferFailed();
-    error UserNotParticipated();
-    error NoOpLendBalance();
     error AlreadyWithdrawn();
     error InvalidSignatureLength();
-    error InsufficientOpUsdc();
+    error InsufficientEscrow();
+    error InsufficientShareBalance();
     error OpLendImplementationNotSet();
 
     struct Operation {
@@ -51,10 +53,19 @@ interface ILendFactory {
         string opName;
     }
 
+    struct RefundEntry {
+        address user;
+        uint256 sharesToBurn;
+        uint256 usdcToRefund;
+        uint256 eurcToRefund;
+    }
+
     // Admin facet
 
-    function refundUser(uint256 id, address user) external;
-    function batchRefundUsers(uint256 id, address[] calldata users, uint256 len) external;
+    function refundUser(uint256 id, address user, uint256 sharesToBurn, uint256 usdcToRefund, uint256 eurcToRefund)
+        external;
+    function batchRefundUsers(uint256 id, RefundEntry[] calldata entries) external;
+    function fiatRefund(uint256 id, address user, address opLendHolder, uint256 sharesAmount) external;
     function updateOracleAddress(address newOracleAddress) external;
     function setEurcAddress(address eurcAddress) external;
     function updateBackendSigner(address newBackendSigner) external;

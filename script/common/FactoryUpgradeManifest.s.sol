@@ -20,9 +20,19 @@ import {FactoryUpgrade} from "script/common/FactoryUpgrade.s.sol";
 ///         Empty it once the upgrade is executed: a stale declaration aborts the next upgrade (it is not in the diff).
 abstract contract FactoryUpgradeManifest is Constants {
     function manifest() internal pure returns (FactoryUpgrade.Manifest memory m) {
-        m.redeployedFacets = FactoryUpgrade.list("Getters", "Invest", "Operations");
+        m.redeployedFacets = new string[](4);
+        m.redeployedFacets[0] = "Admin";
+        m.redeployedFacets[1] = "Getters";
+        m.redeployedFacets[2] = "Invest";
+        m.redeployedFacets[3] = "Operations";
 
-        m.removedFunctions = new string[](10);
+        m.addedFunctions = FactoryUpgrade.list(
+            "refundUser(uint256,address,uint256,uint256,uint256)",
+            "batchRefundUsers(uint256,(address,uint256,uint256,uint256)[])",
+            "fiatRefund(uint256,address,address,uint256)"
+        );
+
+        m.removedFunctions = new string[](12);
         m.removedFunctions[0] = "predeposits(uint256,address)";
         m.removedFunctions[1] = "gifted(uint256,address)";
         m.removedFunctions[2] = "claimableTotal(uint256,address)";
@@ -33,5 +43,7 @@ abstract contract FactoryUpgradeManifest is Constants {
         m.removedFunctions[7] = "claimOpTokensAndBridge(uint256,uint32)";
         m.removedFunctions[8] = "claimOpTokensBatch(uint256,address[])";
         m.removedFunctions[9] = "setPredeposits(uint256,bool)";
+        m.removedFunctions[10] = "refundUser(uint256,address)";
+        m.removedFunctions[11] = "batchRefundUsers(uint256,address[],uint256)";
     }
 }

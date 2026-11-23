@@ -55,12 +55,17 @@ contract Operations {
         return s.operationStarted[id] && s.fundingProgress[id] >= s.operations[id].totalShares;
     }
 
+    /// @dev A finished operation cannot be canceled: it is settled, and refunds refuse it.
     function cancelOperation(uint256 id) external {
         LibDiamond.enforceIsContractOwner();
 
         AppStorage storage s = LibAppStorage.appStorage();
 
         if (id > s.operationCount) revert Events.OpNotExist();
+        if (s.operationStarted[id] && s.fundingProgress[id] >= s.operations[id].totalShares) {
+            revert Events.OpFinished();
+        }
+
         s.operationCanceled[id] = true;
 
         emit Events.OperationCanceled(id);

@@ -17,6 +17,9 @@ library Events {
     event InvestedFiat(
         address indexed investor, address indexed opLendDestination, uint256 indexed operationId, uint256 sharesBought
     );
+    event RefundedFiat(
+        address indexed investor, address indexed opLendHolder, uint256 indexed operationId, uint256 sharesRefunded
+    );
     event Invested(
         address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
     );
@@ -36,10 +39,9 @@ library Events {
     error InsufficientAllowance();
     error InvalidSignature();
     error TransferFailed();
-    error UserNotParticipated();
-    error NoOpLendBalance();
     error AlreadyWithdrawn();
     error InvalidSignatureLength();
-    error InsufficientOpUsdc();
+    error InsufficientEscrow();
+    error InsufficientShareBalance();
     error OpLendImplementationNotSet();
 }

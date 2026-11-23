@@ -160,18 +160,64 @@ contract FactoryTest is Test, TestBase {
         assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
 
         vm.prank(admin);
-        factory.refundUser(1, address(user));
+        factory.refundUser(1, address(user), sharesToBuy, cost, 0);
 
         assertEq(usdc.balanceOf(address(user)), initialUsdcBalance);
         assertEq(usdc.balanceOf(address(factory)), 0);
         assertEq(opLend.balanceOf(address(user)), 0);
         assertEq(factory.fundingProgress(1), 0);
-        assertEq(factory.usdcRaisedPerClient(1, address(user)), 0);
+        assertEq(factory.usdcRaised(1), 0);
+        // The per-client record keeps what was paid in.
+        assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
     }
 
-    function test_RefundOnlyFromUnwithdrawnUsdc() public {
+    function test_RefundAmountsAreDecidedByOwner() public {
+        LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
+        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
+
+        vm.startPrank(user);
+        uint256 cost = factory.getAmountIn(1, sharesToBuy);
+        usdc.approve(address(factory), cost);
+        factory.invest(1, sharesToBuy, testNonce, signature);
+        vm.stopPrank();
+
+        vm.prank(user);
+        vm.expectRevert();
+        factory.refundUser(1, address(user), sharesToBuy, cost, 0);
+
+        vm.startPrank(admin);
+        vm.expectRevert(ILendFactory.InputCannotBeZero.selector);
+        factory.refundUser(1, address(user), 0, 0, 0);
+
+        vm.expectRevert(ILendFactory.InsufficientShareBalance.selector);
+        factory.refundUser(1, address(user), sharesToBuy + 1, 0, 0);
+
+        // Shares only.
+        vm.expectEmit(address(factory));
+        emit ILendFactory.Refunded(address(user), 1, 0, sharesToBuy / 2);
+        factory.refundUser(1, address(user), sharesToBuy / 2, 0, 0);
+
+        assertEq(opLend.balanceOf(address(user)), sharesToBuy - sharesToBuy / 2);
+        assertEq(factory.fundingProgress(1), sharesToBuy - sharesToBuy / 2);
+        assertEq(usdc.balanceOf(address(user)), initialUsdcBalance - cost);
+        assertEq(factory.usdcRaised(1), cost);
+
+        // USDC only.
+        factory.refundUser(1, address(user), 0, cost, 0);
+        vm.stopPrank();
+
+        assertEq(opLend.balanceOf(address(user)), sharesToBuy - sharesToBuy / 2);
+        assertEq(usdc.balanceOf(address(user)), initialUsdcBalance);
+        assertEq(factory.usdcRaised(1), 0);
+        assertEq(factory.usdcRaisedPerClient(1, address(user)), cost);
+    }
+
+    function test_RefundPaidByOwnerWhenEscrowShort() public {
+        address treasury = makeAddr("treasury");
+        LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
         bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
         bytes memory signature2 = getMintSignature(address(user2), 1, sharesToBuy, testNonce2);
+        uint256 cost = factory.getAmountIn(1, sharesToBuy);
 
         vm.startPrank(user);
         usdc.approve(address(factory), UINT256_MAX);
@@ -179,26 +225,154 @@ contract FactoryTest is Test, TestBase {
         vm.stopPrank();
 
         vm.prank(admin);
-        factory.withdrawUsdc(1, admin);
+        factory.withdrawUsdc(1, treasury);
 
-        vm.prank(admin);
-        vm.expectRevert(ILendFactory.InsufficientOpUsdc.selector);
-        factory.refundUser(1, address(user));
+        // The escrow is empty: the owner pays, which needs its allowance and balance.
+        vm.startPrank(admin);
+        vm.expectRevert(ILendFactory.InsufficientAllowance.selector);
+        factory.refundUser(1, address(user), sharesToBuy, cost, 0);
 
+        usdc.approve(address(factory), UINT256_MAX);
+        vm.expectRevert(ILendFactory.InsufficientEscrow.selector);
+        factory.refundUser(1, address(user), sharesToBuy, initialUsdcBalance + 1, 0);
+
+        factory.refundUser(1, address(user), sharesToBuy, cost, 0);
+        vm.stopPrank();
+
+        assertEq(usdc.balanceOf(address(user)), initialUsdcBalance);
+        assertEq(usdc.balanceOf(address(admin)), initialUsdcBalance - cost);
+        assertEq(opLend.balanceOf(address(user)), 0);
+        assertEq(factory.fundingProgress(1), 0);
+        assertEq(factory.usdcRaised(1), cost);
+
+        // The escrow holds less than the refund: the owner pays all of it, the escrow nothing.
         vm.startPrank(user2);
         usdc.approve(address(factory), UINT256_MAX);
         factory.invest(1, sharesToBuy, testNonce2, signature2);
         vm.stopPrank();
 
         vm.prank(admin);
-        factory.refundUser(1, address(user2));
+        factory.refundUser(1, address(user2), sharesToBuy, cost + 1, 0);
 
+        assertEq(usdc.balanceOf(address(user2)), initialUsdcBalance + 1);
+        assertEq(usdc.balanceOf(address(admin)), initialUsdcBalance - 2 * cost - 1);
+        assertEq(usdc.balanceOf(address(factory)), cost);
+        assertEq(factory.usdcRaised(1), 2 * cost);
+
+        // An escrow covering the refund pays it.
+        vm.prank(admin);
+        factory.refundUser(1, address(user2), 0, cost, 0);
+
+        assertEq(usdc.balanceOf(address(admin)), initialUsdcBalance - 2 * cost - 1);
+        assertEq(usdc.balanceOf(address(factory)), 0);
+        assertEq(factory.usdcRaised(1), cost);
+    }
+
+    function test_BatchRefundUsers() public {
+        LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
+        bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
+        bytes memory signature2 = getMintSignature(address(user2), 1, sharesToBuy, testNonce2);
+        uint256 cost = factory.getAmountIn(1, sharesToBuy);
+
+        vm.startPrank(user);
+        usdc.approve(address(factory), cost);
+        factory.invest(1, sharesToBuy, testNonce, signature);
+        vm.stopPrank();
+        vm.startPrank(user2);
+        usdc.approve(address(factory), cost);
+        factory.invest(1, sharesToBuy, testNonce2, signature2);
+        vm.stopPrank();
+
+        ILendFactory.RefundEntry[] memory entries = new ILendFactory.RefundEntry[](2);
+        entries[0] = ILendFactory.RefundEntry(address(user), sharesToBuy, cost, 0);
+        entries[1] = ILendFactory.RefundEntry(address(user2), sharesToBuy + 1, cost, 0);
+
+        // One failing entry reverts the whole batch.
+        vm.prank(admin);
+        vm.expectRevert(ILendFactory.InsufficientShareBalance.selector);
+        factory.batchRefundUsers(1, entries);
+        assertEq(opLend.balanceOf(address(user)), sharesToBuy);
+
+        entries[1].sharesToBurn = sharesToBuy;
+        vm.prank(admin);
+        factory.batchRefundUsers(1, entries);
+
+        assertEq(usdc.balanceOf(address(user)), initialUsdcBalance);
         assertEq(usdc.balanceOf(address(user2)), initialUsdcBalance);
+        assertEq(opLend.balanceOf(address(user)), 0);
+        assertEq(opLend.balanceOf(address(user2)), 0);
+        assertEq(factory.fundingProgress(1), 0);
+        assertEq(factory.usdcRaised(1), 0);
+    }
+
+    function test_FiatRefund() public {
+        LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
+        uint256 bought = 2 * sharesToBuy;
+        bytes memory signature = getMintSignatureFiat(address(user2), address(user3), 1, bought, testNonce);
+
+        factory.fiatInvest(1, bought, address(user2), address(user3), testNonce, signature);
+
+        vm.prank(user);
+        vm.expectRevert();
+        factory.fiatRefund(1, address(user2), address(user3), sharesToBuy);
+
+        vm.startPrank(admin);
+        vm.expectRevert(ILendFactory.ZeroShares.selector);
+        factory.fiatRefund(1, address(user2), address(user3), 0);
+
+        vm.expectRevert(ILendFactory.InsufficientShareBalance.selector);
+        factory.fiatRefund(1, address(user2), address(user3), bought + 1);
+
+        vm.expectEmit(address(factory));
+        emit ILendFactory.Refunded(address(user2), 1, 0, sharesToBuy);
+        vm.expectEmit(address(factory));
+        emit ILendFactory.RefundedFiat(address(user2), address(user3), 1, sharesToBuy);
+        factory.fiatRefund(1, address(user2), address(user3), sharesToBuy);
+        vm.stopPrank();
+
+        assertEq(opLend.balanceOf(address(user3)), bought - sharesToBuy);
+        assertEq(factory.fundingProgress(1), bought - sharesToBuy);
         assertEq(usdc.balanceOf(address(factory)), 0);
 
+        // The refunded shares are back on sale: selling the rest finishes the operation, which is then not refunded.
+        uint256 rest = totalSharesAmount - (bought - sharesToBuy);
+        bytes memory signature2 = getMintSignatureFiat(address(user2), address(user3), 1, rest, testNonce2);
+        factory.fiatInvest(1, rest, address(user2), address(user3), testNonce2, signature2);
+        assertEq(factory.isOperationFinished(1), true);
+
         vm.prank(admin);
-        vm.expectRevert(ILendFactory.AlreadyWithdrawn.selector);
-        factory.withdrawUsdc(1, admin);
+        vm.expectRevert(ILendFactory.OpFinished.selector);
+        factory.fiatRefund(1, address(user2), address(user3), sharesToBuy);
+    }
+
+    function test_FinishedOperationCannotBeRefundedOrCanceled() public {
+        LendOperation opLend = LendOperation(factory.getOperation(1).opToken);
+        bytes memory signature = getMintSignature(address(user), 1, totalSharesAmount, testNonce);
+        uint256 cost = factory.getAmountIn(1, totalSharesAmount);
+
+        vm.startPrank(user);
+        usdc.approve(address(factory), cost);
+        factory.invest(1, totalSharesAmount, testNonce, signature);
+        vm.stopPrank();
+        assertEq(factory.isOperationFinished(1), true);
+
+        ILendFactory.RefundEntry[] memory entries = new ILendFactory.RefundEntry[](1);
+        entries[0] = ILendFactory.RefundEntry(address(user), totalSharesAmount, cost, 0);
+
+        vm.startPrank(admin);
+        vm.expectRevert(ILendFactory.OpFinished.selector);
+        factory.refundUser(1, address(user), totalSharesAmount, cost, 0);
+        vm.expectRevert(ILendFactory.OpFinished.selector);
+        factory.batchRefundUsers(1, entries);
+        vm.expectRevert(ILendFactory.OpFinished.selector);
+        factory.cancelOperation(1);
+        vm.stopPrank();
+
+        assertEq(factory.operationCanceled(1), false);
+        assertEq(opLend.balanceOf(address(user)), totalSharesAmount);
+        assertEq(usdc.balanceOf(address(user)), initialUsdcBalance - cost);
+        assertEq(factory.fundingProgress(1), totalSharesAmount);
+        assertEq(factory.usdcRaised(1), cost);
     }
 
     function test_OpFinished() public {
@@ -363,7 +537,7 @@ contract FactoryTest is Test, TestBase {
         vm.prank(admin);
         vm.expectEmit(address(factory));
         emit ILendFactory.Refunded(address(user), 1, usdcCost + eurcUsdValue, sharesToBuy * 2);
-        factory.refundUser(1, address(user));
+        factory.refundUser(1, address(user), sharesToBuy * 2, usdcCost, eurcCost);
 
         assertEq(usdc.balanceOf(address(user)), initialUsdcBalance);
         assertEq(eurc.balanceOf(address(user)), initialUsdcBalance);
@@ -373,14 +547,16 @@ contract FactoryTest is Test, TestBase {
         assertEq(factory.fundingProgress(1), 0);
         assertEq(factory.usdcRaised(1), 0);
         assertEq(factory.eurcRaised(1), 0);
-        assertEq(factory.usdcRaisedPerClient(1, address(user)), 0);
-        assertEq(factory.eurcRaisedPerClient(1, address(user)), 0);
+        assertEq(factory.usdcRaisedPerClient(1, address(user)), usdcCost);
+        assertEq(factory.eurcRaisedPerClient(1, address(user)), eurcCost);
     }
 
-    function test_RefundOnlyFromUnwithdrawnTokens() public {
+    function test_RefundEachCoinFromEscrowOrOwner() public {
         mintEurc();
         bytes memory signature = getMintSignature(address(user), 1, sharesToBuy, testNonce);
-        bytes memory signature2 = getMintSignature(address(user2), 1, sharesToBuy, testNonce2);
+        bytes memory signature2 = getMintSignature(address(user), 1, sharesToBuy, testNonce2);
+        uint256 usdcCost = factory.getAmountIn(1, sharesToBuy);
+        uint256 eurcCost = factory.getAmountInEur(1, sharesToBuy);
 
         vm.startPrank(user);
         usdc.approve(address(factory), UINT256_MAX);
@@ -388,23 +564,25 @@ contract FactoryTest is Test, TestBase {
         vm.stopPrank();
 
         vm.prank(admin);
-        factory.withdrawUsdc(1, admin);
+        factory.withdrawUsdc(1, makeAddr("treasury"));
 
-        // EURC raised after the USDC withdrawal is still refundable.
-        vm.startPrank(user2);
+        // EURC raised after the withdrawal is still in escrow; the withdrawn USDC is paid by the owner.
+        vm.startPrank(user);
         eurc.approve(address(factory), UINT256_MAX);
         factory.investEur(1, sharesToBuy, testNonce2, signature2);
         vm.stopPrank();
 
-        vm.prank(admin);
-        vm.expectRevert(ILendFactory.InsufficientOpUsdc.selector);
-        factory.refundUser(1, address(user));
+        vm.startPrank(admin);
+        usdc.approve(address(factory), UINT256_MAX);
+        factory.refundUser(1, address(user), sharesToBuy * 2, usdcCost, eurcCost);
+        vm.stopPrank();
 
-        vm.prank(admin);
-        factory.refundUser(1, address(user2));
-
-        assertEq(eurc.balanceOf(address(user2)), initialUsdcBalance);
+        assertEq(usdc.balanceOf(address(user)), initialUsdcBalance);
+        assertEq(eurc.balanceOf(address(user)), initialUsdcBalance);
+        assertEq(usdc.balanceOf(address(admin)), initialUsdcBalance - usdcCost);
+        assertEq(eurc.balanceOf(address(admin)), initialUsdcBalance);
         assertEq(eurc.balanceOf(address(factory)), 0);
+        assertEq(factory.usdcRaised(1), usdcCost);
         assertEq(factory.eurcRaised(1), 0);
     }
 

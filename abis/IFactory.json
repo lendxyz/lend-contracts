@@ -9,14 +9,31 @@
         "internalType": "uint256"
       },
       {
-        "name": "users",
-        "type": "address[]",
-        "internalType": "address[]"
-      },
-      {
-        "name": "len",
-        "type": "uint256",
-        "internalType": "uint256"
+        "name": "entries",
+        "type": "tuple[]",
+        "internalType": "struct ILendFactory.RefundEntry[]",
+        "components": [
+          {
+            "name": "user",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "sharesToBurn",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "usdcToRefund",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "eurcToRefund",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
       }
     ],
     "outputs": [],
@@ -218,6 +235,34 @@
         "name": "signature",
         "type": "bytes",
         "internalType": "bytes"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "fiatRefund",
+    "inputs": [
+      {
+        "name": "id",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "opLendHolder",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "sharesAmount",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [],
@@ -728,6 +773,21 @@
         "name": "user",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "sharesToBurn",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "usdcToRefund",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "eurcToRefund",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [],
@@ -1191,6 +1251,37 @@
     "anonymous": false
   },
   {
+    "type": "event",
+    "name": "RefundedFiat",
+    "inputs": [
+      {
+        "name": "investor",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "opLendHolder",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "operationId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "sharesRefunded",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
     "type": "error",
     "name": "AlreadyWithdrawn",
     "inputs": []
@@ -1207,7 +1298,12 @@
   },
   {
     "type": "error",
-    "name": "InsufficientOpUsdc",
+    "name": "InsufficientEscrow",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InsufficientShareBalance",
     "inputs": []
   },
   {
@@ -1218,11 +1314,6 @@
   {
     "type": "error",
     "name": "InvalidSignatureLength",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "NoOpLendBalance",
     "inputs": []
   },
   {
@@ -1273,11 +1364,6 @@
   {
     "type": "error",
     "name": "UserBlacklisted",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "UserNotParticipated",
     "inputs": []
   },
   {
