@@ -22,7 +22,11 @@ interface ILendFactory {
         address indexed investor, address indexed opLendHolder, uint256 indexed operationId, uint256 sharesRefunded
     );
     event Invested(
-        address indexed investor, uint256 indexed operationId, uint256 indexed usdcAmount, uint256 sharesBought
+        address indexed investor,
+        uint256 indexed operationId,
+        address indexed asset,
+        uint256 usdcAmount,
+        uint256 sharesBought
     );
     event OpLendImplementationUpdated(address indexed implementation);
     event FundingWithdrawn(uint256 indexed operationId, uint256 usdcAmount, uint256 eurcAmount);

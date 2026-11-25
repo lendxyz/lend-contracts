@@ -64,7 +64,9 @@ contract Invest {
             require(s.usdc.transferFrom(msg.sender, address(this), cost), Events.TransferFailed());
         }
 
-        emit Events.Invested(msg.sender, id, usdValue, sharesAmount);
+        address asset = payInEurc ? address(s.eurc) : address(s.usdc);
+
+        emit Events.Invested(msg.sender, id, asset, usdValue, sharesAmount);
 
         if (s.fundingProgress[id] >= s.operations[id].totalShares) {
             emit Events.OperationFinished(id, (s.operations[id].totalShares * s.operations[id].eurPerShares) / 1e6);
@@ -134,7 +136,7 @@ contract Invest {
         LendOperation(s.operations[id].opToken).mint(opLendHolder, sharesAmount);
         LendOperation(s.operations[id].opToken).whitelistUserAdmin(user, true);
 
-        emit Events.Invested(user, id, cost, sharesAmount);
+        emit Events.Invested(user, id, address(0), cost, sharesAmount);
         emit Events.InvestedFiat(user, opLendHolder, id, sharesAmount);
 
         if (s.fundingProgress[id] >= s.operations[id].totalShares) {

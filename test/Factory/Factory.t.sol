@@ -54,6 +54,9 @@ contract FactoryTest is Test, TestBase {
 
         uint256 cost = factory.getAmountIn(1, sharesToBuy);
         usdc.approve(address(factory), cost);
+
+        vm.expectEmit(address(factory));
+        emit ILendFactory.Invested(address(user), 1, address(usdc), cost, sharesToBuy);
         factory.invest(1, sharesToBuy, testNonce, signature);
 
         vm.stopPrank();
@@ -78,6 +81,8 @@ contract FactoryTest is Test, TestBase {
         vm.stopPrank();
 
         vm.startPrank(user2);
+        vm.expectEmit(address(factory));
+        emit ILendFactory.Invested(address(user2), 1, address(0), cost, sharesToBuy);
         factory.fiatInvest(1, sharesToBuy, address(user2), address(user3), testNonce2, signatureFiat);
         vm.stopPrank();
 
@@ -552,7 +557,7 @@ contract FactoryTest is Test, TestBase {
         eurc.approve(address(factory), eurcCost);
 
         vm.expectEmit(address(factory));
-        emit ILendFactory.Invested(address(user), 1, usdValue, sharesToBuy);
+        emit ILendFactory.Invested(address(user), 1, address(eurc), usdValue, sharesToBuy);
         factory.investEur(1, sharesToBuy, testNonce, signature);
         vm.stopPrank();
 
@@ -594,7 +599,7 @@ contract FactoryTest is Test, TestBase {
 
         uint256 usdValue = factory.getAmountIn(1, sharesToBuy);
         vm.expectEmit(address(factory));
-        emit ILendFactory.Invested(address(user), 1, usdValue, sharesToBuy);
+        emit ILendFactory.Invested(address(user), 1, address(eurc), usdValue, sharesToBuy);
         factory.investEurAndBridge{value: fees.nativeFee}(1, sharesToBuy, testNonce, signature, 30110);
 
         vm.stopPrank();
